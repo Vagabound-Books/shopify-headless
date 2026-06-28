@@ -1,0 +1,70 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { shopifyFetchServer } from '../../lib/shopify';
+import { GET_COLLECTION_BY_HANDLE } from '../../lib/queries';
+
+const { handle } = Astro.params;
+
+if (!handle) {
+  return Astro.redirect('/404');
+}
+
+const data = await shopifyFetchServer({
+  query: GET_COLLECTION_BY_HANDLE,
+  variables: { handle, first: 24 },
+}).catch(() => null);
+
+const collection = data?.collection;
+
+if (!collection) {
+  return Astro.redirect('/404');
+}
+
+const products = (collection.products?.edges || []).map((e: any) => e.node);
+---
+
+<Layout title={collection.title}>
+  <Header slot="header" />
+
+  <div class="vb-container">
+    <div class="vb-coll-head">
+      <div class="vb-coll-head__top">
+        <div class="vb-coll-head__title">
+          <div class="vb-coll-head__crumb">
+            <a href="/">Shop</a>
+            <span class="sep">/</span>
+            <span class="now">{collection.title}</span>
+          </div>
+          <h1>{collection.title}</h1>
+        </div>
+        <div class="vb-coll-head__meta">
+          <span class="count">{products.length}</span>
+          <span>books</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vb-container">
+    <div class="vb-coll" style="grid-template-columns: 1fr;">
+      <div class="vb-coll__main">
+        <div class="vb-coll__bar">
+          <div class="left">
+            Showing <strong>{products.length}</strong> books
+          </div>
+        </div>
+
+        <div class="vb-shelf">
+          {products.map((product: any) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>

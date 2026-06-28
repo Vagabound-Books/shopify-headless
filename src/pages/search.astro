@@ -1,0 +1,81 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { shopifyFetchServer } from '../../lib/shopify';
+import { SEARCH_PRODUCTS } from '../../lib/queries';
+
+const query = Astro.url.searchParams.get('q') || '';
+
+let products: any[] = [];
+
+if (query) {
+  const data = await shopifyFetchServer({
+    query: SEARCH_PRODUCTS,
+    variables: { query, first: 24 },
+  }).catch(() => null);
+
+  products = (data?.search?.edges || [])
+    .map((e: any) => e.node)
+    .filter((n: any) => n?.__typename === 'Product');
+}
+---
+
+<Layout title={query ? `Search: ${query}` : 'Search'}>
+  <Header slot="header" />
+
+  <div class="vb-container">
+    <div class="vb-coll-head">
+      <div class="vb-coll-head__top">
+        <div class="vb-coll-head__title">
+          <div class="vb-coll-head__crumb">
+            <a href="/">Shop</a>
+            <span class="sep">/</span>
+            <span class="now">Search</span>
+          </div>
+          <h1>Search the shelves</h1>
+          {query && (
+            <p class="vb-coll-head__lead">Results for "{query}"</p>
+          )}
+        </div>
+        {query && (
+          <div class="vb-coll-head__meta">
+            <span class="count">{products.length}</span>
+            <span>results found</span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <div class="vb-container">
+    <div class="vb-coll" style="grid-template-columns: 1fr;">
+      <div class="vb-coll__main">
+        <div class="vb-coll__bar">
+          <div class="left">
+            {query ? (
+              <>Showing <strong>{products.length}</strong> results</>
+            ) : (
+              <>Enter a search term above</>
+            )}
+          </div>
+        </div>
+
+        {query && products.length === 0 && (
+          <p style="color: var(--ink-soft);">No results found for "{query}".</p>
+        )}
+
+        {products.length > 0 && (
+          <div class="vb-shelf">
+            {products.map((product: any) => (
+              <ProductCard product={product} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>

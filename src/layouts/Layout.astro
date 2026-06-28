@@ -1,0 +1,159 @@
+---
+import 'dotenv/config';
+import CartDrawer from '../components/CartDrawer.tsx';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+const { title, description, image } = Astro.props;
+const siteTitle = title ? `Vagabound — ${title}` : 'Vagabound — a home for migratory words';
+
+const shopifyClientConfig = JSON.stringify({
+  storeDomain: process.env.SHOPIFY_STORE_DOMAIN || '',
+  storefrontAccessToken: process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || '',
+  apiVersion: process.env.SHOPIFY_API_VERSION || '2024-07',
+});
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{siteTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- Adobe Fonts -->
+    <link rel="stylesheet" href="https://use.typekit.net/qbg0hqo.css">
+
+    <!-- Google Fonts fallback -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Nunito:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <style is:global>
+      @import '../styles/theme.css';
+      @import '../styles/swish-theme.css';
+    </style>
+
+    <!-- Shopify client config -->
+    <script is:inline set:html={`window.__SHOPIFY_CONFIG__ = ${shopifyClientConfig};`} />
+  </head>
+
+  <body>
+    <slot name="header" />
+    <CartDrawer client:idle />
+
+    <main class="vb-main">
+      <slot />
+    </main>
+
+    <slot name="footer" />
+
+    <button type="button" class="vb-back-to-top js-back-to-top" aria-label="Back to top">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+
+    <script is:inline>
+      // Mobile menu toggle
+      (function() {
+        const toggle = document.querySelector('.js-mobile-toggle');
+        const close = document.querySelector('.js-mobile-close');
+        const nav = document.querySelector('.js-mobile-nav');
+        if (!toggle || !nav) return;
+        toggle.addEventListener('click', function() {
+          document.body.classList.toggle('is-mobile-nav-open');
+        });
+        if (close) {
+          close.addEventListener('click', function() {
+            document.body.classList.remove('is-mobile-nav-open');
+          });
+        }
+        nav.querySelectorAll('a').forEach(function(link) {
+          link.addEventListener('click', function() {
+            document.body.classList.remove('is-mobile-nav-open');
+          });
+        });
+      })();
+
+      // Back to top
+      (function() {
+        const btn = document.querySelector('.js-back-to-top');
+        if (!btn) return;
+        function toggle() {
+          btn.classList.toggle('is-visible', window.scrollY > 400);
+        }
+        window.addEventListener('scroll', toggle, { passive: true });
+        btn.addEventListener('click', function() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        toggle();
+      })();
+
+      // Drag-to-scroll for horizontal rows
+      (function() {
+        document.querySelectorAll('.vb-scroll-row').forEach(function(row) {
+          var isDown = false;
+          var startX;
+          var scrollLeft;
+
+          function isScrollable() {
+            return getComputedStyle(row).overflowX === 'auto';
+          }
+
+          row.addEventListener('mousedown', function(e) {
+            if (!isScrollable()) return;
+            isDown = true;
+            row.classList.add('is-dragging');
+            startX = e.pageX - row.offsetLeft;
+            scrollLeft = row.scrollLeft;
+          });
+
+          row.addEventListener('mouseleave', function() {
+            isDown = false;
+            row.classList.remove('is-dragging');
+          });
+
+          row.addEventListener('mouseup', function() {
+            isDown = false;
+            row.classList.remove('is-dragging');
+          });
+
+          row.addEventListener('mousemove', function(e) {
+            if (!isDown) return;
+            e.preventDefault();
+            var x = e.pageX - row.offsetLeft;
+            var walk = (x - startX) * 1.5;
+            row.scrollLeft = scrollLeft - walk;
+          });
+        });
+      })();
+
+      // Scroll row navigation buttons
+      (function() {
+        function scrollRow(btn, direction) {
+          var section = btn.closest('section');
+          if (!section) return;
+          var row = section.querySelector('.js-scroll-row');
+          if (!row) return;
+          var card = row.querySelector('.vb-scroll-card');
+          var amount = card ? (card.offsetWidth + 20) : 200;
+          row.scrollBy({ left: direction * amount, behavior: 'smooth' });
+        }
+
+        document.querySelectorAll('.js-scroll-prev').forEach(function(btn) {
+          btn.addEventListener('click', function() { scrollRow(btn, -1); });
+        });
+
+        document.querySelectorAll('.js-scroll-next').forEach(function(btn) {
+          btn.addEventListener('click', function() { scrollRow(btn, 1); });
+        });
+      })();
+    </script>
+  </body>
+</html>

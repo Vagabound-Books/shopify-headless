@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="Page not found">
+  <Header slot="header" />
+
+  <div class="vb-container" style="text-align: center; padding: 120px 24px;">
+    <h1 style="font-family: var(--font-display); font-size: clamp(3rem, 8vw, 6rem); margin: 0 0 16px; line-height: 1;">404</h1>
+    <p style="color: var(--ink-soft); font-size: var(--type-lg); margin: 0 0 32px;">This page has wandered off.</p>
+    <a href="/" class="vb-btn vb-btn--primary">Return to the shop</a>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>

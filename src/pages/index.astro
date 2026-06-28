@@ -1,0 +1,284 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { shopifyFetchServer } from '../lib/shopify';
+import { GET_BLOG_BY_HANDLE, GET_COLLECTION_BY_HANDLE, GET_COLLECTIONS } from '../lib/queries';
+import { parseMetafields } from '../lib/metafields';
+import { formatMoney } from '../lib/money';
+
+// Fetch latest field notes article
+const blogData = await shopifyFetchServer({
+  query: GET_BLOG_BY_HANDLE,
+  variables: { handle: 'field-notes', first: 1 },
+}).catch(() => null);
+
+const latestArticle = blogData?.blog?.articles?.edges?.[0]?.node;
+
+// Fetch collections for spine row
+const collectionsData = await shopifyFetchServer({
+  query: GET_COLLECTIONS,
+  variables: { first: 20 },
+}).catch(() => null);
+
+const collections = (collectionsData?.collections?.edges || [])
+  .map((e: any) => e.node)
+  .filter((c: any) => c.handle !== 'frontpage');
+
+// Fetch inventory collection for new arrivals
+const inventoryData = await shopifyFetchServer({
+  query: GET_COLLECTION_BY_HANDLE,
+  variables: { handle: 'inventory', first: 20 },
+}).catch(() => null);
+
+const inventoryProducts = (inventoryData?.collection?.products?.edges || [])
+  .map((e: any) => e.node);
+
+// Determine volume number
+let volumeNumber = 'I';
+if (latestArticle) {
+  const volMeta = latestArticle.metafields?.find((m: any) => m?.key === 'volume');
+  if (volMeta?.value) {
+    volumeNumber = volMeta.value;
+  }
+}
+
+// Hero books: related books from article, or inventory products
+let heroBooks: any[] = [];
+if (latestArticle) {
+  const relatedMeta = latestArticle.metafields?.find((m: any) => m?.key === 'related_books');
+  if (relatedMeta?.value) {
+    try {
+      const relatedHandles = JSON.parse(relatedMeta.value);
+      // We'll need to fetch these products individually or just use inventory
+      // For now, fallback to inventory products
+      heroBooks = inventoryProducts.slice(0, 3);
+    } catch {
+      heroBooks = inventoryProducts.slice(0, 3);
+    }
+  } else {
+    heroBooks = inventoryProducts.slice(0, 3);
+  }
+} else {
+  heroBooks = inventoryProducts.slice(0, 3);
+}
+
+const publishDate = latestArticle
+  ? new Date(latestArticle.publishedAt).toLocaleDateString('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  : 'Friday, 22 May 2026';
+
+function getExcerpt(article: any): string {
+  if (article.excerptHtml) {
+    return article.excerptHtml.replace(/<[^>]+>/g, '').split(' ').slice(0, 40).join(' ') + '…';
+  }
+  const firstPara = article.contentHtml?.split('</p>')[0]?.replace(/<[^>]+>/g, '').trim() || '';
+  return firstPara.split(' ').slice(0, 40).join(' ') + '…';
+}
+---
+
+<Layout title="A home for migratory words">
+  <Header slot="header" />
+
+  <div class="vb-container">
+    <section class="vb-hero">
+      <div class="vb-hero__left">
+        <div class="vb-hero__meta">
+          <span class="stamp">Field Notes — Volume {volumeNumber}</span>
+          <span>{publishDate}</span>
+        </div>
+        {latestArticle ? (
+          <>
+            <h1>{latestArticle.title}</h1>
+            <p class="lead">{getExcerpt(latestArticle)}</p>
+            <div class="vb-hero__actions">
+              <a href={`/blogs/field-notes/${latestArticle.handle}`} class="vb-btn vb-btn--ghost">Read this week's Field Note →</a>
+            </div>
+          </>
+        ) : (
+          <>
+            <h1>A small selection, <em>arriving Friday.</em></h1>
+            <p class="lead">Sixteen titles drawn this week from a Pittsburgh estate of unrepentant readers. Each has been sleeved, cleaned, and described plainly. Quiet shelf-wear is not a flaw; it is provenance.</p>
+            <div class="vb-hero__actions">
+              <a href="/blogs/field-notes" class="vb-btn vb-btn--ghost">Read Field Notes →</a>
+            </div>
+          </>
+        )}
+      </div>
+
+      <div class="vb-hero__shelf">
+        <div class="vb-hero__shelf-head">
+          <span class="lbl">— This week's shelf</span>
+          <span class="vol">Vol. {volumeNumber}</span>
+        </div>
+        <div class="vb-hero__shelf-stage">
+          {heroBooks.map((book) => {
+            const mf = parseMetafields(book.metafields);
+            return (
+              <a href={`/products/${book.handle}`} class="vb-hero__book">
+                {book.featuredImage ? (
+                  <img
+                    src={book.featuredImage.url}
+                    alt={book.featuredImage.altText || book.title}
+                    loading="eager"
+                    width="180"
+                    height="260"
+                    style="aspect-ratio: 5/7.2; object-fit: cover; border-radius: var(--radius-sm); box-shadow: 0 6px 18px -4px rgba(0,0,0,0.25);"
+                  />
+                ) : (
+                  <div class={`vb-cover vb-cover--${mf.cover_palette || 'marginalia'}`} style="height: 260px;">
+                    <div class="vb-cover__head"><span class="lbl">{mf.genre || 'Fiction'}</span></div>
+                    <div>
+                      <div class="vb-cover__title">{book.title}</div>
+                      <div class="vb-cover__rule"></div>
+                      <div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}</div>
+                    </div>
+                  </div>
+                )}
+                <div class="vb-hero__book-meta">
+                  <span class="vb-hero__book-title">{book.title}</span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  {/* Spine row */}
+  <section class="vb-section vb-section--deep full-width">
+    <div class="vb-container" style="padding-bottom: 24px;">
+      <div class="vb-sec-head" style="margin-bottom: 0;">
+        <div class="vb-sec-head__left">
+          <div class="vb-eyebrow vb-eyebrow--gilt">Shelves</div>
+          <h2 style="font-family: var(--font-display); font-size: clamp(36px, 4.5vw, 64px); font-weight: 600; letter-spacing: -0.025em; line-height: 0.96; margin: 16px 0 0; color: var(--paper);">
+            On the shelves
+          </h2>
+        </div>
+        <div class="vb-sec-head__right" style="color: var(--paper-deep);">
+          <span>{collections.length} shelves · No 2 books alike</span>
+        </div>
+      </div>
+    </div>
+    <div class="vb-spine-row full-width">
+      <div class="vb-spine-row__inner vb-no-scrollbar">
+        {collections.map((collection: any, index: number) => {
+          const num = String(index + 1).padStart(2, '0');
+          const abbr = collection.handle.slice(0, 3).toUpperCase();
+          return (
+            <a href={`/collections/${collection.handle}`} class={`vb-spine vb-spine--${(index % 8) + 1}`} title={collection.title}>
+              <span class="vb-spine__meta">№ {num}</span>
+              <span class="vb-spine__name">{collection.title}</span>
+              <span class="vb-spine__meta">{abbr}</span>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  {/* New arrivals */}
+  <section class="vb-container vb-section vb-section--tight">
+    <div class="vb-sec-head" style="margin-bottom: 28px;">
+      <div class="vb-sec-head__left">
+        <div class="vb-eyebrow">New arrivals</div>
+        <h2>Recently catalogued</h2>
+      </div>
+      <div class="vb-sec-head__right">
+        <a href="/collections/inventory" class="vb-link">Browse full inventory →</a>
+        <div class="vb-scroll-nav">
+          <button type="button" class="vb-scroll-nav__btn js-scroll-prev" aria-label="Scroll left">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button type="button" class="vb-scroll-nav__btn js-scroll-next" aria-label="Scroll right">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="vb-scroll-row vb-no-scrollbar js-scroll-row">
+      {inventoryProducts.map((book: any) => {
+        const mf = parseMetafields(book.metafields);
+        const price = book.priceRange?.minVariantPrice;
+        return (
+          <a href={`/products/${book.handle}`} class="vb-scroll-card">
+            <div class="vb-scroll-card__cover">
+              {book.featuredImage ? (
+                <img
+                  src={book.featuredImage.url}
+                  alt={book.featuredImage.altText || book.title}
+                  loading="lazy"
+                  width="160"
+                  height="224"
+                  style="aspect-ratio: 5/7; object-fit: cover; border-radius: var(--radius-sm);"
+                />
+              ) : (
+                <div class={`vb-cover vb-cover--${mf.cover_palette || 'marginalia'}`} style="height: 224px;">
+                  <div class="vb-cover__head"><span class="lbl">{mf.genre || 'Fiction'}</span></div>
+                  <div>
+                    <div class="vb-cover__title">{book.title}</div>
+                    <div class="vb-cover__rule"></div>
+                    <div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}</div>
+                  </div>
+                </div>
+              )}
+              {price && (
+                <span class="vb-scroll-card__price-badge">{formatMoney(price.amount, price.currencyCode)}</span>
+              )}
+            </div>
+            <div class="vb-scroll-card__body">
+              <div class="vb-scroll-card__title">{book.title}</div>
+              <div class="vb-scroll-card__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}</div>
+            </div>
+          </a>
+        );
+      })}
+      <a href="/collections/inventory" class="vb-scroll-card vb-scroll-card--more">
+        <div class="vb-scroll-card__cover vb-scroll-card__cover--more">
+          <span>Browse More</span>
+        </div>
+        <div class="vb-scroll-card__body">
+          <div class="vb-scroll-card__title">Full inventory</div>
+          <div class="vb-scroll-card__author">&nbsp;</div>
+          <div class="vb-scroll-card__price">→</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  {/* Sell to us */}
+  <section class="vb-section vb-section--deep full-width" id="sell-to-us">
+    <div class="vb-container">
+      <div class="vb-sell">
+        <div>
+          <div class="vb-eyebrow vb-eyebrow--gilt">We Travel To You</div>
+          <h2>Selling a collection?</h2>
+          <p>We're a small shop, but we'll come for the right shelf. Send us a list — or just a sense of what's there — and we'll write back within two business days.</p>
+          <ol class="vb-sell__list">
+            <li><span class="n">1</span><span>Send us a rough list — even one line is fine.</span></li>
+            <li><span class="n">2</span><span>We write back within two business days with a sense of what we're interested in.</span></li>
+            <li><span class="n">3</span><span>If it's a fit, we drive to you — Pittsburgh, the boroughs, within two hours' drive.</span></li>
+            <li><span class="n">4</span><span>Cash, store credit, or a mixture. We sort the keep-or-pass pile with you.</span></li>
+          </ol>
+        </div>
+
+        <form class="vb-sell__form js-contact-form" action="/api/contact" method="POST">
+          <h4>A note about your shelf</h4>
+          <p>Tell us what you got.</p>
+          <input class="vb-input" type="text" name="name" aria-label="Your name" placeholder="Your name" required>
+          <input class="vb-input" type="email" name="email" aria-label="Email" placeholder="Email" required>
+          <input class="vb-input" type="text" name="zip" aria-label="Zip code" placeholder="Zip code (so we know how far)">
+          <textarea class="vb-textarea" name="message" aria-label="Message" placeholder="Roughly how many books? Any names that come to mind?" rows="4" required></textarea>
+          <button class="vb-btn vb-btn--gilt" type="submit">Get in touch</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <Footer slot="footer" />
+</Layout>

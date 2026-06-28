@@ -1,0 +1,93 @@
+---
+---
+
+<footer class="vb-footer full-width">
+  <div class="vb-footer__inner">
+    <div class="vb-footer__grid">
+      <div class="vb-footer__brand">
+        <img src="/assets/vagabound-logo.svg" alt="" class="vb-brand__mark" width="80" height="80">
+        <div class="name">Vagabound</div>
+        <p>A home for migratory words.</p>
+      </div>
+
+      <div class="vb-footer__col">
+        <h6>The Shop</h6>
+        <ul>
+          <li><a href="/collections">All shelves</a></li>
+          <li><a href="/blogs/field-notes">Field Notes</a></li>
+          <li><a href="/#sell-to-us">Sell to us</a></li>
+          <li><a href="/pages/visit">Visit &amp; hours</a></li>
+          <li><a href="/products/gift-card">Gift cards</a></li>
+        </ul>
+      </div>
+
+      <div class="vb-footer__col">
+        <h6>The Fine Print</h6>
+        <ul>
+          <li><a href="/pages/privacy">Privacy</a></li>
+          <li><a href="/pages/terms">Terms</a></li>
+        </ul>
+      </div>
+
+      <div class="vb-footer__col">
+        <h6>Wandering Mail</h6>
+        <div class="vb-footer__newsletter">
+          <p>A short occasional letter. New arrivals, store news, and a closing paragraph that may or may not be on-topic.</p>
+          <form class="newsletter-form js-newsletter-form" action="#">
+            <input type="email" id="footer-email" name="email" placeholder="your.address@example.com" aria-label="Email address" required class="vb-input">
+            <button type="submit" class="vb-btn vb-btn--primary vb-btn--sm">Subscribe</button>
+          </form>
+          <span class="small">Unsubscribe in one click.</span>
+        </div>
+
+        <div style="margin-top: 28px;">
+          <h6 style="margin: 0 0 12px;">The Shop</h6>
+          <div class="vb-footer__hours">
+            <span class="open">Always Online.</span>
+            <br>Sometimes itinerant.
+            <br>Pittsburgh, Penna
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vb-footer__bot">
+      <span>&copy; {new Date().getFullYear()} Vagabound Books </span>
+      <span><a href="/">Shop</a> · <a href="https://www.instagram.com/vagaboundbooks/">IG</a></span>
+    </div>
+  </div>
+</footer>
+
+<style is:global>
+  .newsletter-form {
+    display: flex;
+    gap: 0;
+    border: 1.5px solid var(--rule-firm);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--paper);
+  }
+  .newsletter-form:focus-within { border-color: var(--ink); }
+  .newsletter-form input {
+    flex: 1;
+    border: 0;
+    padding: 12px 14px;
+    background: transparent;
+    font-size: 14px;
+    outline: 0;
+    min-width: 0;
+  }
+  .newsletter-form button {
+    background: var(--buckram);
+    color: var(--paper);
+    padding: 0 18px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 0;
+    cursor: pointer;
+  }
+  .newsletter-form button:hover { background: var(--buckram); }
+</style>

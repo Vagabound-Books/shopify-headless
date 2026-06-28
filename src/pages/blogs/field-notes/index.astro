@@ -1,0 +1,73 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { shopifyFetchServer } from '../../../lib/shopify';
+import { GET_BLOG_BY_HANDLE } from '../../../lib/queries';
+
+const data = await shopifyFetchServer({
+  query: GET_BLOG_BY_HANDLE,
+  variables: { handle: 'field-notes', first: 50 },
+}).catch(() => null);
+
+const articles = (data?.blog?.articles?.edges || []).map((e: any) => e.node);
+---
+
+<Layout title="Field Notes">
+  <Header slot="header" />
+
+  <div class="vb-container">
+    <div class="vb-coll-head">
+      <div class="vb-coll-head__top">
+        <div class="vb-coll-head__title">
+          <div class="vb-coll-head__crumb">
+            <a href="/">Shop</a>
+            <span class="sep">/</span>
+            <span class="now">Field Notes</span>
+          </div>
+          <h1>Field Notes</h1>
+        </div>
+      </div>
+    </div>
+
+    <div class="vb-blog-list" style="margin-top: 48px;">
+      {articles.map((article: any) => {
+        const date = new Date(article.publishedAt).toLocaleDateString('en-GB', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        });
+        return (
+          <article class="vb-blog-item">
+            <a href={`/blogs/field-notes/${article.handle}`} style="text-decoration: none; color: inherit;">
+              {article.image && (
+                <img
+                  src={article.image.url}
+                  alt={article.image.altText || article.title}
+                  loading="lazy"
+                  width="600"
+                  height="340"
+                  style="aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 16px;"
+                />
+              )}
+              <div style="font-size: var(--type-xs); color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">
+                {date}
+              </div>
+              <h2 style="font-family: var(--font-display); font-size: var(--type-xl); margin: 0 0 12px; line-height: 1.2;">
+                {article.title}
+              </h2>
+              {article.excerptHtml && (
+                <p style="color: var(--ink-soft); margin: 0; line-height: 1.6;">
+                  {article.excerptHtml.replace(/<[^>]+>/g, '').slice(0, 200)}…
+                </p>
+              )}
+            </a>
+          </article>
+        );
+      })}
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>

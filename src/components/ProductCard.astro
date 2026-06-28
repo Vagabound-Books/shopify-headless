@@ -1,0 +1,70 @@
+---
+import { parseMetafields } from '../lib/metafields';
+import ShelfButton from './ShelfButton.tsx';
+
+export interface Props {
+  product: any;
+  showShelf?: boolean;
+}
+
+const { product, showShelf = true } = Astro.props;
+const mf = parseMetafields(product.metafields);
+const featuredImage = product.featuredImage;
+const price = product.priceRange?.minVariantPrice;
+const compareAtPrice = product.compareAtPriceRange?.minVariantPrice;
+const hasSale = compareAtPrice && parseFloat(compareAtPrice.amount) > parseFloat(price.amount);
+const firstVariant = product.variants?.edges?.[0]?.node;
+
+const authorsList = Array.isArray(mf.authors) ? mf.authors : (mf.authors ? [mf.authors] : []);
+---
+
+<a href={`/products/${product.handle}`} class="vb-card">
+  <div class="vb-card__cover-wrap">
+    {featuredImage ? (
+      <img
+        src={featuredImage.url}
+        alt={featuredImage.altText || product.title}
+        loading="lazy"
+        width="300"
+        height="420"
+        style="aspect-ratio: 5/7.4; object-fit: cover; border-radius: var(--radius-sm);"
+      />
+    ) : (
+      <div class={`vb-cover vb-cover--${mf.cover_palette || 'marginalia'}`}>
+        <div class="vb-cover__head"><span class="lbl">{mf.genre || 'Fiction'}</span></div>
+        <div>
+          <div class="vb-cover__title">{product.title}</div>
+          <div class="vb-cover__rule"></div>
+          <div class="vb-cover__author">{authorsList.join(', ') || product.vendor || ''}</div>
+        </div>
+      </div>
+    )}
+    {price && (
+      <span class="vb-card__price-badge">
+        {new Intl.NumberFormat('en-GB', { style: 'currency', currency: price.currencyCode }).format(parseFloat(price.amount))}
+      </span>
+    )}
+    {hasSale && <span class="vb-card__tag">Sale</span>}
+  </div>
+  <div class="vb-card__body">
+    <div class="vb-card__genre">{mf.genre || 'Fiction'}</div>
+    <div class="vb-card__title">{product.title}</div>
+    <div class="vb-card__author">{authorsList.join(', ') || product.vendor || ''}</div>
+  </div>
+</a>
+
+{showShelf && firstVariant && (
+  <div style="position: absolute; top: 8px; right: 8px; z-index: 2;">
+    <ShelfButton
+      handle={product.handle}
+      variantId={firstVariant.id}
+      title={product.title}
+      image={featuredImage?.url}
+      price={price?.amount}
+      currencyCode={price?.currencyCode}
+      genre={mf.genre}
+      authors={authorsList}
+      client:load
+    />
+  </div>
+)}

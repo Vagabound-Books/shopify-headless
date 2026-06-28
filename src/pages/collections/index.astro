@@ -1,0 +1,70 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { shopifyFetchServer } from '../../lib/shopify';
+import { GET_COLLECTIONS } from '../../lib/queries';
+
+const data = await shopifyFetchServer({
+  query: GET_COLLECTIONS,
+  variables: { first: 50 },
+}).catch(() => null);
+
+const collections = (data?.collections?.edges || [])
+  .map((e: any) => e.node)
+  .filter((c: any) => c.handle !== 'frontpage');
+---
+
+<Layout title="Collections">
+  <Header slot="header" />
+
+  <div class="vb-container">
+    <div class="vb-coll-head">
+      <div class="vb-coll-head__top">
+        <div class="vb-coll-head__title">
+          <div class="vb-coll-head__crumb">
+            <a href="/">Shop</a>
+            <span class="sep">/</span>
+            <span class="now">Collections</span>
+          </div>
+          <h1>All shelves</h1>
+        </div>
+      </div>
+    </div>
+
+    <div class="vb-shelf" style="margin-top: 48px;">
+      {collections.map((collection: any) => (
+        <a href={`/collections/${collection.handle}`} class="vb-card">
+          <div class="vb-card__cover-wrap">
+            {collection.image ? (
+              <img
+                src={collection.image.url}
+                alt={collection.image.altText || collection.title}
+                loading="lazy"
+                width="300"
+                height="420"
+                style="aspect-ratio: 5/7.4; object-fit: cover; border-radius: var(--radius-sm);"
+              />
+            ) : (
+              <div class="vb-cover vb-cover--marginalia">
+                <div class="vb-cover__head"><span class="lbl">Collection</span></div>
+                <div>
+                  <div class="vb-cover__title">{collection.title}</div>
+                  <div class="vb-cover__rule"></div>
+                  <div class="vb-cover__author"></div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div class="vb-card__body">
+            <div class="vb-card__genre">Collection</div>
+            <div class="vb-card__title">{collection.title}</div>
+            <div class="vb-card__author"></div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>
