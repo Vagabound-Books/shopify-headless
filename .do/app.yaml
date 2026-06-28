@@ -12,24 +12,26 @@ services:
     environment_slug: node-js
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
-    # The PORT env var is automatically set to this value.
-    # The Astro Node adapter respects process.env.PORT.
     http_port: 8080
     routes:
       - path: /
     envs:
       - key: NODE_ENV
         value: production
+      # Explicitly bind to all interfaces so the container is reachable
+      # from DigitalOcean's internal health-check and routing layers.
+      - key: HOST
+        value: "0.0.0.0"
       # Configure the following via the DigitalOcean App Platform dashboard
       # rather than committing them to this file:
       # - SHOPIFY_STORE_DOMAIN
       # - SHOPIFY_STOREFRONT_ACCESS_TOKEN
       # - SHOPIFY_API_VERSION
     health_check:
-      # Use the dedicated /health endpoint instead of /
-      # so the check does not depend on Shopify API availability.
+      # Dedicated lightweight endpoint with no external dependencies.
       http_path: /health
-      timeout_seconds: 10
-      period_seconds: 10
+      # Give the small instance plenty of time to cold-start.
+      timeout_seconds: 30
+      period_seconds: 15
       success_threshold: 1
-      failure_threshold: 3
+      failure_threshold: 5
