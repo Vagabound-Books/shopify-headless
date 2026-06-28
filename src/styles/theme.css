@@ -465,6 +465,8 @@ code, kbd, samp {
 .vb-header {
   background: var(--paper);
   border-bottom: 1px solid var(--rule-soft);
+  position: sticky;
+  top: 0;
   z-index: 40;
 }
 .vb-header__row {
@@ -792,9 +794,74 @@ code, kbd, samp {
 .vb-footer__bot a { color: var(--ink-muted); text-decoration: none; }
 .vb-footer__bot a:hover { color: var(--accent); }
 
+.vb-mobile-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0;
+  color: var(--ink);
+}
+.vb-mobile-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.vb-mobile-nav {
+  position: fixed;
+  inset: 0;
+  background: var(--paper);
+  z-index: 100;
+  padding: 24px var(--page-margin);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+.vb-mobile-nav a {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule-faint);
+}
+.vb-mobile-nav a:hover { color: var(--accent); }
+.vb-mobile-close {
+  align-self: flex-end;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 22px;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.vb-mobile-close:hover { background: var(--paper-soft); color: var(--ink); }
+body.is-mobile-nav-open { overflow: hidden; }
+body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
+
 @media (max-width: 1100px) {
   .vb-header__row { grid-template-columns: auto 1fr auto; gap: 18px; }
   .vb-nav { display: none; }
+  .vb-mobile-toggle { display: inline-flex; }
   .vb-search-btn { min-width: 160px; }
 }
 @media (max-width: 760px) {
