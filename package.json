@@ -8,11 +8,13 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "start": "node dist/server/entry.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "migrate": "tsx scripts/migrate-metafields.ts"
   },
   "dependencies": {
+    "@astrojs/node": "^11.0.0",
     "@astrojs/preact": "^6.0.0",
     "@nanostores/persistent": "^1.3.4",
     "@nanostores/preact": "^1.1.0",
