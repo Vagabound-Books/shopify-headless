@@ -231,9 +231,23 @@ export const GET_COLLECTIONS = `
           id
           title
           handle
+          descriptionHtml
           image {
             url(transform: { maxWidth: 400 })
             altText
+          }
+          products(first: 12) {
+            edges {
+              node {
+                id
+                title
+                handle
+                featuredImage {
+                  url(transform: { maxWidth: 200 })
+                  altText
+                }
+              }
+            }
           }
         }
       }
