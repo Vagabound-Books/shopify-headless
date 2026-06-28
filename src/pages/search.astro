@@ -1,10 +1,10 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import ProductCard from '../../components/ProductCard.astro';
-import { shopifyFetchServer } from '../../lib/shopify';
-import { SEARCH_PRODUCTS } from '../../lib/queries';
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { shopifyFetchServer } from '../lib/shopify';
+import { SEARCH_PRODUCTS } from '../lib/queries';
 
 const query = Astro.url.searchParams.get('q') || '';
 
