@@ -14,7 +14,10 @@ if (!handle) {
 const data = await shopifyFetchServer({
   query: GET_PAGE_BY_HANDLE,
   variables: { handle },
-}).catch(() => null);
+}).catch((err) => {
+  console.error('[Shopify] Failed to fetch page:', err);
+  return null;
+});
 
 const page = data?.page;
 

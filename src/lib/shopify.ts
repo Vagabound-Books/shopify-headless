@@ -34,7 +34,7 @@ export async function makeShopifyRequest<T = any>(
     if (isSSR) {
       options.headers = {
         "Content-Type": "application/json",
-        "Shopify-Storefront-Private-Token": privateShopifyAccessToken,
+        "X-Shopify-Storefront-Access-Token": privateShopifyAccessToken,
         ...(buyerIP ? { "Shopify-Storefront-Buyer-IP": buyerIP } : {}),
       };
     } else {
@@ -51,12 +51,15 @@ export async function makeShopifyRequest<T = any>(
 
   if (!response.ok) {
     const body = await response.text();
+    console.error(`[Shopify] HTTP ${response.status}: ${body}`);
     throw new Error(`${response.status} ${body}`);
   }
 
   const json = await response.json();
   if (json.errors) {
-    throw new Error(json.errors.map((e: Error) => e.message).join("\n"));
+    const messages = json.errors.map((e: Error) => e.message).join("\n");
+    console.error(`[Shopify] GraphQL errors: ${messages}`);
+    throw new Error(messages);
   }
 
   return json.data as T;

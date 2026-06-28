@@ -19,7 +19,10 @@ if (!handle) {
 const data = await shopifyFetchServer({
   query: GET_PRODUCT_BY_HANDLE,
   variables: { handle },
-}).catch(() => null);
+}).catch((err) => {
+  console.error('[Shopify] Failed to fetch product:', err);
+  return null;
+});
 
 const product = data?.product;
 

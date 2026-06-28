@@ -14,7 +14,10 @@ if (query) {
   const data = await shopifyFetchServer({
     query: SEARCH_PRODUCTS,
     variables: { query, first: 24 },
-  }).catch(() => null);
+  }).catch((err) => {
+    console.error('[Shopify] Search failed:', err);
+    return null;
+  });
 
   products = (data?.search?.edges || [])
     .map((e: any) => e.node)

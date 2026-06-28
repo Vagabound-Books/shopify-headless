@@ -14,7 +14,10 @@ if (!handle) {
 const data = await shopifyFetchServer({
   query: GET_ARTICLE_BY_HANDLE,
   variables: { blogHandle: 'field-notes', articleHandle: handle },
-}).catch(() => null);
+}).catch((err) => {
+  console.error('[Shopify] Failed to fetch article:', err);
+  return null;
+});
 
 const article = data?.blog?.articleByHandle;
 
