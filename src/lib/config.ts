@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const configSchema = z.object({
-  shopifyShop: z.string(),
-  publicShopifyAccessToken: z.string(),
-  privateShopifyAccessToken: z.string(),
-  apiVersion: z.string(),
+  shopifyShop: z.string().min(1),
+  publicShopifyAccessToken: z.string().min(1),
+  privateShopifyAccessToken: z.string().min(1),
+  apiVersion: z.string().min(1),
 });
 
 function getClientConfig() {
@@ -43,4 +43,21 @@ function getServerConfig() {
 const isSSR = import.meta.env.SSR;
 const defineConfig = isSSR ? getServerConfig() : (getClientConfig() ?? getServerConfig());
 
-export const config = configSchema.parse(defineConfig);
+const parsed = configSchema.safeParse(defineConfig);
+
+if (!parsed.success) {
+  console.warn(
+    "[Shopify Config] Missing or invalid Shopify environment variables. " +
+    "Some features (products, cart) will not work until SHOPIFY_STORE_DOMAIN, " +
+    "SHOPIFY_STOREFRONT_ACCESS_TOKEN, and SHOPIFY_API_VERSION are configured."
+  );
+}
+
+export const config = parsed.success
+  ? parsed.data
+  : {
+      shopifyShop: "",
+      publicShopifyAccessToken: "",
+      privateShopifyAccessToken: "",
+      apiVersion: "2024-07",
+    };

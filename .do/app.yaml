@@ -12,7 +12,9 @@ services:
     environment_slug: node-js
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
-    http_port: 4321
+    # The PORT env var is automatically set to this value.
+    # The Astro Node adapter respects process.env.PORT.
+    http_port: 8080
     routes:
       - path: /
     envs:
@@ -24,7 +26,9 @@ services:
       # - SHOPIFY_STOREFRONT_ACCESS_TOKEN
       # - SHOPIFY_API_VERSION
     health_check:
-      http_path: /
+      # Use the dedicated /health endpoint instead of /
+      # so the check does not depend on Shopify API availability.
+      http_path: /health
       timeout_seconds: 10
       period_seconds: 10
       success_threshold: 1
