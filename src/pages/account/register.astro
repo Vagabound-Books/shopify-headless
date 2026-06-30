@@ -1,0 +1,114 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { shopifyFetchServer } from '../../lib/shopify';
+import { CUSTOMER_CREATE, CUSTOMER_ACCESS_TOKEN_CREATE } from '../../lib/queries';
+import { setCustomerToken, getCustomer } from '../../lib/auth';
+
+const customer = await getCustomer(Astro.cookies);
+if (customer) {
+  return Astro.redirect('/account');
+}
+
+let error = '';
+let success = false;
+
+if (Astro.request.method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const firstName = String(formData.get('firstName') || '').trim();
+    const lastName = String(formData.get('lastName') || '').trim();
+    const email = String(formData.get('email') || '').trim();
+    const password = String(formData.get('password') || '');
+    const acceptsMarketing = formData.get('acceptsMarketing') === 'on';
+
+    const createData = await shopifyFetchServer({
+      query: CUSTOMER_CREATE,
+      variables: {
+        input: { firstName, lastName, email, password, acceptsMarketing },
+      },
+    });
+
+    const createErrors = createData?.customerCreate?.customerUserErrors ?? [];
+
+    if (createErrors.length > 0) {
+      error = createErrors.map((e: any) => e.message).join('. ');
+    } else if (createData?.customerCreate?.customer) {
+      const loginData = await shopifyFetchServer({
+        query: CUSTOMER_ACCESS_TOKEN_CREATE,
+        variables: { input: { email, password } },
+      });
+      const token = loginData?.customerAccessTokenCreate?.customerAccessToken?.accessToken;
+      if (token) {
+        setCustomerToken(Astro.cookies, token);
+        return Astro.redirect('/account');
+      }
+      success = true;
+    }
+  } catch (err) {
+    console.error('[Account] Register error:', err);
+    error = 'Something went wrong. Please try again.';
+  }
+}
+---
+
+<Layout title="Create Account">
+  <Header slot="header" />
+
+  <div class="vb-container" style="padding-block: var(--space-9);">
+    <div style="max-width: 480px; margin: 0 auto;">
+      <div class="vb-eyebrow" style="margin-bottom: 18px;">Account</div>
+      <h1 style="font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0 0 12px;">
+        Create account
+      </h1>
+      <p style="font-size: 17px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 32px;">
+        Join Vagabound to track orders, save addresses, and receive Field Notes.
+      </p>
+
+      {error && (
+        <div style="padding: 14px 18px; background: rgba(168,124,90,0.08); border: 1px solid var(--foxing); border-radius: var(--radius-sm); color: var(--foxing); font-size: 14px; margin-bottom: 24px;">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div style="padding: 14px 18px; background: rgba(61,90,32,0.08); border: 1px solid var(--mossy); border-radius: var(--radius-sm); color: var(--mossy); font-size: 14px; margin-bottom: 24px;">
+          Account created. Please check your email to activate your account, then <a href="/account/login" style="text-decoration: underline;">sign in</a>.
+        </div>
+      )}
+
+      <form method="POST" style="display: flex; flex-direction: column; gap: 18px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+          <div class="vb-field">
+            <label for="firstName">First name</label>
+            <input id="firstName" name="firstName" type="text" class="vb-input" placeholder="Jane" required autocomplete="given-name" />
+          </div>
+          <div class="vb-field">
+            <label for="lastName">Last name</label>
+            <input id="lastName" name="lastName" type="text" class="vb-input" placeholder="Doe" required autocomplete="family-name" />
+          </div>
+        </div>
+        <div class="vb-field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" class="vb-input" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="vb-field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" class="vb-input" placeholder="••••••••" required autocomplete="new-password" minlength="5" />
+        </div>
+        <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink-soft); cursor: pointer;">
+          <input type="checkbox" name="acceptsMarketing" style="width: 16px; height: 16px; accent-color: var(--buckram);" />
+          Subscribe to Field Notes and shop updates
+        </label>
+        <button type="submit" class="vb-btn vb-btn--primary" style="margin-top: 8px;">Create account</button>
+      </form>
+
+      <p style="margin-top: 28px; font-size: 14px; color: var(--ink-muted); text-align: center;">
+        Already have an account? <a href="/account/login" style="color: var(--ink); text-decoration: underline; text-underline-offset: 3px;">Sign in</a>
+      </p>
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>

@@ -1,0 +1,87 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { shopifyFetchServer } from '../../lib/shopify';
+import { CUSTOMER_ACCESS_TOKEN_CREATE } from '../../lib/queries';
+import { setCustomerToken, getCustomer } from '../../lib/auth';
+
+const customer = await getCustomer(Astro.cookies);
+if (customer) {
+  return Astro.redirect('/account');
+}
+
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const email = String(formData.get('email') || '').trim();
+    const password = String(formData.get('password') || '');
+
+    const data = await shopifyFetchServer({
+      query: CUSTOMER_ACCESS_TOKEN_CREATE,
+      variables: {
+        input: { email, password },
+      },
+    });
+
+    const token = data?.customerAccessTokenCreate?.customerAccessToken?.accessToken;
+    const userErrors = data?.customerAccessTokenCreate?.customerUserErrors ?? [];
+
+    if (token) {
+      setCustomerToken(Astro.cookies, token);
+      return Astro.redirect('/account');
+    }
+
+    if (userErrors.length > 0) {
+      error = userErrors.map((e: any) => e.message).join('. ');
+    } else {
+      error = 'Unable to sign in. Please check your email and password.';
+    }
+  } catch (err) {
+    console.error('[Account] Login error:', err);
+    error = 'Something went wrong. Please try again.';
+  }
+}
+---
+
+<Layout title="Sign In">
+  <Header slot="header" />
+
+  <div class="vb-container" style="padding-block: var(--space-9);">
+    <div style="max-width: 480px; margin: 0 auto;">
+      <div class="vb-eyebrow" style="margin-bottom: 18px;">Account</div>
+      <h1 style="font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0 0 12px;">
+        Sign in
+      </h1>
+      <p style="font-size: 17px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 32px;">
+        Welcome back. Sign in to view your orders and manage your addresses.
+      </p>
+
+      {error && (
+        <div style="padding: 14px 18px; background: rgba(168,124,90,0.08); border: 1px solid var(--foxing); border-radius: var(--radius-sm); color: var(--foxing); font-size: 14px; margin-bottom: 24px;">
+          {error}
+        </div>
+      )}
+
+      <form method="POST" style="display: flex; flex-direction: column; gap: 18px;">
+        <div class="vb-field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" class="vb-input" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="vb-field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" class="vb-input" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="vb-btn vb-btn--primary" style="margin-top: 8px;">Sign in</button>
+      </form>
+
+      <p style="margin-top: 28px; font-size: 14px; color: var(--ink-muted); text-align: center;">
+        Don't have an account? <a href="/account/register" style="color: var(--ink); text-decoration: underline; text-underline-offset: 3px;">Create one</a>
+      </p>
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>

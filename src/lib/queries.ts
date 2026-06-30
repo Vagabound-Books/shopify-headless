@@ -320,3 +320,207 @@ export const REMOVE_FROM_CART = `
     }
   }
 `;
+
+/* ================================================================
+   Customer Account
+   ================================================================ */
+
+export const CUSTOMER_CREATE = `
+  mutation CustomerCreate($input: CustomerCreateInput!) {
+    customerCreate(input: $input) {
+      customer {
+        id
+        email
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_ACCESS_TOKEN_CREATE = `
+  mutation CustomerAccessTokenCreate($input: CustomerAccessTokenCreateInput!) {
+    customerAccessTokenCreate(input: $input) {
+      customerAccessToken {
+        accessToken
+        expiresAt
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_ACCESS_TOKEN_DELETE = `
+  mutation CustomerAccessTokenDelete($customerAccessToken: String!) {
+    customerAccessTokenDelete(customerAccessToken: $customerAccessToken) {
+      deletedAccessToken
+      deletedCustomerAccessTokenId
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+const CUSTOMER_FRAGMENT = `
+  fragment CustomerFields on Customer {
+    id
+    firstName
+    lastName
+    email
+    phone
+    acceptsMarketing
+    createdAt
+    updatedAt
+    defaultAddress {
+      id
+      address1
+      address2
+      city
+      province
+      country
+      zip
+      phone
+      name
+    }
+    addresses(first: 10) {
+      edges {
+        node {
+          id
+          address1
+          address2
+          city
+          province
+          country
+          zip
+          phone
+          name
+        }
+      }
+    }
+    orders(first: 20, sortKey: PROCESSED_AT, reverse: true) {
+      edges {
+        node {
+          id
+          orderNumber
+          processedAt
+          financialStatus
+          fulfillmentStatus
+          totalPrice {
+            amount
+            currencyCode
+          }
+          lineItems(first: 5) {
+            edges {
+              node {
+                title
+                quantity
+                variant {
+                  image {
+                    url(transform: { maxWidth: 200 })
+                    altText
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const GET_CUSTOMER = `
+  ${CUSTOMER_FRAGMENT}
+  query GetCustomer($customerAccessToken: String!) {
+    customer(customerAccessToken: $customerAccessToken) {
+      ...CustomerFields
+    }
+  }
+`;
+
+export const CUSTOMER_UPDATE = `
+  ${CUSTOMER_FRAGMENT}
+  mutation CustomerUpdate($customerAccessToken: String!, $customer: CustomerUpdateInput!) {
+    customerUpdate(customerAccessToken: $customerAccessToken, customer: $customer) {
+      customer {
+        ...CustomerFields
+      }
+      customerAccessToken {
+        accessToken
+        expiresAt
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_ADDRESS_CREATE = `
+  mutation CustomerAddressCreate($customerAccessToken: String!, $address: MailingAddressInput!) {
+    customerAddressCreate(customerAccessToken: $customerAccessToken, address: $address) {
+      customerAddress {
+        id
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_ADDRESS_UPDATE = `
+  mutation CustomerAddressUpdate($customerAccessToken: String!, $id: ID!, $address: MailingAddressInput!) {
+    customerAddressUpdate(customerAccessToken: $customerAccessToken, id: $id, address: $address) {
+      customerAddress {
+        id
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_ADDRESS_DELETE = `
+  mutation CustomerAddressDelete($customerAccessToken: String!, $id: ID!) {
+    customerAddressDelete(customerAccessToken: $customerAccessToken, id: $id) {
+      deletedCustomerAddressId
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_DEFAULT_ADDRESS_UPDATE = `
+  mutation CustomerDefaultAddressUpdate($customerAccessToken: String!, $addressId: ID!) {
+    customerDefaultAddressUpdate(customerAccessToken: $customerAccessToken, addressId: $addressId) {
+      customer {
+        id
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;

@@ -1,0 +1,149 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getCustomer } from '../../lib/auth';
+import { formatMoney } from '../../lib/money';
+
+const customer = await getCustomer(Astro.cookies);
+if (!customer) {
+  return Astro.redirect('/account/login');
+}
+
+const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(' ') || 'Account';
+const orders = (customer.orders?.edges || []).map((e: any) => e.node);
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function formatStatus(status: string) {
+  if (!status) return '—';
+  return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase());
+}
+
+const navItems = [
+  { label: 'Overview', href: '/account', active: false },
+  { label: 'Orders', href: '/account/orders', active: true },
+  { label: 'Addresses', href: '/account/addresses', active: false },
+];
+---
+
+<Layout title="Orders">
+  <Header slot="header" />
+
+  <div class="vb-container" style="padding-block: var(--space-9);">
+    <div style="display: grid; grid-template-columns: 220px 1fr; gap: 64px; align-items: start;">
+      <aside style="position: sticky; top: 120px;">
+        <div style="font-family: var(--font-display); font-size: 22px; font-weight: 600; margin-bottom: 24px;">{fullName}</div>
+        <nav style="display: flex; flex-direction: column; gap: 4px;">
+          {navItems.map((item) => (
+            <a
+              href={item.href}
+              style={`
+                text-decoration: none;
+                padding: 8px 12px;
+                border-radius: var(--radius-sm);
+                font-size: 14px;
+                font-weight: 600;
+                transition: background 140ms var(--ease-page);
+                ${item.active ? 'background: var(--paper-soft); color: var(--ink);' : 'color: var(--ink-soft);'}
+              `}
+            >
+              {item.label}
+            </a>
+          ))}
+          <form action="/api/logout" method="POST" style="margin-top: 8px;">
+            <button type="submit" style="background: transparent; border: 0; padding: 8px 12px; font-size: 14px; font-weight: 600; color: var(--ink-muted); cursor: pointer; width: 100%; text-align: left; border-radius: var(--radius-sm); transition: background 140ms var(--ease-page);">Sign out</button>
+          </form>
+        </nav>
+      </aside>
+
+      <div style="min-width: 0;">
+        <div class="vb-eyebrow" style="margin-bottom: 18px;">Account</div>
+        <h1 style="font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0 0 48px;">Orders</h1>
+
+        {orders.length === 0 ? (
+          <div style="padding: 48px 24px; text-align: center; border: 1px dashed var(--rule-firm); border-radius: var(--radius-md);">
+            <p style="margin: 0; color: var(--ink-muted); font-size: 15px;">You haven't placed any orders yet.</p>
+            <a href="/" class="vb-btn vb-btn--primary vb-btn--sm" style="margin-top: 16px;">Start browsing</a>
+          </div>
+        ) : (
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            {orders.map((order: any) => (
+              <div id={String(order.orderNumber)} style="padding: 24px; background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                  <div>
+                    <div style="font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 4px;">Order {order.orderNumber}</div>
+                    <div style="font-size: 13px; color: var(--ink-muted);">{formatDate(order.processedAt)}</div>
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <span class="vb-pill">{formatStatus(order.financialStatus)}</span>
+                    <span class="vb-pill">{formatStatus(order.fulfillmentStatus)}</span>
+                  </div>
+                </div>
+
+                {order.lineItems?.edges?.length > 0 && (
+                  <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+                    {order.lineItems.edges.map((le: any) => {
+                      const item = le.node;
+                      return (
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                          {item.variant?.image?.url ? (
+                            <img src={item.variant.image.url} alt={item.variant.image.altText || item.title} width="48" height="48" style="width: 48px; height: 48px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--rule-faint);" />
+                          ) : (
+                            <div style="width: 48px; height: 48px; background: var(--paper-deep); border-radius: var(--radius-sm); border: 1px solid var(--rule-faint);"></div>
+                          )}
+                          <div style="font-size: 14px; color: var(--ink-soft);">
+                            {item.title} <span style="color: var(--ink-muted);">× {item.quantity}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div style="padding-top: 16px; border-top: 1px solid var(--rule-faint); display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 13px; color: var(--ink-muted);">Total</span>
+                  <span style="font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--ink);">
+                    {formatMoney(order.totalPrice.amount, order.totalPrice.currencyCode)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>
+
+<style>
+  @media (max-width: 900px) {
+    .vb-container > div {
+      grid-template-columns: 1fr !important;
+      gap: 32px !important;
+    }
+    aside {
+      position: static !important;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    aside nav {
+      flex-direction: row !important;
+      flex-wrap: wrap;
+    }
+    aside form {
+      margin-top: 0 !important;
+      margin-left: auto;
+    }
+  }
+</style>
