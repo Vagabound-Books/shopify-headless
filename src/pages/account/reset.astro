@@ -11,9 +11,8 @@ if (customer) {
   return Astro.redirect('/account');
 }
 
-const url = new URL(Astro.request.url);
-const id = url.searchParams.get('id') || '';
-const token = url.searchParams.get('token') || '';
+const id = Astro.url.searchParams.get('id') || '';
+const token = Astro.url.searchParams.get('token') || '';
 
 let error = '';
 

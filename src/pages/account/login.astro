@@ -11,8 +11,7 @@ if (customer) {
   return Astro.redirect('/account');
 }
 
-const url = new URL(Astro.request.url);
-const showRecover = url.searchParams.get('recover') === '1';
+const showRecover = Astro.url.searchParams.get('recover') === '1';
 
 let error = '';
 let success = '';
