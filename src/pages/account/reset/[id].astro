@@ -12,12 +12,16 @@ if (customer) {
 }
 
 const id = Astro.params.id || '';
-const token = Astro.url.searchParams.get('syclid') || '';
+const token =
+  Astro.url.searchParams.get('reset_token') ||
+  Astro.url.searchParams.get('token') ||
+  Astro.url.searchParams.get('t') ||
+  '';
 
 let error = '';
 
 if (!id || !token) {
-  error = 'This reset link is invalid or has expired. Please request a new one.';
+  error = 'This reset link is missing a token. Please check the link in your email, or request a new reset email.';
 }
 
 if (Astro.request.method === 'POST' && id && token) {
