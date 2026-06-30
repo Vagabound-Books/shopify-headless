@@ -524,3 +524,55 @@ export const CUSTOMER_DEFAULT_ADDRESS_UPDATE = `
     }
   }
 `;
+
+export const CUSTOMER_ACTIVATE = `
+  mutation CustomerActivate($id: ID!, $input: CustomerActivateInput!) {
+    customerActivate(id: $id, input: $input) {
+      customer {
+        id
+        email
+      }
+      customerAccessToken {
+        accessToken
+        expiresAt
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_RESET = `
+  mutation CustomerReset($id: ID!, $input: CustomerResetInput!) {
+    customerReset(id: $id, input: $input) {
+      customer {
+        id
+        email
+      }
+      customerAccessToken {
+        accessToken
+        expiresAt
+      }
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_RECOVER = `
+  mutation CustomerRecover($email: String!) {
+    customerRecover(email: $email) {
+      customerUserErrors {
+        field
+        message
+        code
+      }
+    }
+  }
+`;

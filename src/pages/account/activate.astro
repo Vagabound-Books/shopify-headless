@@ -1,0 +1,108 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { shopifyFetchServer } from '../../lib/shopify';
+import { CUSTOMER_ACTIVATE } from '../../lib/queries';
+import { setCustomerToken, getCustomer } from '../../lib/auth';
+
+const customer = await getCustomer(Astro.cookies);
+if (customer) {
+  return Astro.redirect('/account');
+}
+
+const url = new URL(Astro.request.url);
+const id = url.searchParams.get('id') || '';
+const token = url.searchParams.get('token') || '';
+
+let error = '';
+
+if (!id || !token) {
+  error = 'This activation link is invalid or has expired. Please request a new one.';
+}
+
+if (Astro.request.method === 'POST' && id && token) {
+  try {
+    const formData = await Astro.request.formData();
+    const password = String(formData.get('password') || '');
+    const passwordConfirm = String(formData.get('passwordConfirm') || '');
+
+    if (password.length < 5) {
+      error = 'Password must be at least 5 characters.';
+    } else if (password !== passwordConfirm) {
+      error = 'Passwords do not match.';
+    } else {
+      const data = await shopifyFetchServer({
+        query: CUSTOMER_ACTIVATE,
+        variables: {
+          id,
+          input: { activationToken: token, password },
+        },
+      });
+
+      const accessToken = data?.customerActivate?.customerAccessToken?.accessToken;
+      const userErrors = data?.customerActivate?.customerUserErrors ?? [];
+
+      if (accessToken) {
+        setCustomerToken(Astro.cookies, accessToken);
+        return Astro.redirect('/account');
+      }
+
+      if (userErrors.length > 0) {
+        error = userErrors.map((e: any) => e.message).join('. ');
+      } else {
+        error = 'Unable to activate account. The link may have expired.';
+      }
+    }
+  } catch (err) {
+    console.error('[Account] Activate error:', err);
+    error = 'Something went wrong. Please try again.';
+  }
+}
+---
+
+<Layout title="Activate Account">
+  <Header slot="header" />
+
+  <div class="vb-container" style="padding-block: var(--space-9);">
+    <div style="max-width: 480px; margin: 0 auto;">
+      <div class="vb-eyebrow" style="margin-bottom: 18px;">Account</div>
+      <h1 style="font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0 0 12px;">
+        Activate your account
+      </h1>
+      <p style="font-size: 17px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 32px;">
+        Create a password to finish setting up your Vagabound account.
+      </p>
+
+      {error && (
+        <div style="padding: 14px 18px; background: rgba(168,124,90,0.08); border: 1px solid var(--foxing); border-radius: var(--radius-sm); color: var(--foxing); font-size: 14px; margin-bottom: 24px;">
+          {error}
+        </div>
+      )}
+
+      {(!error || Astro.request.method === 'POST') && id && token && (
+        <form method="POST" style="display: flex; flex-direction: column; gap: 18px;">
+          <input type="hidden" name="id" value={id} />
+          <input type="hidden" name="token" value={token} />
+          <div class="vb-field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" class="vb-input" placeholder="••••••••" required minlength="5" autocomplete="new-password" />
+          </div>
+          <div class="vb-field">
+            <label for="passwordConfirm">Confirm password</label>
+            <input id="passwordConfirm" name="passwordConfirm" type="password" class="vb-input" placeholder="••••••••" required minlength="5" autocomplete="new-password" />
+          </div>
+          <button type="submit" class="vb-btn vb-btn--primary" style="margin-top: 8px;">Activate account</button>
+        </form>
+      )}
+
+      {error && (!id || !token) && (
+        <p style="margin-top: 24px; font-size: 14px; color: var(--ink-muted);">
+          Already have an account? <a href="/account/login" style="color: var(--ink); text-decoration: underline; text-underline-offset: 3px;">Sign in</a>
+        </p>
+      )}
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>
