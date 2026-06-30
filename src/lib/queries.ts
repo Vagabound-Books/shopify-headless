@@ -183,6 +183,7 @@ export const GET_BLOG_BY_HANDLE = `
             title
             handle
             excerptHtml
+            contentHtml
             publishedAt
             image {
               url(transform: { maxWidth: 600 })

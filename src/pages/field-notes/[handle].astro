@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { shopifyFetchServer } from '../../lib/shopify';
-import { GET_ARTICLE_BY_HANDLE } from '../../lib/queries';
+import { GET_ARTICLE_BY_HANDLE, GET_BLOG_BY_HANDLE } from '../../lib/queries';
 
 const { handle } = Astro.params;
 
@@ -11,60 +11,110 @@ if (!handle) {
   return Astro.redirect('/404');
 }
 
-const data = await shopifyFetchServer({
-  query: GET_ARTICLE_BY_HANDLE,
-  variables: { blogHandle: 'field-notes', articleHandle: handle },
-}).catch((err) => {
-  console.error('[Shopify] Failed to fetch article:', err);
-  return null;
-});
+const [articleData, blogData] = await Promise.all([
+  shopifyFetchServer({
+    query: GET_ARTICLE_BY_HANDLE,
+    variables: { blogHandle: 'field-notes', articleHandle: handle },
+  }).catch((err) => {
+    console.error('[Shopify] Failed to fetch article:', err);
+    return null;
+  }),
+  shopifyFetchServer({
+    query: GET_BLOG_BY_HANDLE,
+    variables: { handle: 'field-notes', first: 50 },
+  }).catch((err) => {
+    console.error('[Shopify] Failed to fetch blog:', err);
+    return null;
+  }),
+]);
 
-const article = data?.blog?.articleByHandle;
+const article = articleData?.blog?.articleByHandle;
 
 if (!article) {
   return Astro.redirect('/404');
 }
 
-const date = new Date(article.publishedAt).toLocaleDateString('en-GB', {
-  weekday: 'long',
-  day: 'numeric',
+const date = new Date(article.publishedAt).toLocaleDateString('en-US', {
   month: 'long',
+  day: 'numeric',
   year: 'numeric',
 });
 
-const volumeMeta = article.metafields?.find((m: any) => m?.key === 'volume');
-const volumeNumber = volumeMeta?.value || 'I';
+// Find previous and next articles
+const allArticles = (blogData?.blog?.articles?.edges || []).map((e: any) => e.node);
+const currentIndex = allArticles.findIndex((a: any) => a.handle === handle);
+const prevArticle = currentIndex > 0 ? allArticles[currentIndex - 1] : null;
+const nextArticle = currentIndex >= 0 && currentIndex < allArticles.length - 1 ? allArticles[currentIndex + 1] : null;
+
+const prevDate = prevArticle
+  ? new Date(prevArticle.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  : '';
+const nextDate = nextArticle
+  ? new Date(nextArticle.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  : '';
 ---
 
 <Layout title={article.title}>
   <Header slot="header" />
 
-  <article class="vb-container vb-article">
-    <div class="vb-article__meta">
-      <span class="stamp">Field Notes — Volume {volumeNumber}</span>
-      <span>{date}</span>
-    </div>
+  <div class="vb-container">
+    <section style="padding: var(--space-9) 0 var(--space-7); max-width: 72ch; margin: 0 auto; border-bottom: 1px solid var(--rule-soft);">
+      <div class="vb-eyebrow" style="margin-bottom: 18px;">Field Notes · {date}</div>
+      <h1 style="font-family: var(--font-display); font-size: clamp(40px, 5vw, 64px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0;">
+        {article.title}
+      </h1>
+      <p style="font-size: 21px; color: var(--ink-soft); line-height: 1.6; margin-top: 24px; font-family: var(--font-display); font-style: italic; max-width: 56ch;">
+        A short note from the shop on this week's arrivals.
+      </p>
+    </section>
 
-    <h1 style="font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.05; margin: 16px 0 32px; max-width: 900px;">
-      {article.title}
-    </h1>
+    <article style="padding: var(--space-7) 0; max-width: 62ch; margin: 0 auto;">
+      {article.image && (
+        <img
+          src={article.image.url}
+          alt={article.image.altText || article.title}
+          loading="eager"
+          width="1200"
+          height="auto"
+          style="width: 100%; border-radius: var(--radius-md); margin-bottom: 40px;"
+        />
+      )}
 
-    {article.image && (
-      <img
-        src={article.image.url}
-        alt={article.image.altText || article.title}
-        width="1200"
-        height="675"
-        style="aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 48px;"
-      />
+      <div class="article-content" set:html={article.contentHtml || article.excerptHtml} />
+
+      <div style="margin-top: 32px; padding: 20px 24px; border: 1px dashed var(--rule-firm); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">Wandering Mail</div>
+          <p style="margin: 4px 0 0; font-size: 15px; color: var(--ink-soft);">Sign up to get each week's Field Note in your inbox.</p>
+        </div>
+        <form action="/contact" method="post" style="display: flex; flex-direction: column; gap: 10px;">
+          <input type="email" name="contact[email]" placeholder="your.address@example.com" style="border: 1.5px solid var(--ink); border-radius: var(--radius-sm); padding: 10px 14px; background: transparent; outline: none; font-family: var(--font-body); font-size: 14px;" required>
+          <button type="submit" class="vb-btn vb-btn--primary vb-btn--sm" style="align-self: flex-start; border-radius: var(--radius-sm); padding: 6px 14px; font-size: 13px;">Subscribe</button>
+        </form>
+      </div>
+    </article>
+
+    {((prevArticle || nextArticle)) && (
+      <section style="padding: var(--space-7) 0 var(--space-9); border-top: 1px solid var(--rule-soft); display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+        {prevArticle ? (
+          <a href={`/field-notes/${prevArticle.handle}`} style="text-decoration: none; padding: 28px; background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">← Previous dispatch</div>
+            <h4 style="font-family: var(--font-display); font-size: 22px; font-weight: 600; margin: 0; color: var(--ink);">{prevArticle.title}</h4>
+            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">{prevDate}</div>
+          </a>
+        ) : (
+          <div></div>
+        )}
+        {nextArticle ? (
+          <a href={`/field-notes/${nextArticle.handle}`} style="text-decoration: none; padding: 28px; background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 8px; text-align: right;">
+            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">Next dispatch →</div>
+            <h4 style="font-family: var(--font-display); font-size: 22px; font-weight: 600; margin: 0; color: var(--ink);">{nextArticle.title}</h4>
+            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">{nextDate}</div>
+          </a>
+        ) : null}
+      </section>
     )}
-
-    <div class="vb-article__body" set:html={article.contentHtml || article.excerptHtml} />
-
-    <div class="vb-article__author" style="margin-top: 64px; padding-top: 32px; border-top: 1px solid var(--rule-soft);">
-      <span style="color: var(--ink-muted); font-size: var(--type-sm);">By {article.author?.name || 'Vagabound'}</span>
-    </div>
-  </article>
+  </div>
 
   <Footer slot="footer" />
 </Layout>

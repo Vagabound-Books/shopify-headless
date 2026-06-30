@@ -14,58 +14,78 @@ const data = await shopifyFetchServer({
 });
 
 const articles = (data?.blog?.articles?.edges || []).map((e: any) => e.node);
+const articlesCount = articles.length;
+
+function truncateWords(html: string, count: number): string {
+  const text = html.replace(/<[^>]+>/g, '').trim();
+  const words = text.split(/\s+/);
+  if (words.length <= count) return text;
+  return words.slice(0, count).join(' ') + '…';
+}
 ---
 
 <Layout title="Field Notes">
   <Header slot="header" />
 
   <div class="vb-container">
-    <div class="vb-coll-head">
-      <div class="vb-coll-head__top">
-        <div class="vb-coll-head__title">
-          <div class="vb-coll-head__crumb">
-            <a href="/">Shop</a>
-            <span class="sep">/</span>
-            <span class="now">Field Notes</span>
-          </div>
-          <h1>Field Notes</h1>
-        </div>
+    <section style="padding: var(--space-9) 0 var(--space-7); border-bottom: 1px solid var(--rule-soft);">
+      <div class="vb-eyebrow" style="margin-bottom: 18px;">
+        Field Notes — {articlesCount} dispatch{articlesCount !== 1 ? 'es' : ''}
       </div>
-    </div>
+      <h1 style="font-family: var(--font-display); font-size: clamp(40px, 5vw, 64px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0;">
+        Field Notes
+      </h1>
+      <p style="font-size: 21px; color: var(--ink-soft); line-height: 1.6; margin-top: 24px; font-family: var(--font-display); font-style: italic; max-width: 56ch;">
+        A short note from the shop floor on this week's arrivals.
+      </p>
+    </section>
 
-    <div class="vb-blog-list" style="margin-top: 48px;">
+    <div style="padding: var(--space-7) 0 var(--space-9); display: flex; flex-direction: column; gap: 56px;">
       {articles.map((article: any) => {
-        const date = new Date(article.publishedAt).toLocaleDateString('en-GB', {
-          weekday: 'long',
-          day: 'numeric',
+        const date = new Date(article.publishedAt).toLocaleDateString('en-US', {
           month: 'long',
+          day: 'numeric',
           year: 'numeric',
         });
+        const excerpt = article.excerptHtml
+          ? truncateWords(article.excerptHtml, 30)
+          : article.contentHtml
+            ? truncateWords(article.contentHtml, 30)
+            : '';
         return (
-          <article class="vb-blog-item">
-            <a href={`/field-notes/${article.handle}`} style="text-decoration: none; color: inherit;">
-              {article.image && (
+          <article class="vb-blog-item" style="display: grid; grid-template-columns: 280px 1fr; gap: 40px; align-items: start; padding-bottom: 40px; border-bottom: 1px solid var(--rule-soft);">
+            <a href={`/field-notes/${article.handle}`} style="text-decoration: none;">
+              {article.image ? (
                 <img
                   src={article.image.url}
                   alt={article.image.altText || article.title}
                   loading="lazy"
-                  width="600"
-                  height="340"
-                  style="aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 16px;"
+                  width="280"
+                  height="280"
+                  style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-md);"
                 />
-              )}
-              <div style="font-size: var(--type-xs); color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">
-                {date}
-              </div>
-              <h2 style="font-family: var(--font-display); font-size: var(--type-xl); margin: 0 0 12px; line-height: 1.2;">
-                {article.title}
-              </h2>
-              {article.excerptHtml && (
-                <p style="color: var(--ink-soft); margin: 0; line-height: 1.6;">
-                  {article.excerptHtml.replace(/<[^>]+>/g, '').slice(0, 200)}…
-                </p>
+              ) : (
+                <div style="width: 100%; aspect-ratio: 1; background: var(--paper-soft); border: 1px dashed var(--rule-firm); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">
+                  No image
+                </div>
               )}
             </a>
+            <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 8px;">
+              <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: var(--tracking-eyebrow); color: var(--ink-muted);">
+                {date} · {article.author?.name || 'Vagabound'}
+              </div>
+              <a href={`/field-notes/${article.handle}`} style="text-decoration: none;">
+                <h2 style="font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: -0.018em; line-height: 1.15; margin: 0; color: var(--ink);">
+                  {article.title}
+                </h2>
+              </a>
+              {excerpt && (
+                <p style="font-size: 16px; color: var(--ink-soft); line-height: 1.7; margin: 0; max-width: 56ch;">
+                  {excerpt}
+                </p>
+              )}
+              <a href={`/field-notes/${article.handle}`} class="vb-btn vb-btn--ghost" style="align-self: flex-start; margin-top: 8px;">Read the dispatch →</a>
+            </div>
           </article>
         );
       })}
