@@ -54,7 +54,12 @@ if (Astro.request.method === 'POST') {
       }
 
       if (userErrors.length > 0) {
-        error = userErrors.map((e: any) => e.message).join('. ');
+        const raw = userErrors.map((e: any) => e.message).join('. ');
+        if (raw.toLowerCase().includes('unidentified customer')) {
+          error = 'We can\'t find that account. <a href="/account/register" style="text-decoration:underline;color:inherit;font-weight:700;">Create one</a>?';
+        } else {
+          error = raw;
+        }
       } else {
         error = 'Unable to sign in. Please check your email and password.';
       }
@@ -83,9 +88,7 @@ if (Astro.request.method === 'POST') {
           </p>
 
           {error && (
-            <div style="padding: 14px 18px; background: rgba(168,124,90,0.08); border: 1px solid var(--foxing); border-radius: var(--radius-sm); color: var(--foxing); font-size: 14px; margin-bottom: 24px;">
-              {error}
-            </div>
+            <div style="padding: 14px 18px; background: rgba(168,124,90,0.08); border: 1px solid var(--foxing); border-radius: var(--radius-sm); color: var(--foxing); font-size: 14px; margin-bottom: 24px;" set:html={error} />
           )}
 
           <form method="POST" style="display: flex; flex-direction: column; gap: 18px;">
