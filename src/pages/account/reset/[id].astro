@@ -1,22 +1,23 @@
 ---
-import Layout from '../../../../layouts/Layout.astro';
-import Header from '../../../../components/Header.astro';
-import Footer from '../../../../components/Footer.astro';
-import { shopifyFetchServer } from '../../../../lib/shopify';
-import { CUSTOMER_ACTIVATE } from '../../../../lib/queries';
-import { setCustomerToken, getCustomer } from '../../../../lib/auth';
+import Layout from '../../../layouts/Layout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { shopifyFetchServer } from '../../../lib/shopify';
+import { CUSTOMER_RESET } from '../../../lib/queries';
+import { setCustomerToken, getCustomer } from '../../../lib/auth';
 
 const customer = await getCustomer(Astro.cookies);
 if (customer) {
   return Astro.redirect('/account');
 }
 
-const { id, token } = Astro.params;
+const id = Astro.params.id || '';
+const token = Astro.url.searchParams.get('syclid') || '';
 
 let error = '';
 
 if (!id || !token) {
-  error = 'This activation link is invalid or has expired. Please request a new one.';
+  error = 'This reset link is invalid or has expired. Please request a new one.';
 }
 
 if (Astro.request.method === 'POST' && id && token) {
@@ -31,15 +32,15 @@ if (Astro.request.method === 'POST' && id && token) {
       error = 'Passwords do not match.';
     } else {
       const data = await shopifyFetchServer({
-        query: CUSTOMER_ACTIVATE,
+        query: CUSTOMER_RESET,
         variables: {
           id,
-          input: { activationToken: token, password },
+          input: { resetToken: token, password },
         },
       });
 
-      const accessToken = data?.customerActivate?.customerAccessToken?.accessToken;
-      const userErrors = data?.customerActivate?.customerUserErrors ?? [];
+      const accessToken = data?.customerReset?.customerAccessToken?.accessToken;
+      const userErrors = data?.customerReset?.customerUserErrors ?? [];
 
       if (accessToken) {
         setCustomerToken(Astro.cookies, accessToken);
@@ -49,27 +50,27 @@ if (Astro.request.method === 'POST' && id && token) {
       if (userErrors.length > 0) {
         error = userErrors.map((e: any) => e.message).join('. ');
       } else {
-        error = 'Unable to activate account. The link may have expired.';
+        error = 'Unable to reset password. The link may have expired.';
       }
     }
   } catch (err) {
-    console.error('[Account] Activate error:', err);
+    console.error('[Account] Reset error:', err);
     error = 'Something went wrong. Please try again.';
   }
 }
 ---
 
-<Layout title="Activate Account">
+<Layout title="Reset Password">
   <Header slot="header" />
 
   <div class="vb-container" style="padding-block: var(--space-9);">
     <div style="max-width: 480px; margin: 0 auto;">
       <div class="vb-eyebrow" style="margin-bottom: 18px;">Account</div>
       <h1 style="font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0 0 12px;">
-        Activate your account
+        Reset your password
       </h1>
       <p style="font-size: 17px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 32px;">
-        Create a password to finish setting up your Vagabound account.
+        Enter a new password for your Vagabound account.
       </p>
 
       {error && (
@@ -83,20 +84,20 @@ if (Astro.request.method === 'POST' && id && token) {
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="token" value={token} />
           <div class="vb-field">
-            <label for="password">Password</label>
+            <label for="password">New password</label>
             <input id="password" name="password" type="password" class="vb-input" placeholder="••••••••" required minlength="5" autocomplete="new-password" />
           </div>
           <div class="vb-field">
-            <label for="passwordConfirm">Confirm password</label>
+            <label for="passwordConfirm">Confirm new password</label>
             <input id="passwordConfirm" name="passwordConfirm" type="password" class="vb-input" placeholder="••••••••" required minlength="5" autocomplete="new-password" />
           </div>
-          <button type="submit" class="vb-btn vb-btn--primary" style="margin-top: 8px;">Activate account</button>
+          <button type="submit" class="vb-btn vb-btn--primary" style="margin-top: 8px;">Reset password</button>
         </form>
       )}
 
       {error && (!id || !token) && (
         <p style="margin-top: 24px; font-size: 14px; color: var(--ink-muted);">
-          Already have an account? <a href="/account/login" style="color: var(--ink); text-decoration: underline; text-underline-offset: 3px;">Sign in</a>
+          <a href="/account/login" style="color: var(--ink); text-decoration: underline; text-underline-offset: 3px;">Back to sign in</a>
         </p>
       )}
     </div>

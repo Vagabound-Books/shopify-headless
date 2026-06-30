@@ -1,18 +1,18 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import { shopifyFetchServer } from '../../lib/shopify';
-import { CUSTOMER_ACTIVATE } from '../../lib/queries';
-import { setCustomerToken, getCustomer } from '../../lib/auth';
+import Layout from '../../../layouts/Layout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { shopifyFetchServer } from '../../../lib/shopify';
+import { CUSTOMER_ACTIVATE } from '../../../lib/queries';
+import { setCustomerToken, getCustomer } from '../../../lib/auth';
 
 const customer = await getCustomer(Astro.cookies);
 if (customer) {
   return Astro.redirect('/account');
 }
 
-const id = Astro.url.searchParams.get('id') || '';
-const token = Astro.url.searchParams.get('token') || '';
+const id = Astro.params.id || '';
+const token = Astro.url.searchParams.get('syclid') || '';
 
 let error = '';
 
