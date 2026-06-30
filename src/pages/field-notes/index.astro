@@ -1,9 +1,9 @@
 ---
-import Layout from '../../../layouts/Layout.astro';
-import Header from '../../../components/Header.astro';
-import Footer from '../../../components/Footer.astro';
-import { shopifyFetchServer } from '../../../lib/shopify';
-import { GET_BLOG_BY_HANDLE } from '../../../lib/queries';
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { shopifyFetchServer } from '../../lib/shopify';
+import { GET_BLOG_BY_HANDLE } from '../../lib/queries';
 
 const data = await shopifyFetchServer({
   query: GET_BLOG_BY_HANDLE,
