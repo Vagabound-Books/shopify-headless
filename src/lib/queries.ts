@@ -203,6 +203,7 @@ export const GET_ARTICLE_BY_HANDLE = `
         id
         title
         contentHtml
+        excerptHtml
         publishedAt
         image {
           url(transform: { maxWidth: 1200 })
