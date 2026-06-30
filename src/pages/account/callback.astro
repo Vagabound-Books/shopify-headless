@@ -1,0 +1,59 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { exchangeCodeForTokens, isCustomerAccountsEnabled } from '../../lib/customer-accounts';
+
+if (!isCustomerAccountsEnabled()) {
+  return Astro.redirect('/account/login');
+}
+
+const code = Astro.url.searchParams.get('code');
+const state = Astro.url.searchParams.get('state');
+const errorParam = Astro.url.searchParams.get('error');
+const errorDescription = Astro.url.searchParams.get('error_description');
+
+let error = '';
+
+if (errorParam) {
+  error = errorDescription || 'Authentication failed. Please try again.';
+}
+
+if (!error && (!code || !state)) {
+  error = 'Invalid callback. Missing authorization code.';
+}
+
+if (!error) {
+  try {
+    await exchangeCodeForTokens(code!, state!, Astro.cookies);
+    return Astro.redirect('/account');
+  } catch (err: any) {
+    console.error('[OAuth Callback] Token exchange failed:', err);
+    error = 'Unable to complete sign in. Please try again.';
+  }
+}
+---
+
+<Layout title="Sign In">
+  <Header slot="header" />
+
+  <div class="vb-container" style="padding-block: var(--space-9);">
+    <div style="max-width: 480px; margin: 0 auto;">
+      <div class="vb-eyebrow" style="margin-bottom: 18px;">Account</div>
+      <h1 style="font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0 0 12px;">
+        Sign in
+      </h1>
+      <p style="font-size: 17px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 32px;">
+        Something went wrong while connecting to your Shopify account.
+      </p>
+
+      <div style="padding: 14px 18px; background: rgba(168,124,90,0.08); border: 1px solid var(--foxing); border-radius: var(--radius-sm); color: var(--foxing); font-size: 14px; margin-bottom: 24px;">
+        {error}
+      </div>
+
+      <a href="/account/login" class="vb-btn vb-btn--primary">Try again</a>
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>

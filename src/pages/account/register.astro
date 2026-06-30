@@ -5,6 +5,7 @@ import Footer from '../../components/Footer.astro';
 import { shopifyFetchServer } from '../../lib/shopify';
 import { CUSTOMER_CREATE, CUSTOMER_ACCESS_TOKEN_CREATE } from '../../lib/queries';
 import { setCustomerToken, getCustomer } from '../../lib/auth';
+import { isCustomerAccountsEnabled, buildAuthorizeUrl } from '../../lib/customer-accounts';
 
 const customer = await getCustomer(Astro.cookies);
 if (customer) {

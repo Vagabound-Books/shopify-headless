@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { shopifyFetchServer } from "../../lib/shopify";
 import { CUSTOMER_ACCESS_TOKEN_DELETE } from "../../lib/queries";
-import { getCustomerToken, deleteCustomerToken } from "../../lib/auth";
+import { getCustomerToken, logout } from "../../lib/auth";
 
 export const POST: APIRoute = async ({ cookies }) => {
   const token = getCustomerToken(cookies);
@@ -12,9 +12,9 @@ export const POST: APIRoute = async ({ cookies }) => {
         variables: { customerAccessToken: token },
       });
     } catch (err) {
-      console.error("[Logout] Failed to revoke token:", err);
+      console.error("[Logout] Failed to revoke classic token:", err);
     }
   }
-  deleteCustomerToken(cookies);
+  logout(cookies);
   return new Response(null, { status: 302, headers: { Location: "/account/login" } });
 };
