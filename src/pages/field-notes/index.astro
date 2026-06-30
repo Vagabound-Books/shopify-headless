@@ -43,7 +43,7 @@ const articles = (data?.blog?.articles?.edges || []).map((e: any) => e.node);
         });
         return (
           <article class="vb-blog-item">
-            <a href={`/blogs/field-notes/${article.handle}`} style="text-decoration: none; color: inherit;">
+            <a href={`/field-notes/${article.handle}`} style="text-decoration: none; color: inherit;">
               {article.image && (
                 <img
                   src={article.image.url}

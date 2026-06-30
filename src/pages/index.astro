@@ -105,7 +105,7 @@ function getExcerpt(article: any): string {
             <h1>{latestArticle.title}</h1>
             <p class="lead">{getExcerpt(latestArticle)}</p>
             <div class="vb-hero__actions">
-              <a href={`/blogs/field-notes/${latestArticle.handle}`} class="vb-btn vb-btn--ghost">Read this week's Field Note →</a>
+              <a href={`/field-notes/${latestArticle.handle}`} class="vb-btn vb-btn--ghost">Read this week's Field Note →</a>
             </div>
           </>
         ) : (
@@ -113,7 +113,7 @@ function getExcerpt(article: any): string {
             <h1>A small selection, <em>arriving Friday.</em></h1>
             <p class="lead">Sixteen titles drawn this week from a Pittsburgh estate of unrepentant readers. Each has been sleeved, cleaned, and described plainly. Quiet shelf-wear is not a flaw; it is provenance.</p>
             <div class="vb-hero__actions">
-              <a href="/blogs/field-notes" class="vb-btn vb-btn--ghost">Read Field Notes →</a>
+              <a href="/field-notes" class="vb-btn vb-btn--ghost">Read Field Notes →</a>
             </div>
           </>
         )}
