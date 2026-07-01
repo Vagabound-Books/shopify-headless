@@ -3,8 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { shopifyFetchServer } from '../../lib/shopify';
-import { CUSTOMER_CREATE, CUSTOMER_ACCESS_TOKEN_CREATE } from '../../lib/queries';
-import { setCustomerToken, getCustomer } from '../../lib/auth';
+import { CUSTOMER_CREATE, CUSTOMER_RECOVER } from '../../lib/queries';
+import { getCustomer } from '../../lib/auth';
 import { isCustomerAccountsEnabled, buildAuthorizeUrl } from '../../lib/customer-accounts';
 
 const customer = await getCustomer(Astro.cookies);
@@ -36,15 +36,14 @@ if (Astro.request.method === 'POST') {
     if (createErrors.length > 0) {
       error = createErrors.map((e: any) => e.message).join('. ');
     } else if (createData?.customerCreate?.customer) {
-      const loginData = await shopifyFetchServer({
-        query: CUSTOMER_ACCESS_TOKEN_CREATE,
-        variables: { input: { email, password } },
+      // Send an activation / password-reset email so the user can
+      // confirm their account on our headless storefront.
+      await shopifyFetchServer({
+        query: CUSTOMER_RECOVER,
+        variables: { email },
+      }).catch(() => {
+        // Ignore errors — the customer exists even if the email fails
       });
-      const token = loginData?.customerAccessTokenCreate?.customerAccessToken?.accessToken;
-      if (token) {
-        setCustomerToken(Astro.cookies, token);
-        return Astro.redirect('/account');
-      }
       success = true;
     }
   } catch (err) {
