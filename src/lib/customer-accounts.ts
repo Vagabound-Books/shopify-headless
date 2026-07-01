@@ -11,6 +11,12 @@ const REDIRECT_URI =
   import.meta.env.CUSTOMER_ACCOUNTS_REDIRECT_URI ||
   (SITE_URL ? `${SITE_URL}/account/callback` : "/account/callback");
 
+// Shopify-hosted customer accounts domain
+// e.g. https://account.vagaboundbooks.com or https://shopify.com/{shop_id}/account
+const CA_DOMAIN =
+  import.meta.env.CUSTOMER_ACCOUNTS_DOMAIN ||
+  (SHOP_ID ? `https://shopify.com/${SHOP_ID}/account` : "");
+
 // Cookie names
 const CA_ACCESS_TOKEN = "ca_access_token";
 const CA_REFRESH_TOKEN = "ca_refresh_token";
@@ -77,7 +83,7 @@ export function buildAuthorizeUrl(cookies: AstroCookies): string {
     code_challenge_method: "S256",
   });
 
-  return `https://shopify.com/${SHOP_ID}/account/oauth/authorize?${params.toString()}`;
+  return `${CA_DOMAIN}/oauth/authorize?${params.toString()}`;
 }
 
 export async function exchangeCodeForTokens(
@@ -100,7 +106,7 @@ export async function exchangeCodeForTokens(
     throw new Error("Missing code verifier");
   }
 
-  const tokenUrl = `https://shopify.com/${SHOP_ID}/account/oauth/token`;
+  const tokenUrl = `${CA_DOMAIN}/oauth/token`;
 
   const body = new URLSearchParams({
     grant_type: "authorization_code",
@@ -166,7 +172,7 @@ export async function refreshAccessToken(cookies: AstroCookies): Promise<string 
   const { refreshToken } = getCustomerAccountsTokens(cookies);
   if (!refreshToken) return null;
 
-  const tokenUrl = `https://shopify.com/${SHOP_ID}/account/oauth/token`;
+  const tokenUrl = `${CA_DOMAIN}/oauth/token`;
 
   const body = new URLSearchParams({
     grant_type: "refresh_token",
@@ -191,7 +197,7 @@ export async function refreshAccessToken(cookies: AstroCookies): Promise<string 
   return data.access_token as string;
 }
 
-const CA_API_URL = `https://shopify.com/${SHOP_ID}/account/api/${API_VERSION}/graphql`;
+const CA_API_URL = `${CA_DOMAIN}/api/${API_VERSION}/graphql`;
 
 export async function customerAccountsFetch<T = any>(
   query: string,
