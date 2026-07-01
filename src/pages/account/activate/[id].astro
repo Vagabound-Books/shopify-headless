@@ -11,16 +11,21 @@ if (customer) {
   return Astro.redirect('/account');
 }
 
-const id = Astro.params.id || '';
+const rawId = Astro.params.id || '';
 const token = Astro.url.searchParams.get('syclid') || '';
+
+// Shopify Storefront API requires the full GID format
+const id = rawId.startsWith('gid://')
+  ? rawId
+  : `gid://shopify/Customer/${rawId}`;
 
 let error = '';
 
-if (!id || !token) {
+if (!rawId || !token) {
   error = 'This activation link is invalid or has expired. Please request a new one.';
 }
 
-if (Astro.request.method === 'POST' && id && token) {
+if (Astro.request.method === 'POST' && rawId && token) {
   try {
     const formData = await Astro.request.formData();
     const password = String(formData.get('password') || '');
