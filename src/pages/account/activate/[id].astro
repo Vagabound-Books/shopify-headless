@@ -12,16 +12,12 @@ if (customer) {
 }
 
 const id = Astro.params.id || '';
-const token =
-  Astro.url.searchParams.get('activation_token') ||
-  Astro.url.searchParams.get('token') ||
-  Astro.url.searchParams.get('t') ||
-  '';
+const token = Astro.url.searchParams.get('syclid') || '';
 
 let error = '';
 
 if (!id || !token) {
-  error = 'This activation link is missing a token. Please check the link in your email, or request a new activation email.';
+  error = 'This activation link is invalid or has expired. Please request a new one.';
 }
 
 if (Astro.request.method === 'POST' && id && token) {
