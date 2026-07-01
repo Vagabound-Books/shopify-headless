@@ -25,6 +25,7 @@ if (Astro.request.method === 'POST') {
     const acceptsMarketing = formData.get('acceptsMarketing') === 'on';
 
     const createData = await shopifyFetchServer({
+      buyerIP: Astro.clientAddress,
       query: CUSTOMER_CREATE,
       variables: {
         input: { firstName, lastName, email, password, acceptsMarketing },
@@ -39,6 +40,7 @@ if (Astro.request.method === 'POST') {
       // Send an activation / password-reset email so the user can
       // confirm their account on our headless storefront.
       await shopifyFetchServer({
+        buyerIP: Astro.clientAddress,
         query: CUSTOMER_RECOVER,
         variables: { email },
       }).catch(() => {

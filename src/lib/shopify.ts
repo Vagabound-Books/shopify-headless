@@ -65,15 +65,17 @@ export async function makeShopifyRequest<T = any>(
   return json.data as T;
 }
 
-// Server-side helper (reads from env, no buyerIP by default)
+// Server-side helper (reads from env)
 export async function shopifyFetchServer<T = any>({
   query,
   variables = {},
+  buyerIP = "",
 }: {
   query: string;
   variables?: Record<string, any>;
+  buyerIP?: string;
 }): Promise<T> {
-  return makeShopifyRequest(query, variables);
+  return makeShopifyRequest(query, variables, buyerIP);
 }
 
 // Client-side helper (uses public token)

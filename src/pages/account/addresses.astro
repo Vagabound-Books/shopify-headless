@@ -32,6 +32,7 @@ if (Astro.request.method === 'POST') {
     if (action === 'delete') {
       const id = String(formData.get('id') || '');
       await shopifyFetchServer({
+        buyerIP: Astro.clientAddress,
         query: CUSTOMER_ADDRESS_DELETE,
         variables: { customerAccessToken: token, id },
       });
@@ -41,6 +42,7 @@ if (Astro.request.method === 'POST') {
     if (action === 'default') {
       const id = String(formData.get('id') || '');
       await shopifyFetchServer({
+        buyerIP: Astro.clientAddress,
         query: CUSTOMER_DEFAULT_ADDRESS_UPDATE,
         variables: { customerAccessToken: token, addressId: id },
       });
@@ -61,6 +63,7 @@ if (Astro.request.method === 'POST') {
 
     if (action === 'add') {
       const data = await shopifyFetchServer({
+        buyerIP: Astro.clientAddress,
         query: CUSTOMER_ADDRESS_CREATE,
         variables: { customerAccessToken: token, address: addressInput },
       });
@@ -75,6 +78,7 @@ if (Astro.request.method === 'POST') {
     if (action === 'edit') {
       const id = String(formData.get('id') || '');
       const data = await shopifyFetchServer({
+        buyerIP: Astro.clientAddress,
         query: CUSTOMER_ADDRESS_UPDATE,
         variables: { customerAccessToken: token, id, address: addressInput },
       });

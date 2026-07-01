@@ -36,6 +36,7 @@ if (Astro.request.method === 'POST' && rawId && token) {
       error = 'Passwords do not match.';
     } else {
       const data = await shopifyFetchServer({
+        buyerIP: Astro.clientAddress,
         query: CUSTOMER_ACTIVATE_BY_URL,
         variables: {
           activationUrl,
