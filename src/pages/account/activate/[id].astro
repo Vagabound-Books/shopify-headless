@@ -3,7 +3,7 @@ import Layout from '../../../layouts/Layout.astro';
 import Header from '../../../components/Header.astro';
 import Footer from '../../../components/Footer.astro';
 import { shopifyFetchServer } from '../../../lib/shopify';
-import { CUSTOMER_ACTIVATE } from '../../../lib/queries';
+import { CUSTOMER_ACTIVATE_BY_URL } from '../../../lib/queries';
 import { setCustomerToken, getCustomer } from '../../../lib/auth';
 
 const customer = await getCustomer(Astro.cookies);
@@ -14,10 +14,9 @@ if (customer) {
 const rawId = Astro.params.id || '';
 const token = Astro.url.searchParams.get('syclid') || '';
 
-// Shopify Storefront API requires the full GID format
-const id = rawId.startsWith('gid://')
-  ? rawId
-  : `gid://shopify/Customer/${rawId}`;
+// Reconstruct the full activation URL that Shopify signed.
+// customerActivateByUrl needs the complete URL, not the token alone.
+const activationUrl = Astro.url.href;
 
 let error = '';
 
@@ -37,15 +36,15 @@ if (Astro.request.method === 'POST' && rawId && token) {
       error = 'Passwords do not match.';
     } else {
       const data = await shopifyFetchServer({
-        query: CUSTOMER_ACTIVATE,
+        query: CUSTOMER_ACTIVATE_BY_URL,
         variables: {
-          id,
-          input: { activationToken: token, password },
+          activationUrl,
+          password,
         },
       });
 
-      const accessToken = data?.customerActivate?.customerAccessToken?.accessToken;
-      const userErrors = data?.customerActivate?.customerUserErrors ?? [];
+      const accessToken = data?.customerActivateByUrl?.customerAccessToken?.accessToken;
+      const userErrors = data?.customerActivateByUrl?.customerUserErrors ?? [];
 
       if (accessToken) {
         setCustomerToken(Astro.cookies, accessToken);
@@ -84,9 +83,9 @@ if (Astro.request.method === 'POST' && rawId && token) {
         </div>
       )}
 
-      {(!error || Astro.request.method === 'POST') && id && token && (
+      {(!error || Astro.request.method === 'POST') && rawId && token && (
         <form method="POST" style="display: flex; flex-direction: column; gap: 18px;">
-          <input type="hidden" name="id" value={id} />
+          <input type="hidden" name="id" value={rawId} />
           <input type="hidden" name="token" value={token} />
           <div class="vb-field">
             <label for="password">Password</label>
@@ -100,7 +99,7 @@ if (Astro.request.method === 'POST' && rawId && token) {
         </form>
       )}
 
-      {error && (!id || !token) && (
+      {error && (!rawId || !token) && (
         <p style="margin-top: 24px; font-size: 14px; color: var(--ink-muted);">
           Already have an account? <a href="/account/login" style="color: var(--ink); text-decoration: underline; text-underline-offset: 3px;">Sign in</a>
         </p>

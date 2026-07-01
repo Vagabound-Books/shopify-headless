@@ -525,9 +525,9 @@ export const CUSTOMER_DEFAULT_ADDRESS_UPDATE = `
   }
 `;
 
-export const CUSTOMER_ACTIVATE = `
-  mutation CustomerActivate($id: ID!, $input: CustomerActivateInput!) {
-    customerActivate(id: $id, input: $input) {
+export const CUSTOMER_ACTIVATE_BY_URL = `
+  mutation CustomerActivateByUrl($activationUrl: URL!, $password: String!) {
+    customerActivateByUrl(activationUrl: $activationUrl, password: $password) {
       customer {
         id
         email
@@ -545,9 +545,9 @@ export const CUSTOMER_ACTIVATE = `
   }
 `;
 
-export const CUSTOMER_RESET = `
-  mutation CustomerReset($id: ID!, $input: CustomerResetInput!) {
-    customerReset(id: $id, input: $input) {
+export const CUSTOMER_RESET_BY_URL = `
+  mutation CustomerResetByUrl($resetUrl: URL!, $password: String!) {
+    customerResetByUrl(resetUrl: $resetUrl, password: $password) {
       customer {
         id
         email
