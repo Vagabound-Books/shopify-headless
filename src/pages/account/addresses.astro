@@ -2,98 +2,16 @@
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { getCustomer, getCustomerToken } from '../../lib/auth';
-import { shopifyFetchServer } from '../../lib/shopify';
-import {
-  CUSTOMER_ADDRESS_CREATE,
-  CUSTOMER_ADDRESS_UPDATE,
-  CUSTOMER_ADDRESS_DELETE,
-  CUSTOMER_DEFAULT_ADDRESS_UPDATE,
-} from '../../lib/queries';
+import { getCustomer } from '../../lib/auth';
 
 const customer = await getCustomer(Astro.cookies);
 if (!customer) {
   return Astro.redirect('/account/login');
 }
 
-const token = getCustomerToken(Astro.cookies)!;
 const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(' ') || 'Account';
-let addresses = (customer.addresses?.edges || []).map((e: any) => e.node);
-let defaultAddressId = customer.defaultAddress?.id;
-
-let formError = '';
-let formSuccess = '';
-
-if (Astro.request.method === 'POST') {
-  try {
-    const formData = await Astro.request.formData();
-    const action = String(formData.get('_action') || '');
-
-    if (action === 'delete') {
-      const id = String(formData.get('id') || '');
-      await shopifyFetchServer({
-        buyerIP: Astro.clientAddress,
-        query: CUSTOMER_ADDRESS_DELETE,
-        variables: { customerAccessToken: token, id },
-      });
-      return Astro.redirect('/account/addresses');
-    }
-
-    if (action === 'default') {
-      const id = String(formData.get('id') || '');
-      await shopifyFetchServer({
-        buyerIP: Astro.clientAddress,
-        query: CUSTOMER_DEFAULT_ADDRESS_UPDATE,
-        variables: { customerAccessToken: token, addressId: id },
-      });
-      return Astro.redirect('/account/addresses');
-    }
-
-    const addressInput = {
-      address1: String(formData.get('address1') || '').trim(),
-      address2: String(formData.get('address2') || '').trim() || undefined,
-      city: String(formData.get('city') || '').trim(),
-      province: String(formData.get('province') || '').trim() || undefined,
-      country: String(formData.get('country') || '').trim(),
-      zip: String(formData.get('zip') || '').trim(),
-      phone: String(formData.get('phone') || '').trim() || undefined,
-      firstName: String(formData.get('firstName') || customer.firstName || '').trim(),
-      lastName: String(formData.get('lastName') || customer.lastName || '').trim(),
-    };
-
-    if (action === 'add') {
-      const data = await shopifyFetchServer({
-        buyerIP: Astro.clientAddress,
-        query: CUSTOMER_ADDRESS_CREATE,
-        variables: { customerAccessToken: token, address: addressInput },
-      });
-      const errors = data?.customerAddressCreate?.customerUserErrors ?? [];
-      if (errors.length > 0) {
-        formError = errors.map((e: any) => e.message).join('. ');
-      } else {
-        return Astro.redirect('/account/addresses');
-      }
-    }
-
-    if (action === 'edit') {
-      const id = String(formData.get('id') || '');
-      const data = await shopifyFetchServer({
-        buyerIP: Astro.clientAddress,
-        query: CUSTOMER_ADDRESS_UPDATE,
-        variables: { customerAccessToken: token, id, address: addressInput },
-      });
-      const errors = data?.customerAddressUpdate?.customerUserErrors ?? [];
-      if (errors.length > 0) {
-        formError = errors.map((e: any) => e.message).join('. ');
-      } else {
-        return Astro.redirect('/account/addresses');
-      }
-    }
-  } catch (err) {
-    console.error('[Account] Address error:', err);
-    formError = 'Something went wrong. Please try again.';
-  }
-}
+const addresses = (customer.addresses?.edges || []).map((e: any) => e.node);
+const defaultAddressId = customer.defaultAddress?.id;
 
 const navItems = [
   { label: 'Overview', href: '/account', active: false },
@@ -136,101 +54,31 @@ const navItems = [
         <div class="vb-eyebrow" style="margin-bottom: 18px;">Account</div>
         <h1 style="font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0 0 48px;">Addresses</h1>
 
-        {formError && (
-          <div style="padding: 14px 18px; background: rgba(168,124,90,0.08); border: 1px solid var(--foxing); border-radius: var(--radius-sm); color: var(--foxing); font-size: 14px; margin-bottom: 24px;">{formError}</div>
-        )}
-        {formSuccess && (
-          <div style="padding: 14px 18px; background: rgba(61,90,32,0.08); border: 1px solid var(--mossy); border-radius: var(--radius-sm); color: var(--mossy); font-size: 14px; margin-bottom: 24px;">{formSuccess}</div>
-        )}
-
-        <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 48px;">
-          {addresses.map((addr: any) => {
-            const isDefault = addr.id === defaultAddressId;
-            return (
-              <div style={`padding: 24px; border: 1px solid ${isDefault ? 'var(--rule-firm)' : 'var(--rule-soft)'}; border-radius: var(--radius-md); background: ${isDefault ? 'var(--paper-soft)' : 'transparent'};`}>
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
-                  <div>
-                    <div style="font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 4px;">
-                      {addr.name || `${addr.firstName || ''} ${addr.lastName || ''}`.trim() || 'Address'}
-                      {isDefault && <span class="vb-pill" style="margin-left: 10px; vertical-align: 2px;">Default</span>}
-                    </div>
-                    <address style="font-style: normal; font-size: 15px; color: var(--ink-soft); line-height: 1.6;">
-                      <div>{addr.address1}{addr.address2 ? `, ${addr.address2}` : ''}</div>
-                      <div>{addr.city}{addr.province ? `, ${addr.province}` : ''} {addr.zip}</div>
-                      <div>{addr.country}</div>
-                      {addr.phone && <div style="margin-top: 4px;">{addr.phone}</div>}
-                    </address>
+        {addresses.length === 0 ? (
+          <div style="padding: 48px 24px; text-align: center; border: 1px dashed var(--rule-firm); border-radius: var(--radius-md);">
+            <p style="margin: 0; color: var(--ink-muted); font-size: 15px;">No saved addresses.</p>
+          </div>
+        ) : (
+          <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 48px;">
+            {addresses.map((addr: any) => {
+              const isDefault = addr.id === defaultAddressId;
+              return (
+                <div style={`padding: 24px; border: 1px solid ${isDefault ? 'var(--rule-firm)' : 'var(--rule-soft)'}; border-radius: var(--radius-md); background: ${isDefault ? 'var(--paper-soft)' : 'transparent'};`}>
+                  <div style="font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 4px;">
+                    {addr.name || `${addr.firstName || ''} ${addr.lastName || ''}`.trim() || 'Address'}
+                    {isDefault && <span class="vb-pill" style="margin-left: 10px; vertical-align: 2px;">Default</span>}
                   </div>
-                  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    {!isDefault && (
-                      <form method="POST" style="display: inline;">
-                        <input type="hidden" name="_action" value="default" />
-                        <input type="hidden" name="id" value={addr.id} />
-                        <button type="submit" class="vb-btn vb-btn--outline vb-btn--sm">Set as default</button>
-                      </form>
-                    )}
-                    <form method="POST" style="display: inline;" onsubmit="return confirm('Delete this address?')">
-                      <input type="hidden" name="_action" value="delete" />
-                      <input type="hidden" name="id" value={addr.id} />
-                      <button type="submit" class="vb-btn vb-btn--ghost vb-btn--sm" style="color: var(--foxing);">Delete</button>
-                    </form>
-                  </div>
+                  <address style="font-style: normal; font-size: 15px; color: var(--ink-soft); line-height: 1.6;">
+                    <div>{addr.address1}{addr.address2 ? `, ${addr.address2}` : ''}</div>
+                    <div>{addr.city}{addr.province ? `, ${addr.province}` : ''} {addr.zip}</div>
+                    <div>{addr.country}</div>
+                    {addr.phone && <div style="margin-top: 4px;">{addr.phone}</div>}
+                  </address>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Add address */}
-        <section style="padding: 28px; background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-md);">
-          <div style="font-family: var(--font-display); font-size: 20px; font-weight: 600; margin-bottom: 20px;">Add a new address</div>
-          <form method="POST" style="display: flex; flex-direction: column; gap: 18px;">
-            <input type="hidden" name="_action" value="add" />
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
-              <div class="vb-field">
-                <label for="firstName">First name</label>
-                <input id="firstName" name="firstName" type="text" class="vb-input" value={customer.firstName || ''} required />
-              </div>
-              <div class="vb-field">
-                <label for="lastName">Last name</label>
-                <input id="lastName" name="lastName" type="text" class="vb-input" value={customer.lastName || ''} required />
-              </div>
-            </div>
-            <div class="vb-field">
-              <label for="address1">Address</label>
-              <input id="address1" name="address1" type="text" class="vb-input" required />
-            </div>
-            <div class="vb-field">
-              <label for="address2">Apartment, suite, etc. (optional)</label>
-              <input id="address2" name="address2" type="text" class="vb-input" />
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
-              <div class="vb-field">
-                <label for="city">City</label>
-                <input id="city" name="city" type="text" class="vb-input" required />
-              </div>
-              <div class="vb-field">
-                <label for="province">Province / State</label>
-                <input id="province" name="province" type="text" class="vb-input" />
-              </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
-              <div class="vb-field">
-                <label for="country">Country</label>
-                <input id="country" name="country" type="text" class="vb-input" required />
-              </div>
-              <div class="vb-field">
-                <label for="zip">Postal code</label>
-                <input id="zip" name="zip" type="text" class="vb-input" required />
-              </div>
-            </div>
-            <div class="vb-field">
-              <label for="phone">Phone (optional)</label>
-              <input id="phone" name="phone" type="tel" class="vb-input" />
-            </div>
-            <button type="submit" class="vb-btn vb-btn--primary vb-btn--sm" style="align-self: flex-start;">Add address</button>
-          </form>
-        </section>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   </div>

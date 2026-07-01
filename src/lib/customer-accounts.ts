@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "crypto";
 import type { AstroCookies } from "astro";
+import { CUSTOMER_ACCOUNTS_CUSTOMER_QUERY } from "./queries";
 
 const CLIENT_ID = import.meta.env.CUSTOMER_ACCOUNTS_CLIENT_ID || "";
 const CLIENT_SECRET = import.meta.env.CUSTOMER_ACCOUNTS_CLIENT_SECRET || "";
@@ -218,80 +219,6 @@ export async function customerAccountsFetch<T = any>(
 
   return json.data as T;
 }
-
-const CUSTOMER_ACCOUNTS_CUSTOMER_QUERY = `
-  query Customer {
-    customer {
-      id
-      firstName
-      lastName
-      displayName
-      emailAddress {
-        emailAddress
-        marketingState
-      }
-      phoneNumber {
-        phoneNumber
-        marketingState
-      }
-      defaultAddress {
-        id
-        address1
-        address2
-        city
-        province
-        country
-        zip
-        phone
-        name
-      }
-      addresses {
-        edges {
-          node {
-            id
-            address1
-            address2
-            city
-            province
-            country
-            zip
-            phone
-            name
-          }
-        }
-      }
-      orders {
-        edges {
-          node {
-            id
-            name
-            processedAt
-            financialStatus
-            fulfillmentStatus
-            totalPrice {
-              amount
-              currencyCode
-            }
-            lineItems {
-              edges {
-                node {
-                  title
-                  quantity
-                  variant {
-                    image {
-                      url
-                      altText
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
 
 function normalizeCustomer(caCustomer: any) {
   if (!caCustomer) return null;

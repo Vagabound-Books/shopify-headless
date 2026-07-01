@@ -2,168 +2,31 @@
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { shopifyFetchServer } from '../../lib/shopify';
-import { CUSTOMER_ACCESS_TOKEN_CREATE, CUSTOMER_RECOVER } from '../../lib/queries';
-import { setCustomerToken, getCustomer } from '../../lib/auth';
+import { getCustomer } from '../../lib/auth';
 import { isCustomerAccountsEnabled, buildAuthorizeUrl } from '../../lib/customer-accounts';
-const shopifyOAuthUrl = isCustomerAccountsEnabled() ? buildAuthorizeUrl(Astro.cookies) : null;
 
 const customer = await getCustomer(Astro.cookies);
 if (customer) {
   return Astro.redirect('/account');
 }
 
-const showRecover = Astro.url.searchParams.get('recover') === '1';
-const showShopifyLogin = Astro.url.searchParams.get('shopify') === '1';
-
-let error = '';
-let success = '';
-
-if (Astro.request.method === 'POST') {
-  try {
-    const formData = await Astro.request.formData();
-    const action = String(formData.get('_action') || '');
-
-    if (action === 'recover') {
-      const email = String(formData.get('email') || '').trim();
-      const data = await shopifyFetchServer({
-        buyerIP: Astro.clientAddress,
-        query: CUSTOMER_RECOVER,
-        variables: { email },
-      });
-      const userErrors = data?.customerRecover?.customerUserErrors ?? [];
-      if (userErrors.length > 0) {
-        error = userErrors.map((e: any) => e.message).join('. ');
-      } else {
-        success = 'If an account exists for that email, we have sent password reset instructions.';
-      }
-    } else {
-      const email = String(formData.get('email') || '').trim();
-      const password = String(formData.get('password') || '');
-
-      const data = await shopifyFetchServer({
-        buyerIP: Astro.clientAddress,
-        query: CUSTOMER_ACCESS_TOKEN_CREATE,
-        variables: {
-          input: { email, password },
-        },
-      });
-
-      const token = data?.customerAccessTokenCreate?.customerAccessToken?.accessToken;
-      const userErrors = data?.customerAccessTokenCreate?.customerUserErrors ?? [];
-
-      if (token) {
-        setCustomerToken(Astro.cookies, token);
-        return Astro.redirect('/account');
-      }
-
-      if (userErrors.length > 0) {
-        const raw = userErrors.map((e: any) => e.message).join('. ');
-        if (raw.toLowerCase().includes('unidentified customer')) {
-          error = 'We can\'t find that account. <a href="/account/register" style="text-decoration:underline;color:inherit;font-weight:700;">Create one</a>?';
-        } else {
-          error = raw;
-        }
-      } else {
-        error = 'Unable to sign in. Please check your email and password.';
-      }
-    }
-  } catch (err) {
-    console.error('[Account] Login error:', err);
-    error = 'Something went wrong. Please try again.';
-  }
+if (isCustomerAccountsEnabled()) {
+  return Astro.redirect(buildAuthorizeUrl(Astro.cookies));
 }
 ---
 
-<Layout title={showRecover ? 'Reset Password' : 'Sign In'}>
+<Layout title="Sign In">
   <Header slot="header" />
 
   <div class="vb-container" style="padding-block: var(--space-9);">
-    <div style="max-width: 480px; margin: 0 auto;">
+    <div style="max-width: 480px; margin: 0 auto; text-align: center;">
       <div class="vb-eyebrow" style="margin-bottom: 18px;">Account</div>
-
-      {!showRecover ? (
-        <>
-          <h1 style="font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0 0 12px;">
-            Sign in
-          </h1>
-          <p style="font-size: 17px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 32px;">
-            Welcome back. Sign in to view your orders and manage your addresses.
-          </p>
-
-          {error && (
-            <div style="padding: 14px 18px; background: rgba(168,124,90,0.08); border: 1px solid var(--foxing); border-radius: var(--radius-sm); color: var(--foxing); font-size: 14px; margin-bottom: 24px;" set:html={error} />
-          )}
-
-          <form method="POST" style="display: flex; flex-direction: column; gap: 18px;">
-            <div class="vb-field">
-              <label for="email">Email</label>
-              <input id="email" name="email" type="email" class="vb-input" placeholder="you@example.com" required autocomplete="email" />
-            </div>
-            <div class="vb-field">
-              <label for="password">Password</label>
-              <input id="password" name="password" type="password" class="vb-input" placeholder="••••••••" required autocomplete="current-password" />
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-              <button type="submit" class="vb-btn vb-btn--primary">Sign in</button>
-              <a href="/account/login?recover=1" style="font-size: 14px; color: var(--ink-muted);">Forgot your password?</a>
-            </div>
-          </form>
-
-          {shopifyOAuthUrl && (
-            <>
-              <div style="display: flex; align-items: center; gap: 14px; margin-top: 24px;">
-                <div style="flex: 1; height: 1px; background: var(--rule-soft);"></div>
-                <span style="font-size: 12px; color: var(--ink-muted); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em;">or</span>
-                <div style="flex: 1; height: 1px; background: var(--rule-soft);"></div>
-              </div>
-              <a href={shopifyOAuthUrl} class="vb-btn vb-btn--outline" style="margin-top: 8px; width: 100%; justify-content: center;">
-                Sign in with Shopify
-              </a>
-            </>
-          )}
-
-          <p style="margin-top: 28px; font-size: 14px; color: var(--ink-muted); text-align: center;">
-            Don't have an account? <a href="/account/register" style="color: var(--ink); text-decoration: underline; text-underline-offset: 3px;">Create one</a>
-          </p>
-        </>
-      ) : (
-        <>
-          <h1 style="font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0 0 12px;">
-            Reset your password
-          </h1>
-          <p style="font-size: 17px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 32px;">
-            Enter your email and we'll send you instructions to reset your password.
-          </p>
-
-          {error && (
-            <div style="padding: 14px 18px; background: rgba(168,124,90,0.08); border: 1px solid var(--foxing); border-radius: var(--radius-sm); color: var(--foxing); font-size: 14px; margin-bottom: 24px;">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div style="padding: 14px 18px; background: rgba(61,90,32,0.08); border: 1px solid var(--mossy); border-radius: var(--radius-sm); color: var(--mossy); font-size: 14px; margin-bottom: 24px;">
-              {success}
-            </div>
-          )}
-
-          {!success && (
-            <form method="POST" style="display: flex; flex-direction: column; gap: 18px;">
-              <input type="hidden" name="_action" value="recover" />
-              <div class="vb-field">
-                <label for="email">Email</label>
-                <input id="email" name="email" type="email" class="vb-input" placeholder="you@example.com" required autocomplete="email" />
-              </div>
-              <button type="submit" class="vb-btn vb-btn--primary" style="margin-top: 8px;">Send reset instructions</button>
-            </form>
-          )}
-
-          <p style="margin-top: 28px; font-size: 14px; color: var(--ink-muted); text-align: center;">
-            Remember your password? <a href="/account/login" style="color: var(--ink); text-decoration: underline; text-underline-offset: 3px;">Sign in</a>
-          </p>
-        </>
-      )}
+      <h1 style="font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0 0 12px;">
+        Sign in
+      </h1>
+      <p style="font-size: 17px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 32px;">
+        Customer Accounts API is not configured. Please contact support.
+      </p>
     </div>
   </div>
 

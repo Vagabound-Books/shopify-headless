@@ -5,9 +5,14 @@ const allowedOrigins = (import.meta.env.ALLOWED_ORIGINS || "")
   .map((o) => o.trim())
   .filter(Boolean);
 
+const isProd = import.meta.env.PROD;
+
 function isAllowed(origin: string | null): boolean {
   if (!origin) return false;
-  if (allowedOrigins.length === 0) return true;
+  // In dev, allow any origin for local testing
+  if (!isProd && allowedOrigins.length === 0) return true;
+  // In prod, require explicit configuration
+  if (allowedOrigins.length === 0) return false;
   return allowedOrigins.some(
     (allowed) =>
       origin === allowed ||
@@ -36,6 +41,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const response = await next();
+
+  // Security headers
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
   if (isAllowed(origin)) {
     response.headers.set("Access-Control-Allow-Origin", origin || "*");
