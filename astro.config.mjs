@@ -16,6 +16,9 @@ export default defineConfig({
   adapter: node({
     mode: 'standalone',
   }),
+  security: {
+    checkOrigin: false,
+  },
   session: {
     driver: {
       entrypoint: "unstorage/drivers/null",
