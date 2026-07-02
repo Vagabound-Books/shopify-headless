@@ -15,6 +15,7 @@ const [articleData, blogData] = await Promise.all([
   shopifyFetchServer({
     query: GET_ARTICLE_BY_HANDLE,
     variables: { blogHandle: 'field-notes', articleHandle: handle },
+    buyerIP: Astro.clientAddress,
   }).catch((err) => {
     console.error('[Shopify] Failed to fetch article:', err);
     return null;
@@ -22,6 +23,7 @@ const [articleData, blogData] = await Promise.all([
   shopifyFetchServer({
     query: GET_BLOG_BY_HANDLE,
     variables: { handle: 'field-notes', first: 50 },
+    buyerIP: Astro.clientAddress,
   }).catch((err) => {
     console.error('[Shopify] Failed to fetch blog:', err);
     return null;

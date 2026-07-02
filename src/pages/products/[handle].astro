@@ -19,6 +19,7 @@ if (!handle) {
 const data = await shopifyFetchServer({
   query: GET_PRODUCT_BY_HANDLE,
   variables: { handle },
+  buyerIP: Astro.clientAddress,
 }).catch((err) => {
   console.error('[Shopify] Failed to fetch product:', err);
   return null;

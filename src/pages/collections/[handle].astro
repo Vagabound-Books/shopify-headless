@@ -16,6 +16,7 @@ if (!handle) {
 const data = await shopifyFetchServer({
   query: GET_COLLECTION_BY_HANDLE,
   variables: { handle, first: 24, after },
+  buyerIP: Astro.clientAddress,
 }).catch((err) => {
   console.error('[Shopify] Failed to fetch collection:', err);
   return null;

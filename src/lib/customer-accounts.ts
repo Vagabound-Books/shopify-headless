@@ -7,7 +7,6 @@ import { CUSTOMER_ACCOUNTS_CUSTOMER_QUERY } from "./queries";
 const CLIENT_ID = process.env.CUSTOMER_ACCOUNTS_CLIENT_ID || "";
 const CLIENT_SECRET = process.env.CUSTOMER_ACCOUNTS_CLIENT_SECRET || "";
 const SHOP_ID = process.env.SHOPIFY_SHOP_ID || "";
-const SHOP_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || "";
 const API_VERSION = process.env.SHOPIFY_API_VERSION || "2026-07";
 const SITE_URL = process.env.PUBLIC_SITE_URL || "";
 const REDIRECT_URI =
@@ -15,12 +14,11 @@ const REDIRECT_URI =
   (SITE_URL ? `${SITE_URL}/account/callback` : "/account/callback");
 
 // Shopify Customer Accounts API endpoints.
-// Use the shop domain (e.g. vagabound-books.myshopify.com) rather than
-// shopify.com/{shop_id} so the URLs match the discovery endpoints.
+// The headless Customer Account API uses shopify.com/{shop_id} as the base.
 const CA_OAUTH_BASE =
-  (SHOP_DOMAIN ? `https://${SHOP_DOMAIN}/authentication` : "");
+  (SHOP_ID ? `https://shopify.com/${SHOP_ID}` : "");
 const CA_API_URL =
-  (SHOP_DOMAIN ? `https://${SHOP_DOMAIN}/customer/api/${API_VERSION}/graphql` : "");
+  (SHOP_ID ? `https://shopify.com/${SHOP_ID}/customer-account-api/${API_VERSION}/graphql` : "");
 
 // Cookie names
 const CA_ACCESS_TOKEN = "ca_access_token";
@@ -88,7 +86,7 @@ export function buildAuthorizeUrl(cookies: AstroCookies): string {
     code_challenge_method: "S256",
   });
 
-  return `${CA_OAUTH_BASE}/oauth/authorize?${params.toString()}`;
+  return `${CA_OAUTH_BASE}/auth/oauth/authorize?${params.toString()}`;
 }
 
 export async function exchangeCodeForTokens(
@@ -111,7 +109,7 @@ export async function exchangeCodeForTokens(
     throw new Error("Missing code verifier");
   }
 
-  const tokenUrl = `${CA_OAUTH_BASE}/oauth/token`;
+  const tokenUrl = `${CA_OAUTH_BASE}/auth/oauth/token`;
 
   // Confidential client: send credentials via Basic Auth header
   const credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
@@ -182,7 +180,7 @@ export async function refreshAccessToken(cookies: AstroCookies): Promise<string 
   const { refreshToken } = getCustomerAccountsTokens(cookies);
   if (!refreshToken) return null;
 
-  const tokenUrl = `${CA_OAUTH_BASE}/oauth/token`;
+  const tokenUrl = `${CA_OAUTH_BASE}/auth/oauth/token`;
 
   // Confidential client: send credentials via Basic Auth header
   const credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
@@ -266,7 +264,7 @@ function normalizeCustomer(caCustomer: any) {
 }
 
 export async function getCustomerAccountsCustomer(cookies: AstroCookies) {
-  let { accessToken } = getCustomerAccountsTokens(cookies);
+  let accessToken: string | null | undefined = getCustomerAccountsTokens(cookies).accessToken;
   if (!accessToken) return null;
 
   try {

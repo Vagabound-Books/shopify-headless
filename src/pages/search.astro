@@ -14,6 +14,7 @@ if (query) {
   const data = await shopifyFetchServer({
     query: SEARCH_PRODUCTS,
     variables: { query, first: 24 },
+    buyerIP: Astro.clientAddress,
   }).catch((err) => {
     console.error('[Shopify] Search failed:', err);
     return null;

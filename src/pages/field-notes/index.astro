@@ -8,6 +8,7 @@ import { GET_BLOG_BY_HANDLE } from '../../lib/queries';
 const data = await shopifyFetchServer({
   query: GET_BLOG_BY_HANDLE,
   variables: { handle: 'field-notes', first: 50 },
+  buyerIP: Astro.clientAddress,
 }).catch((err) => {
   console.error('[Shopify] Failed to fetch blog:', err);
   return null;

@@ -8,6 +8,7 @@ import { GET_COLLECTIONS } from '../../lib/queries';
 const data = await shopifyFetchServer({
   query: GET_COLLECTIONS,
   variables: { first: 50 },
+  buyerIP: Astro.clientAddress,
 }).catch((err) => {
   console.error('[Shopify] Failed to fetch collections:', err);
   return null;
