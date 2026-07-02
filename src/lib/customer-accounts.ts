@@ -114,6 +114,14 @@ function setCookie(cookies: AstroCookies, name: string, value: string) {
   });
 }
 
+function deleteCookie(cookies: AstroCookies, name: string) {
+  cookies.delete(name, {
+    path: "/",
+    secure: import.meta.env.PROD,
+    sameSite: "lax",
+  });
+}
+
 export function isCustomerAccountsEnabled(): boolean {
   return Boolean(CLIENT_ID && CLIENT_SECRET && SHOP_ID && SHOP_DOMAIN);
 }
@@ -171,9 +179,9 @@ export async function exchangeCodeForTokens(
   console.log('[CA Exchange] state match:', storedState === state);
 
   // Clear handshake cookies
-  cookies.delete(CA_STATE, { path: "/" });
-  cookies.delete(CA_NONCE, { path: "/" });
-  cookies.delete(CA_CODE_VERIFIER, { path: "/" });
+  deleteCookie(cookies, CA_STATE);
+  deleteCookie(cookies, CA_NONCE);
+  deleteCookie(cookies, CA_CODE_VERIFIER);
 
   if (!storedState || storedState !== state) {
     throw new Error(`Invalid state parameter: cookie=${!!storedState}, match=${storedState === state}`);
@@ -250,8 +258,8 @@ export function getCustomerAccountsTokens(cookies: AstroCookies) {
 }
 
 export function deleteCustomerAccountsTokens(cookies: AstroCookies) {
-  cookies.delete(CA_ACCESS_TOKEN, { path: "/" });
-  cookies.delete(CA_REFRESH_TOKEN, { path: "/" });
+  deleteCookie(cookies, CA_ACCESS_TOKEN);
+  deleteCookie(cookies, CA_REFRESH_TOKEN);
 }
 
 export async function refreshAccessToken(cookies: AstroCookies): Promise<string | null> {
