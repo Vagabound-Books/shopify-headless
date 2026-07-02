@@ -21,8 +21,7 @@ if (query) {
   });
 
   products = (data?.search?.edges || [])
-    .map((e: any) => e.node)
-    .filter((n: any) => n?.__typename === 'Product');
+    .map((e: any) => e.node);
 }
 ---
 
