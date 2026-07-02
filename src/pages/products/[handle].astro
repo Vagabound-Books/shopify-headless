@@ -72,7 +72,7 @@ const images = product.images?.edges?.map((e: any) => e.node) || [];
               <div>
                 <div class="vb-cover__title">{product.title}</div>
                 <div class="vb-cover__rule"></div>
-                <div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || ''}</div>
+                <div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || product.vendor || ''}</div>
               </div>
             </div>
           )}
@@ -82,7 +82,7 @@ const images = product.images?.edges?.map((e: any) => e.node) || [];
       <div class="vb-pdp__info">
         <a href="/collections" class="genre">{mf.genre || 'Fiction'}</a>
         <h1>{product.title}</h1>
-        <div class="author">by {Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || ''}</div>
+        <div class="author">by {Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || product.vendor || ''}</div>
 
         <dl class="vb-pdp__bibmeta">
           <div>

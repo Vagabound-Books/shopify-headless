@@ -35,7 +35,7 @@ const authorsList = Array.isArray(mf.authors) ? mf.authors : (mf.authors ? [mf.a
         <div>
           <div class="vb-cover__title">{product.title}</div>
           <div class="vb-cover__rule"></div>
-          <div class="vb-cover__author">{authorsList.join(', ') || ''}</div>
+          <div class="vb-cover__author">{authorsList.join(', ') || product.vendor || ''}</div>
         </div>
       </div>
     )}
@@ -49,7 +49,7 @@ const authorsList = Array.isArray(mf.authors) ? mf.authors : (mf.authors ? [mf.a
   <div class="vb-card__body">
     <div class="vb-card__genre">{mf.genre || 'Fiction'}</div>
     <div class="vb-card__title">{product.title}</div>
-    <div class="vb-card__author">{authorsList.join(', ') || ''}</div>
+    <div class="vb-card__author">{authorsList.join(', ') || product.vendor || ''}</div>
   </div>
 </a>
 
