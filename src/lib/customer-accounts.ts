@@ -5,18 +5,19 @@ import { CUSTOMER_ACCOUNTS_CUSTOMER_QUERY } from "./queries";
 const CLIENT_ID = import.meta.env.CUSTOMER_ACCOUNTS_CLIENT_ID || "";
 const CLIENT_SECRET = import.meta.env.CUSTOMER_ACCOUNTS_CLIENT_SECRET || "";
 const SHOP_ID = import.meta.env.SHOPIFY_SHOP_ID || "";
-const API_VERSION = import.meta.env.SHOPIFY_API_VERSION || "2024-07";
+const API_VERSION = import.meta.env.SHOPIFY_API_VERSION || "2026-07";
 const SITE_URL = import.meta.env.PUBLIC_SITE_URL || "";
 const REDIRECT_URI =
   import.meta.env.CUSTOMER_ACCOUNTS_REDIRECT_URI ||
   (SITE_URL ? `${SITE_URL}/account/callback` : "/account/callback");
 
-// Shopify Customer Accounts API / OAuth base URL.
-// The canonical endpoints are on shopify.com/{shop_id}/account — the custom
-// domain (e.g. account.vagaboundbooks.com) is only for the hosted portal UI,
-// not for /oauth/authorize, /oauth/token, or the GraphQL API.
-const CA_DOMAIN =
-  (SHOP_ID ? `https://shopify.com/${SHOP_ID}/account` : "");
+// Shopify Customer Accounts API endpoints (from discovery).
+// OAuth endpoints live on shopify.com/authentication/{shop_id}
+// GraphQL API lives on shopify.com/{shop_id}/account/customer/api/{version}/graphql
+const CA_OAUTH_BASE =
+  (SHOP_ID ? `https://shopify.com/authentication/${SHOP_ID}` : "");
+const CA_API_URL =
+  (SHOP_ID ? `https://shopify.com/${SHOP_ID}/account/customer/api/${API_VERSION}/graphql` : "");
 
 // Cookie names
 const CA_ACCESS_TOKEN = "ca_access_token";
@@ -84,7 +85,7 @@ export function buildAuthorizeUrl(cookies: AstroCookies): string {
     code_challenge_method: "S256",
   });
 
-  return `${CA_DOMAIN}/oauth/authorize?${params.toString()}`;
+  return `${CA_OAUTH_BASE}/oauth/authorize?${params.toString()}`;
 }
 
 export async function exchangeCodeForTokens(
@@ -107,7 +108,7 @@ export async function exchangeCodeForTokens(
     throw new Error("Missing code verifier");
   }
 
-  const tokenUrl = `${CA_DOMAIN}/oauth/token`;
+  const tokenUrl = `${CA_OAUTH_BASE}/oauth/token`;
 
   const body = new URLSearchParams({
     grant_type: "authorization_code",
@@ -173,7 +174,7 @@ export async function refreshAccessToken(cookies: AstroCookies): Promise<string 
   const { refreshToken } = getCustomerAccountsTokens(cookies);
   if (!refreshToken) return null;
 
-  const tokenUrl = `${CA_DOMAIN}/oauth/token`;
+  const tokenUrl = `${CA_OAUTH_BASE}/oauth/token`;
 
   const body = new URLSearchParams({
     grant_type: "refresh_token",
@@ -197,8 +198,6 @@ export async function refreshAccessToken(cookies: AstroCookies): Promise<string 
   setCustomerAccountsTokens(cookies, data.access_token, data.refresh_token);
   return data.access_token as string;
 }
-
-const CA_API_URL = `${CA_DOMAIN}/api/${API_VERSION}/graphql`;
 
 export async function customerAccountsFetch<T = any>(
   query: string,
