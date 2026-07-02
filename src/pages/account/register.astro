@@ -11,7 +11,8 @@ if (customer) {
 }
 
 if (isCustomerAccountsEnabled()) {
-  return Astro.redirect(buildAuthorizeUrl(Astro.cookies));
+  const authorizeUrl = await buildAuthorizeUrl(Astro.cookies);
+  return Astro.redirect(authorizeUrl);
 }
 ---
 

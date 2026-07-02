@@ -7,18 +7,12 @@ import { CUSTOMER_ACCOUNTS_CUSTOMER_QUERY } from "./queries";
 const CLIENT_ID = process.env.CUSTOMER_ACCOUNTS_CLIENT_ID || "";
 const CLIENT_SECRET = process.env.CUSTOMER_ACCOUNTS_CLIENT_SECRET || "";
 const SHOP_ID = process.env.SHOPIFY_SHOP_ID || "";
+const SHOP_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || "";
 const API_VERSION = process.env.SHOPIFY_API_VERSION || "2026-07";
 const SITE_URL = process.env.PUBLIC_SITE_URL || "";
 const REDIRECT_URI =
   process.env.CUSTOMER_ACCOUNTS_REDIRECT_URI ||
   (SITE_URL ? `${SITE_URL}/account/callback` : "/account/callback");
-
-// Shopify Customer Accounts API endpoints.
-// The headless Customer Account API uses shopify.com/{shop_id} as the base.
-const CA_OAUTH_BASE =
-  (SHOP_ID ? `https://shopify.com/${SHOP_ID}` : "");
-const CA_API_URL =
-  (SHOP_ID ? `https://shopify.com/${SHOP_ID}/customer-account-api/${API_VERSION}/graphql` : "");
 
 // Cookie names
 const CA_ACCESS_TOKEN = "ca_access_token";
@@ -26,6 +20,65 @@ const CA_REFRESH_TOKEN = "ca_refresh_token";
 const CA_STATE = "ca_state";
 const CA_NONCE = "ca_nonce";
 const CA_CODE_VERIFIER = "ca_code_verifier";
+
+// ── Discovery cache ──────────────────────────────────────────────
+let discoveryCache: {
+  auth: {
+    authorization_endpoint: string;
+    token_endpoint: string;
+    end_session_endpoint?: string;
+  } | null;
+  api: {
+    graphql_api: string;
+    mcp_api?: string;
+  } | null;
+} | null = null;
+
+async function discoverAuthEndpoints() {
+  if (discoveryCache?.auth) return discoveryCache.auth;
+  if (!SHOP_DOMAIN) {
+    throw new Error(
+      "Customer Accounts API discovery requires SHOPIFY_STORE_DOMAIN."
+    );
+  }
+
+  const res = await fetch(
+    `https://${SHOP_DOMAIN}/.well-known/openid-configuration`
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Auth discovery failed: ${res.status} ${text}`);
+  }
+
+  const data = await res.json();
+  discoveryCache = { ...discoveryCache, auth: data };
+  return data as {
+    authorization_endpoint: string;
+    token_endpoint: string;
+    end_session_endpoint?: string;
+  };
+}
+
+async function discoverApiEndpoints() {
+  if (discoveryCache?.api) return discoveryCache.api;
+  if (!SHOP_DOMAIN) {
+    throw new Error(
+      "Customer Accounts API discovery requires SHOPIFY_STORE_DOMAIN."
+    );
+  }
+
+  const res = await fetch(
+    `https://${SHOP_DOMAIN}/.well-known/customer-account-api`
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API discovery failed: ${res.status} ${text}`);
+  }
+
+  const data = await res.json();
+  discoveryCache = { ...discoveryCache, api: data };
+  return data as { graphql_api: string; mcp_api?: string };
+}
 
 function base64URLEncode(buffer: Buffer): string {
   return buffer
@@ -62,20 +115,23 @@ function setCookie(cookies: AstroCookies, name: string, value: string) {
 }
 
 export function isCustomerAccountsEnabled(): boolean {
-  return Boolean(CLIENT_ID && CLIENT_SECRET && SHOP_ID);
+  return Boolean(CLIENT_ID && CLIENT_SECRET && SHOP_ID && SHOP_DOMAIN);
 }
 
 function assertConfigured() {
-  if (!SHOP_ID) {
+  if (!CLIENT_ID || !CLIENT_SECRET || !SHOP_ID || !SHOP_DOMAIN) {
     throw new Error(
-      "Customer Accounts API is not configured: missing SHOPIFY_SHOP_ID. " +
-        "Set it in your environment (e.g. SHOPIFY_SHOP_ID=80254107860)."
+      "Customer Accounts API is not fully configured. " +
+        "Ensure CUSTOMER_ACCOUNTS_CLIENT_ID, CUSTOMER_ACCOUNTS_CLIENT_SECRET, " +
+        "SHOPIFY_SHOP_ID, and SHOPIFY_STORE_DOMAIN are set."
     );
   }
 }
 
-export function buildAuthorizeUrl(cookies: AstroCookies): string {
+export async function buildAuthorizeUrl(cookies: AstroCookies): Promise<string> {
   assertConfigured();
+  const { authorization_endpoint } = await discoverAuthEndpoints();
+
   const state = generateState();
   const nonce = generateNonce();
   const codeVerifier = generateCodeVerifier();
@@ -89,14 +145,14 @@ export function buildAuthorizeUrl(cookies: AstroCookies): string {
     client_id: CLIENT_ID,
     response_type: "code",
     redirect_uri: REDIRECT_URI,
-    scope: "openid email",
+    scope: "openid email customer-account-api:full",
     state,
     nonce,
     code_challenge: codeChallenge,
     code_challenge_method: "S256",
   });
 
-  return `${CA_OAUTH_BASE}/auth/oauth/authorize?${params.toString()}`;
+  return `${authorization_endpoint}?${params.toString()}`;
 }
 
 export async function exchangeCodeForTokens(
@@ -105,6 +161,8 @@ export async function exchangeCodeForTokens(
   cookies: AstroCookies
 ) {
   assertConfigured();
+  const { token_endpoint } = await discoverAuthEndpoints();
+
   const storedState = cookies.get(CA_STATE)?.value;
   const codeVerifier = cookies.get(CA_CODE_VERIFIER)?.value;
 
@@ -120,8 +178,6 @@ export async function exchangeCodeForTokens(
     throw new Error("Missing code verifier");
   }
 
-  const tokenUrl = `${CA_OAUTH_BASE}/auth/oauth/token`;
-
   // Confidential client: send credentials via Basic Auth header
   const credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
 
@@ -133,7 +189,7 @@ export async function exchangeCodeForTokens(
     code_verifier: codeVerifier,
   });
 
-  const res = await fetch(tokenUrl, {
+  const res = await fetch(token_endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -189,10 +245,10 @@ export function deleteCustomerAccountsTokens(cookies: AstroCookies) {
 
 export async function refreshAccessToken(cookies: AstroCookies): Promise<string | null> {
   assertConfigured();
+  const { token_endpoint } = await discoverAuthEndpoints();
+
   const { refreshToken } = getCustomerAccountsTokens(cookies);
   if (!refreshToken) return null;
-
-  const tokenUrl = `${CA_OAUTH_BASE}/auth/oauth/token`;
 
   // Confidential client: send credentials via Basic Auth header
   const credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
@@ -203,7 +259,7 @@ export async function refreshAccessToken(cookies: AstroCookies): Promise<string 
     refresh_token: refreshToken,
   });
 
-  const res = await fetch(tokenUrl, {
+  const res = await fetch(token_endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -228,7 +284,9 @@ export async function customerAccountsFetch<T = any>(
   accessToken: string
 ): Promise<T> {
   assertConfigured();
-  const res = await fetch(CA_API_URL, {
+  const { graphql_api } = await discoverApiEndpoints();
+
+  const res = await fetch(graphql_api, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
