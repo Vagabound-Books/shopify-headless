@@ -115,10 +115,15 @@ function setCookie(cookies: AstroCookies, name: string, value: string) {
 }
 
 function deleteCookie(cookies: AstroCookies, name: string) {
-  cookies.delete(name, {
+  // Astro's cookies.delete() only sends path/domain, not secure/sameSite.
+  // Browsers won't delete a Secure cookie unless the deletion header also
+  // has Secure. Overwrite with an empty value and maxAge: 0 instead.
+  cookies.set(name, "", {
     path: "/",
+    httpOnly: true,
     secure: import.meta.env.PROD,
     sameSite: "lax",
+    maxAge: 0,
   });
 }
 
