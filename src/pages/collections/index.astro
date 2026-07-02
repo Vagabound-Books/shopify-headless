@@ -141,11 +141,15 @@ const collections = (data?.collections?.edges || [])
   .vb-collection-row:nth-child(odd) {
     background: var(--buckram);
   }
-  .vb-collection-row:nth-child(odd) .vb-collection-row__info h3,
-  .vb-collection-row:nth-child(odd) .vb-collection-row__info p,
+  .vb-collection-row:nth-child(odd) .vb-collection-row__info,
+  .vb-collection-row:nth-child(odd) .vb-collection-row__info :where(h3, p, div, span, a),
   .vb-collection-row:nth-child(odd) .vb-collection-row__count,
   .vb-collection-row:nth-child(odd) .vb-collection-row__arrow {
     color: var(--paper);
+  }
+  .vb-collection-row:nth-child(odd) .vb-collection-row__info a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
   .vb-collection-row:nth-child(odd):hover {
     background: #0d273b;
