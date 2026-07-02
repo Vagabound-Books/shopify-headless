@@ -112,10 +112,12 @@ export async function exchangeCodeForTokens(
 
   const tokenUrl = `${CA_OAUTH_BASE}/oauth/token`;
 
+  // Confidential client: send credentials via Basic Auth header
+  const credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
+
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
     code,
     redirect_uri: REDIRECT_URI,
     code_verifier: codeVerifier,
@@ -123,7 +125,10 @@ export async function exchangeCodeForTokens(
 
   const res = await fetch(tokenUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": `Basic ${credentials}`,
+    },
     body: body.toString(),
   });
 
@@ -178,16 +183,21 @@ export async function refreshAccessToken(cookies: AstroCookies): Promise<string 
 
   const tokenUrl = `${CA_OAUTH_BASE}/oauth/token`;
 
+  // Confidential client: send credentials via Basic Auth header
+  const credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
+
   const body = new URLSearchParams({
     grant_type: "refresh_token",
     client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
     refresh_token: refreshToken,
   });
 
   const res = await fetch(tokenUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": `Basic ${credentials}`,
+    },
     body: body.toString(),
   });
 
