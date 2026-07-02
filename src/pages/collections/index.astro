@@ -63,7 +63,6 @@ const collections = (data?.collections?.edges || [])
                 {collection.descriptionHtml && (
                   <p>{collection.descriptionHtml.replace(/<[^>]+>/g, '').split(' ').slice(0, 20).join(' ')}…</p>
                 )}
-                <span class="vb-collection-row__count">{productCount} title{productCount !== 1 ? 's' : ''}</span>
               </div>
               {productCount > 0 && (
                 <div class="vb-collection-row__slider vb-no-scrollbar" data-collection={collection.handle}>
