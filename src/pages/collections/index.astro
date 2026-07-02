@@ -61,7 +61,7 @@ const collections = (data?.collections?.edges || [])
               <div class="vb-collection-row__info">
                 <h3>{collection.title}</h3>
                 {collection.descriptionHtml && (
-                  <p>{collection.descriptionHtml.replace(/<[^>]+>/g, '').split(' ').slice(0, 20).join(' ')}…</p>
+                  <p set:html={collection.descriptionHtml} />
                 )}
               </div>
               {productCount > 0 && (
