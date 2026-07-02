@@ -1,6 +1,12 @@
 import { createHash, randomBytes } from "crypto";
 import type { AstroCookies } from "astro";
-import { CUSTOMER_ACCOUNTS_CUSTOMER_QUERY } from "./queries";
+import {
+  CUSTOMER_ACCOUNTS_CUSTOMER_QUERY,
+  CUSTOMER_ADDRESS_CREATE,
+  CUSTOMER_ADDRESS_UPDATE,
+  CUSTOMER_ADDRESS_DELETE,
+  CUSTOMER_DEFAULT_ADDRESS_UPDATE,
+} from "./queries";
 
 // Use process.env for server-side secrets so they are read at runtime
 // rather than inlined at build time by Vite.
@@ -349,6 +355,63 @@ export async function customerAccountsFetch<T = any>(
   }
 
   return json.data as T;
+}
+
+export async function createCustomerAddress(
+  cookies: AstroCookies,
+  address: Record<string, any>
+) {
+  const { accessToken } = getCustomerAccountsTokens(cookies);
+  if (!accessToken) throw new Error("Not authenticated");
+  const data = await customerAccountsFetch(
+    CUSTOMER_ADDRESS_CREATE,
+    { address },
+    accessToken
+  );
+  return data.customerAddressCreate;
+}
+
+export async function updateCustomerAddress(
+  cookies: AstroCookies,
+  addressId: string,
+  address: Record<string, any>
+) {
+  const { accessToken } = getCustomerAccountsTokens(cookies);
+  if (!accessToken) throw new Error("Not authenticated");
+  const data = await customerAccountsFetch(
+    CUSTOMER_ADDRESS_UPDATE,
+    { addressId, address },
+    accessToken
+  );
+  return data.customerAddressUpdate;
+}
+
+export async function deleteCustomerAddress(
+  cookies: AstroCookies,
+  addressId: string
+) {
+  const { accessToken } = getCustomerAccountsTokens(cookies);
+  if (!accessToken) throw new Error("Not authenticated");
+  const data = await customerAccountsFetch(
+    CUSTOMER_ADDRESS_DELETE,
+    { addressId },
+    accessToken
+  );
+  return data.customerAddressDelete;
+}
+
+export async function setCustomerDefaultAddress(
+  cookies: AstroCookies,
+  addressId: string
+) {
+  const { accessToken } = getCustomerAccountsTokens(cookies);
+  if (!accessToken) throw new Error("Not authenticated");
+  const data = await customerAccountsFetch(
+    CUSTOMER_DEFAULT_ADDRESS_UPDATE,
+    { addressId },
+    accessToken
+  );
+  return data.customerDefaultAddressUpdate;
 }
 
 function normalizeCustomer(caCustomer: any) {

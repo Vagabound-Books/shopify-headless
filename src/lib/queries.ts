@@ -390,3 +390,74 @@ export const CUSTOMER_ACCOUNTS_CUSTOMER_QUERY = `
     }
   }
 `;
+
+export const CUSTOMER_ADDRESS_CREATE = `
+  mutation customerAddressCreate($address: CustomerAddressInput!) {
+    customerAddressCreate(address: $address) {
+      customerAddress {
+        id
+        address1
+        address2
+        city
+        province
+        country
+        zip
+        name
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_ADDRESS_UPDATE = `
+  mutation customerAddressUpdate($address: CustomerAddressInput!, $addressId: ID!) {
+    customerAddressUpdate(address: $address, addressId: $addressId) {
+      customerAddress {
+        id
+        address1
+        address2
+        city
+        province
+        country
+        zip
+        name
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_ADDRESS_DELETE = `
+  mutation customerAddressDelete($addressId: ID!) {
+    customerAddressDelete(addressId: $addressId) {
+      deletedAddressId
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_DEFAULT_ADDRESS_UPDATE = `
+  mutation customerDefaultAddressUpdate($addressId: ID!) {
+    customerDefaultAddressUpdate(addressId: $addressId) {
+      customer {
+        id
+        defaultAddress {
+          id
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;

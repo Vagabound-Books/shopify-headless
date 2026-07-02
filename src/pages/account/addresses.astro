@@ -63,28 +63,107 @@ const navItems = [
             {addresses.map((addr: any) => {
               const isDefault = addr.id === defaultAddressId;
               return (
-                <div style={`padding: 24px; border: 1px solid ${isDefault ? 'var(--rule-firm)' : 'var(--rule-soft)'}; border-radius: var(--radius-md); background: ${isDefault ? 'var(--paper-soft)' : 'transparent'};`}>
-                  <div style="font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 4px;">
-                    {addr.name || `${addr.firstName || ''} ${addr.lastName || ''}`.trim() || 'Address'}
-                    {isDefault && <span class="vb-pill" style="margin-left: 10px; vertical-align: 2px;">Default</span>}
+                <div class="js-address-card" data-address-id={addr.id} style={`padding: 24px; border: 1px solid ${isDefault ? 'var(--rule-firm)' : 'var(--rule-soft)'}; border-radius: var(--radius-md); background: ${isDefault ? 'var(--paper-soft)' : 'transparent'};`}>
+                  {/* View mode */}
+                  <div class="js-address-view">
+                    <div style="font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 4px;">
+                      {addr.name || `${addr.firstName || ''} ${addr.lastName || ''}`.trim() || 'Address'}
+                      {isDefault && <span class="vb-pill" style="margin-left: 10px; vertical-align: 2px;">Default</span>}
+                    </div>
+                    <address style="font-style: normal; font-size: 15px; color: var(--ink-soft); line-height: 1.6;">
+                      <div>{addr.address1}{addr.address2 ? `, ${addr.address2}` : ''}</div>
+                      <div>{addr.city}{addr.province ? `, ${addr.province}` : ''} {addr.zip}</div>
+                      <div>{addr.country}</div>
+                      {addr.phone && <div style="margin-top: 4px;">{addr.phone}</div>}
+                    </address>
+                    <div style="display: flex; gap: 8px; margin-top: 16px;">
+                      <button type="button" class="js-edit-btn vb-btn vb-btn--outline vb-btn--sm">Edit</button>
+                      {!isDefault && (
+                        <form action="/api/address/default/" method="POST" style="display: inline;">
+                          <input type="hidden" name="addressId" value={addr.id} />
+                          <button type="submit" class="vb-btn vb-btn--ghost vb-btn--sm">Set as default</button>
+                        </form>
+                      )}
+                      <form action="/api/address/delete/" method="POST" style="display: inline; margin-left: auto;">
+                        <input type="hidden" name="addressId" value={addr.id} />
+                        <button type="submit" class="vb-btn vb-btn--ghost vb-btn--sm" style="color: var(--foxing);">Remove</button>
+                      </form>
+                    </div>
                   </div>
-                  <address style="font-style: normal; font-size: 15px; color: var(--ink-soft); line-height: 1.6;">
-                    <div>{addr.address1}{addr.address2 ? `, ${addr.address2}` : ''}</div>
-                    <div>{addr.city}{addr.province ? `, ${addr.province}` : ''} {addr.zip}</div>
-                    <div>{addr.country}</div>
-                    {addr.phone && <div style="margin-top: 4px;">{addr.phone}</div>}
-                  </address>
+
+                  {/* Edit mode */}
+                  <div class="js-address-edit" style="display: none;">
+                    <form action="/api/address/update/" method="POST">
+                      <input type="hidden" name="addressId" value={addr.id} />
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <input class="vb-input" type="text" name="name" placeholder="Label (e.g. Home)" value={addr.name || ''} />
+                        <input class="vb-input" type="text" name="address1" placeholder="Street address" value={addr.address1 || ''} required />
+                        <input class="vb-input" type="text" name="address2" placeholder="Apt, suite, etc." value={addr.address2 || ''} />
+                        <input class="vb-input" type="text" name="city" placeholder="City" value={addr.city || ''} required />
+                        <input class="vb-input" type="text" name="province" placeholder="State / Province" value={addr.province || ''} required />
+                        <input class="vb-input" type="text" name="zip" placeholder="ZIP / Postal code" value={addr.zip || ''} required />
+                        <input class="vb-input" type="text" name="country" placeholder="Country" value={addr.country || ''} required />
+                        <input class="vb-input" type="text" name="phone" placeholder="Phone" value={addr.phone || ''} />
+                      </div>
+                      <div style="display: flex; gap: 8px;">
+                        <button type="submit" class="vb-btn vb-btn--primary vb-btn--sm">Save</button>
+                        <button type="button" class="js-cancel-btn vb-btn vb-btn--ghost vb-btn--sm">Cancel</button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               );
             })}
           </div>
         )}
+
+        {/* Add new address */}
+        <div style="padding: 28px; border: 1px dashed var(--rule-firm); border-radius: var(--radius-md);">
+          <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 600; margin: 0 0 20px;">Add a new address</h3>
+          <form action="/api/address/create/" method="POST">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <input class="vb-input" type="text" name="name" placeholder="Label (e.g. Home)" />
+              <input class="vb-input" type="text" name="address1" placeholder="Street address" required />
+              <input class="vb-input" type="text" name="address2" placeholder="Apt, suite, etc." />
+              <input class="vb-input" type="text" name="city" placeholder="City" required />
+              <input class="vb-input" type="text" name="province" placeholder="State / Province" required />
+              <input class="vb-input" type="text" name="zip" placeholder="ZIP / Postal code" required />
+              <input class="vb-input" type="text" name="country" placeholder="Country" required />
+              <input class="vb-input" type="text" name="phone" placeholder="Phone" />
+            </div>
+            <button type="submit" class="vb-btn vb-btn--primary vb-btn--sm">Add address</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 
   <Footer slot="footer" />
 </Layout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.js-address-card').forEach(function(card) {
+      const view = card.querySelector('.js-address-view');
+      const edit = card.querySelector('.js-address-edit');
+      const editBtn = card.querySelector('.js-edit-btn');
+      const cancelBtn = card.querySelector('.js-cancel-btn');
+
+      if (editBtn && view && edit) {
+        editBtn.addEventListener('click', function() {
+          view.style.display = 'none';
+          edit.style.display = 'block';
+        });
+      }
+      if (cancelBtn && view && edit) {
+        cancelBtn.addEventListener('click', function() {
+          edit.style.display = 'none';
+          view.style.display = 'block';
+        });
+      }
+    });
+  });
+</script>
 
 <style>
   @media (max-width: 900px) {
