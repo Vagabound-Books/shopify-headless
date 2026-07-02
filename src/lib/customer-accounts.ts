@@ -2,13 +2,15 @@ import { createHash, randomBytes } from "crypto";
 import type { AstroCookies } from "astro";
 import { CUSTOMER_ACCOUNTS_CUSTOMER_QUERY } from "./queries";
 
-const CLIENT_ID = import.meta.env.CUSTOMER_ACCOUNTS_CLIENT_ID || "";
-const CLIENT_SECRET = import.meta.env.CUSTOMER_ACCOUNTS_CLIENT_SECRET || "";
-const SHOP_ID = import.meta.env.SHOPIFY_SHOP_ID || "";
-const API_VERSION = import.meta.env.SHOPIFY_API_VERSION || "2026-07";
-const SITE_URL = import.meta.env.PUBLIC_SITE_URL || "";
+// Use process.env for server-side secrets so they are read at runtime
+// rather than inlined at build time by Vite.
+const CLIENT_ID = process.env.CUSTOMER_ACCOUNTS_CLIENT_ID || "";
+const CLIENT_SECRET = process.env.CUSTOMER_ACCOUNTS_CLIENT_SECRET || "";
+const SHOP_ID = process.env.SHOPIFY_SHOP_ID || "";
+const API_VERSION = process.env.SHOPIFY_API_VERSION || "2026-07";
+const SITE_URL = process.env.PUBLIC_SITE_URL || "";
 const REDIRECT_URI =
-  import.meta.env.CUSTOMER_ACCOUNTS_REDIRECT_URI ||
+  process.env.CUSTOMER_ACCOUNTS_REDIRECT_URI ||
   (SITE_URL ? `${SITE_URL}/account/callback` : "/account/callback");
 
 // Shopify Customer Accounts API endpoints (from discovery).
