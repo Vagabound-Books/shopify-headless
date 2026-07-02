@@ -147,7 +147,7 @@ function getExcerpt(article: any): string {
                     <div>
                       <div class="vb-cover__title">{book.title}</div>
                       <div class="vb-cover__rule"></div>
-                      <div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}</div>
+<div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || ''}</div>
                     </div>
                   </div>
                 )}
@@ -235,7 +235,7 @@ function getExcerpt(article: any): string {
                   <div>
                     <div class="vb-cover__title">{book.title}</div>
                     <div class="vb-cover__rule"></div>
-                    <div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}</div>
+                    <div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || ''}</div>
                   </div>
                 </div>
               )}
@@ -245,7 +245,7 @@ function getExcerpt(article: any): string {
             </div>
             <div class="vb-scroll-card__body">
               <div class="vb-scroll-card__title">{book.title}</div>
-              <div class="vb-scroll-card__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}</div>
+              <div class="vb-scroll-card__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || ''}</div>
             </div>
           </a>
         );
