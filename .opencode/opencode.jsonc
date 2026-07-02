@@ -1,0 +1,149 @@
+{
+  // Vagabound Books — Astro + Shopify Headless Storefront
+  // https://vagaboundbooks.com
+  "$schema": "https://opencode.dev/schema.json",
+  "name": "astro-storefront",
+  "description": "Astro-based headless Shopify storefront for Vagabound Books. Server-side rendered with Preact islands, Shopify Storefront API, and Shopify Customer Account API (OAuth).",
+
+  "system": {
+    "os": "linux",
+    "shell": "bash"
+  },
+
+  // Build & run
+  "commands": {
+    "dev": "astro dev --background",
+    "devStop": "astro dev stop",
+    "devStatus": "astro dev status",
+    "devLogs": "astro dev logs",
+    "build": "npm run build",
+    "start": "npm run start",
+    "preview": "astro preview",
+    "check": "astro check",
+    "migrate": "npm run migrate"
+  },
+
+  // Tech stack context for the agent
+  "techStack": {
+    "framework": "Astro 7",
+    "rendering": "server",
+    "adapter": "@astrojs/node",
+    "uiFramework": "Preact 10",
+    "stateManagement": "nanostores + @nanostores/persistent",
+    "api": "Shopify Storefront API + Shopify Customer Account API",
+    "validation": "zod",
+    "language": "TypeScript 6",
+    "runtime": "Node.js >=22.12.0"
+  },
+
+  // File patterns the agent should know about
+  "include": [
+    "src/**/*.{ts,tsx,astro,css}",
+    "scripts/**/*.ts",
+    "public/**/*",
+    "*.config.*",
+    "tsconfig.json",
+    "package.json",
+    ".env*",
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
+
+  "exclude": [
+    "node_modules/**",
+    "dist/**",
+    "*.log"
+  ],
+
+  // AI behavior and conventions
+  "rules": {
+    // Code style
+    "typescript": {
+      "strict": true,
+      "preferExplicitTypes": true,
+      "noImplicitAny": true
+    },
+
+    // Astro conventions
+    "astro": {
+      "useServerRendering": true,
+      "astroComponents": ".astro",
+      "frameworkComponents": ".tsx",
+      "islandDirective": "client:load | client:idle | client:visible",
+      "frontmatterRunsOnServer": true
+    },
+
+    // Preact conventions
+    "preact": {
+      "useFunctionalComponents": true,
+      "hooks": ["useState", "useEffect", "useCallback", "useRef"],
+      "noClassComponents": true
+    },
+
+    // Shopify API conventions
+    "shopify": {
+      "storefrontApiVersion": "2024-07",
+      "customerAccountApiVersion": "2026-07",
+      "useDiscoveryEndpoints": true,
+      "discoveryUrls": [
+        "https://{shopDomain}/.well-known/openid-configuration",
+        "https://{shopDomain}/.well-known/customer-account-api"
+      ],
+      "authorizationHeader": "Raw access token (no Bearer prefix) for Customer Account API",
+      "requiredUserAgent": true
+    },
+
+    // General
+    "css": "Use CSS custom properties (design tokens) from src/styles/theme.css. No Tailwind.",
+    "imports": "Use ES modules (type: module). Prefer named imports.",
+    "env": "Use process.env for server secrets; never inline secrets at build time.",
+    "queries": "Store GraphQL queries in src/lib/queries.ts. Separate Storefront and Customer Account queries.",
+    "lib": "Business logic goes in src/lib/*.ts. Keep components dumb.",
+    "pages": "Astro pages in src/pages/. API routes in src/pages/api/*.ts."
+  },
+
+  // Important environment variables
+  "env": {
+    "required": [
+      "SHOPIFY_STORE_DOMAIN",
+      "SHOPIFY_STOREFRONT_ACCESS_TOKEN",
+      "SHOPIFY_API_VERSION"
+    ],
+    "optional": [
+      "SHOPIFY_ADMIN_API_ACCESS_TOKEN",
+      "CUSTOMER_ACCOUNTS_CLIENT_ID",
+      "CUSTOMER_ACCOUNTS_CLIENT_SECRET",
+      "SHOPIFY_SHOP_ID",
+      "CUSTOMER_ACCOUNTS_REDIRECT_URI",
+      "PUBLIC_SITE_URL",
+      "DIGITALOCEAN_ACCESS_TOKEN"
+    ],
+    "secrets": [
+      "SHOPIFY_STOREFRONT_ACCESS_TOKEN",
+      "SHOPIFY_ADMIN_API_ACCESS_TOKEN",
+      "CUSTOMER_ACCOUNTS_CLIENT_SECRET",
+      "DIGITALOCEAN_ACCESS_TOKEN"
+    ]
+  },
+
+  // MCP Servers
+  "mcpServers": {
+    "digitalocean-logs": {
+      "command": "npx",
+      "args": ["-y", "@digitalocean/do-mcp"],
+      "env": {
+        "DIGITALOCEAN_ACCESS_TOKEN": "${DIGITALOCEAN_ACCESS_TOKEN}"
+      }
+    }
+  },
+
+  // Context for the agent
+  "context": {
+    "projectType": "ecommerce",
+    "platform": "Shopify",
+    "deployment": "Node.js server (SSR)",
+    "customDomain": "vagaboundbooks.com",
+    "shopifyDomain": "vagabound-books.myshopify.com",
+    "shopifyShopId": "80254107860"
+  }
+}
