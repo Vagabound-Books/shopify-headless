@@ -89,7 +89,7 @@ export function buildAuthorizeUrl(cookies: AstroCookies): string {
     client_id: CLIENT_ID,
     response_type: "code",
     redirect_uri: REDIRECT_URI,
-    scope: "openid email customer-account-api:full",
+    scope: "openid email",
     state,
     nonce,
     code_challenge: codeChallenge,
