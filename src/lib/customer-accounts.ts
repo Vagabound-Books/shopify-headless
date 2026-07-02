@@ -17,6 +17,7 @@ const REDIRECT_URI =
 // Cookie names
 const CA_ACCESS_TOKEN = "ca_access_token";
 const CA_REFRESH_TOKEN = "ca_refresh_token";
+const CA_ID_TOKEN = "ca_id_token";
 const CA_STATE = "ca_state";
 const CA_NONCE = "ca_nonce";
 const CA_CODE_VERIFIER = "ca_code_verifier";
@@ -86,6 +87,18 @@ function base64URLEncode(buffer: Buffer): string {
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=/g, "");
+}
+
+export async function buildLogoutUrl(idToken: string): Promise<string> {
+  assertConfigured();
+  const { end_session_endpoint } = await discoverAuthEndpoints();
+  if (!end_session_endpoint) {
+    throw new Error("No end_session_endpoint discovered");
+  }
+  const url = new URL(end_session_endpoint);
+  url.searchParams.set("id_token_hint", idToken);
+  url.searchParams.set("post_logout_redirect_uri", SITE_URL || "/");
+  return url.toString();
 }
 
 function generateCodeVerifier(): string {
@@ -221,21 +234,15 @@ export async function exchangeCodeForTokens(
   }
 
   const data = await res.json();
-  console.log("[CA Token] fields:", Object.keys(data).join(","));
-  if (data.access_token) {
-    console.log("[CA Token] access_token prefix:", data.access_token.slice(0, 20), "token_type:", data.token_type);
-  }
-  if (data.id_token) {
-    console.log("[CA Token] id_token present: yes");
-  }
-  setCustomerAccountsTokens(cookies, data.access_token, data.refresh_token);
+  setCustomerAccountsTokens(cookies, data.access_token, data.refresh_token, data.id_token);
   return data;
 }
 
 export function setCustomerAccountsTokens(
   cookies: AstroCookies,
   accessToken: string,
-  refreshToken?: string
+  refreshToken?: string,
+  idToken?: string
 ) {
   cookies.set(CA_ACCESS_TOKEN, accessToken, {
     path: "/",
@@ -253,18 +260,29 @@ export function setCustomerAccountsTokens(
       maxAge: 60 * 60 * 24 * 14,
     });
   }
+  if (idToken) {
+    cookies.set(CA_ID_TOKEN, idToken, {
+      path: "/",
+      httpOnly: true,
+      secure: import.meta.env.PROD,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 14,
+    });
+  }
 }
 
 export function getCustomerAccountsTokens(cookies: AstroCookies) {
   return {
     accessToken: cookies.get(CA_ACCESS_TOKEN)?.value,
     refreshToken: cookies.get(CA_REFRESH_TOKEN)?.value,
+    idToken: cookies.get(CA_ID_TOKEN)?.value,
   };
 }
 
 export function deleteCustomerAccountsTokens(cookies: AstroCookies) {
   deleteCookie(cookies, CA_ACCESS_TOKEN);
   deleteCookie(cookies, CA_REFRESH_TOKEN);
+  deleteCookie(cookies, CA_ID_TOKEN);
 }
 
 export async function refreshAccessToken(cookies: AstroCookies): Promise<string | null> {

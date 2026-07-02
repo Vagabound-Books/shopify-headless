@@ -1,12 +1,34 @@
 import type { APIRoute } from "astro";
-import { logout } from "../../lib/auth";
+import {
+  deleteCustomerAccountsTokens,
+  getCustomerAccountsTokens,
+  buildLogoutUrl,
+} from "../../lib/customer-accounts";
 
 const doLogout = async ({ cookies }: { cookies: any }) => {
-  logout(cookies);
-  // Redirect to home page, NOT /account/login/, because the login page
-  // immediately redirects to Shopify OAuth and the user gets silently
-  // re-authenticated (Shopify session is still active in the browser).
-  return new Response(null, { status: 302, headers: { Location: "/" } });
+  const { idToken } = getCustomerAccountsTokens(cookies);
+
+  // 1. Clear local cookies (access_token, refresh_token, id_token)
+  deleteCustomerAccountsTokens(cookies);
+
+  // 2. Build Shopify logout URL to clear the browser session too
+  let redirectTo = "/";
+  if (idToken) {
+    try {
+      redirectTo = await buildLogoutUrl(idToken);
+    } catch {
+      // Fall back to home page if discovery fails
+    }
+  }
+
+  // Astro does not automatically serialize queued cookies into a manually
+  // created Response. We must explicitly append the Set-Cookie headers.
+  const headers = new Headers({ Location: redirectTo });
+  for (const [name, value] of cookies.headers()) {
+    headers.append(name, value);
+  }
+
+  return new Response(null, { status: 302, headers });
 };
 
 export const GET: APIRoute = doLogout;
