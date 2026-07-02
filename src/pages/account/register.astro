@@ -7,7 +7,7 @@ import { isCustomerAccountsEnabled, buildAuthorizeUrl } from '../../lib/customer
 
 const customer = await getCustomer(Astro.cookies);
 if (customer) {
-  return Astro.redirect('/account');
+  return Astro.redirect('/account/');
 }
 
 if (isCustomerAccountsEnabled()) {

@@ -5,7 +5,7 @@ import Footer from '../../components/Footer.astro';
 import { exchangeCodeForTokens, isCustomerAccountsEnabled } from '../../lib/customer-accounts';
 
 if (!isCustomerAccountsEnabled()) {
-  return Astro.redirect('/account/login');
+  return Astro.redirect('/account/login/');
 }
 
 const code = Astro.url.searchParams.get('code');
@@ -26,7 +26,7 @@ if (!error && (!code || !state)) {
 if (!error) {
   try {
     await exchangeCodeForTokens(code!, state!, Astro.cookies);
-    return Astro.redirect('/account');
+    return Astro.redirect('/account/');
   } catch (err: any) {
     console.error('[OAuth Callback] Token exchange failed:', err);
     error = 'Unable to complete sign in. Please try again.';
@@ -51,7 +51,7 @@ if (!error) {
         {error}
       </div>
 
-      <a href="/account/login" class="vb-btn vb-btn--primary">Try again</a>
+      <a href="/account/login/" class="vb-btn vb-btn--primary">Try again</a>
     </div>
   </div>
 

@@ -7,7 +7,7 @@ import { formatMoney } from '../../lib/money';
 
 const customer = await getCustomer(Astro.cookies);
 if (!customer) {
-  return Astro.redirect('/account/login');
+  return Astro.redirect('/account/login/');
 }
 
 const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(' ') || 'Account';
@@ -27,9 +27,9 @@ function formatStatus(status: string) {
 }
 
 const navItems = [
-  { label: 'Overview', href: '/account', active: false },
-  { label: 'Orders', href: '/account/orders', active: true },
-  { label: 'Addresses', href: '/account/addresses', active: false },
+  { label: 'Overview', href: '/account/', active: false },
+  { label: 'Orders', href: '/account/orders/', active: true },
+  { label: 'Addresses', href: '/account/addresses/', active: false },
 ];
 ---
 

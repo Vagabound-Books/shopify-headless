@@ -7,7 +7,7 @@ import { formatMoney } from '../../lib/money';
 
 const customer = await getCustomer(Astro.cookies);
 if (!customer) {
-  return Astro.redirect('/account/login');
+  return Astro.redirect('/account/login/');
 }
 
 const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(' ') || 'Account';
@@ -28,9 +28,9 @@ function formatStatus(status: string) {
 }
 
 const navItems = [
-  { label: 'Overview', href: '/account', active: true },
-  { label: 'Orders', href: '/account/orders', active: false },
-  { label: 'Addresses', href: '/account/addresses', active: false },
+  { label: 'Overview', href: '/account/', active: true },
+  { label: 'Orders', href: '/account/orders/', active: false },
+  { label: 'Addresses', href: '/account/addresses/', active: false },
 ];
 ---
 
@@ -85,7 +85,7 @@ const navItems = [
               <div style="font-size: 15px; color: var(--ink-soft);">{customer.email}</div>
               {customer.phone && <div style="font-size: 15px; color: var(--ink-soft); margin-top: 2px;">{customer.phone}</div>}
             </div>
-            <a href="/account/addresses" class="vb-btn vb-btn--outline vb-btn--sm">Manage addresses</a>
+            <a href="/account/addresses/" class="vb-btn vb-btn--outline vb-btn--sm">Manage addresses</a>
           </div>
 
           {defaultAddress && (
@@ -107,7 +107,7 @@ const navItems = [
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
             <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">Orders</div>
             {orders.length > 3 && (
-              <a href="/account/orders" class="vb-btn vb-btn--ghost vb-btn--sm">View all</a>
+              <a href="/account/orders/" class="vb-btn vb-btn--ghost vb-btn--sm">View all</a>
             )}
           </div>
 
@@ -119,7 +119,7 @@ const navItems = [
           ) : (
             <div style="display: flex; flex-direction: column; gap: 16px;">
               {orders.slice(0, 3).map((order: any) => (
-                <a href={`/account/orders#${order.orderNumber}`} style="text-decoration: none; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; padding: 20px 24px; background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-md); transition: border-color 140ms var(--ease-page);">
+                <a href={`/account/orders/#${order.orderNumber}`} style="text-decoration: none; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; padding: 20px 24px; background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-md); transition: border-color 140ms var(--ease-page);">
                   <div>
                     <div style="font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 4px;">
                       Order {order.orderNumber}

@@ -11,10 +11,11 @@ const REDIRECT_URI =
   import.meta.env.CUSTOMER_ACCOUNTS_REDIRECT_URI ||
   (SITE_URL ? `${SITE_URL}/account/callback` : "/account/callback");
 
-// Shopify-hosted customer accounts domain
-// e.g. https://account.vagaboundbooks.com or https://shopify.com/{shop_id}/account
+// Shopify Customer Accounts API / OAuth base URL.
+// The canonical endpoints are on shopify.com/{shop_id}/account — the custom
+// domain (e.g. account.vagaboundbooks.com) is only for the hosted portal UI,
+// not for /oauth/authorize, /oauth/token, or the GraphQL API.
 const CA_DOMAIN =
-  import.meta.env.CUSTOMER_ACCOUNTS_DOMAIN ||
   (SHOP_ID ? `https://shopify.com/${SHOP_ID}/account` : "");
 
 // Cookie names

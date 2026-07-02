@@ -6,7 +6,7 @@ import { getCustomer } from '../../lib/auth';
 
 const customer = await getCustomer(Astro.cookies);
 if (!customer) {
-  return Astro.redirect('/account/login');
+  return Astro.redirect('/account/login/');
 }
 
 const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(' ') || 'Account';
@@ -14,9 +14,9 @@ const addresses = (customer.addresses?.edges || []).map((e: any) => e.node);
 const defaultAddressId = customer.defaultAddress?.id;
 
 const navItems = [
-  { label: 'Overview', href: '/account', active: false },
-  { label: 'Orders', href: '/account/orders', active: false },
-  { label: 'Addresses', href: '/account/addresses', active: true },
+  { label: 'Overview', href: '/account/', active: false },
+  { label: 'Orders', href: '/account/orders/', active: false },
+  { label: 'Addresses', href: '/account/addresses/', active: true },
 ];
 ---
 
