@@ -238,7 +238,7 @@ export const GET_COLLECTIONS = `
             url(transform: { maxWidth: 400 })
             altText
           }
-          products(first: 12) {
+          products(first: 250) {
             edges {
               node {
                 id
