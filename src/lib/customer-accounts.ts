@@ -204,6 +204,13 @@ export async function exchangeCodeForTokens(
   }
 
   const data = await res.json();
+  console.log("[CA Token] fields:", Object.keys(data).join(","));
+  if (data.access_token) {
+    console.log("[CA Token] access_token prefix:", data.access_token.slice(0, 20), "token_type:", data.token_type);
+  }
+  if (data.id_token) {
+    console.log("[CA Token] id_token present: yes");
+  }
   setCustomerAccountsTokens(cookies, data.access_token, data.refresh_token);
   return data;
 }
@@ -290,7 +297,8 @@ export async function customerAccountsFetch<T = any>(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
+      "User-Agent": "Vagabound-Storefront/1.0",
+      Authorization: accessToken,
     },
     body: JSON.stringify({ query, variables }),
   });
