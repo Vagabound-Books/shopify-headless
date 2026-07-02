@@ -65,7 +65,17 @@ export function isCustomerAccountsEnabled(): boolean {
   return Boolean(CLIENT_ID && CLIENT_SECRET && SHOP_ID);
 }
 
+function assertConfigured() {
+  if (!SHOP_ID) {
+    throw new Error(
+      "Customer Accounts API is not configured: missing SHOPIFY_SHOP_ID. " +
+        "Set it in your environment (e.g. SHOPIFY_SHOP_ID=80254107860)."
+    );
+  }
+}
+
 export function buildAuthorizeUrl(cookies: AstroCookies): string {
+  assertConfigured();
   const state = generateState();
   const nonce = generateNonce();
   const codeVerifier = generateCodeVerifier();
@@ -94,6 +104,7 @@ export async function exchangeCodeForTokens(
   state: string,
   cookies: AstroCookies
 ) {
+  assertConfigured();
   const storedState = cookies.get(CA_STATE)?.value;
   const codeVerifier = cookies.get(CA_CODE_VERIFIER)?.value;
 
@@ -177,6 +188,7 @@ export function deleteCustomerAccountsTokens(cookies: AstroCookies) {
 }
 
 export async function refreshAccessToken(cookies: AstroCookies): Promise<string | null> {
+  assertConfigured();
   const { refreshToken } = getCustomerAccountsTokens(cookies);
   if (!refreshToken) return null;
 
@@ -215,6 +227,7 @@ export async function customerAccountsFetch<T = any>(
   variables: Record<string, any> = {},
   accessToken: string
 ): Promise<T> {
+  assertConfigured();
   const res = await fetch(CA_API_URL, {
     method: "POST",
     headers: {
