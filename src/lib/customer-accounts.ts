@@ -166,13 +166,17 @@ export async function exchangeCodeForTokens(
   const storedState = cookies.get(CA_STATE)?.value;
   const codeVerifier = cookies.get(CA_CODE_VERIFIER)?.value;
 
+  console.log('[CA Exchange] state param:', state?.slice(0, 10));
+  console.log('[CA Exchange] state cookie exists:', !!storedState);
+  console.log('[CA Exchange] state match:', storedState === state);
+
   // Clear handshake cookies
   cookies.delete(CA_STATE, { path: "/" });
   cookies.delete(CA_NONCE, { path: "/" });
   cookies.delete(CA_CODE_VERIFIER, { path: "/" });
 
   if (!storedState || storedState !== state) {
-    throw new Error("Invalid state parameter");
+    throw new Error(`Invalid state parameter: cookie=${!!storedState}, match=${storedState === state}`);
   }
   if (!codeVerifier) {
     throw new Error("Missing code verifier");

@@ -24,6 +24,10 @@ if (!error && (!code || !state)) {
 }
 
 if (!error) {
+  const allCookies = Astro.cookies.headers();
+  console.log('[OAuth Callback] cookies present:', allCookies.length > 0);
+  console.log('[OAuth Callback] state param:', state?.slice(0, 10));
+  console.log('[OAuth Callback] state cookie:', Astro.cookies.get('ca_state')?.value?.slice(0, 10));
   try {
     await exchangeCodeForTokens(code!, state!, Astro.cookies);
     return Astro.redirect('/account/');

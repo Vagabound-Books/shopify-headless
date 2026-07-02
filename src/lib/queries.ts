@@ -364,7 +364,7 @@ export const CUSTOMER_ACCOUNTS_CUSTOMER_QUERY = `
           }
         }
       }
-      orders {
+      orders(first: 10) {
         edges {
           node {
             id
