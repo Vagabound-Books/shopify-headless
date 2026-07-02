@@ -348,7 +348,6 @@ export const CUSTOMER_ACCOUNTS_CUSTOMER_QUERY = `
         province
         country
         zip
-        phone
         name
       }
       addresses {
@@ -361,7 +360,6 @@ export const CUSTOMER_ACCOUNTS_CUSTOMER_QUERY = `
             province
             country
             zip
-            phone
             name
           }
         }
@@ -378,17 +376,11 @@ export const CUSTOMER_ACCOUNTS_CUSTOMER_QUERY = `
               amount
               currencyCode
             }
-            lineItems {
+            lineItems(first: 10) {
               edges {
                 node {
                   title
                   quantity
-                  variant {
-                    image {
-                      url
-                      altText
-                    }
-                  }
                 }
               }
             }
