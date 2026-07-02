@@ -7,19 +7,20 @@ import { CUSTOMER_ACCOUNTS_CUSTOMER_QUERY } from "./queries";
 const CLIENT_ID = process.env.CUSTOMER_ACCOUNTS_CLIENT_ID || "";
 const CLIENT_SECRET = process.env.CUSTOMER_ACCOUNTS_CLIENT_SECRET || "";
 const SHOP_ID = process.env.SHOPIFY_SHOP_ID || "";
+const SHOP_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || "";
 const API_VERSION = process.env.SHOPIFY_API_VERSION || "2026-07";
 const SITE_URL = process.env.PUBLIC_SITE_URL || "";
 const REDIRECT_URI =
   process.env.CUSTOMER_ACCOUNTS_REDIRECT_URI ||
   (SITE_URL ? `${SITE_URL}/account/callback` : "/account/callback");
 
-// Shopify Customer Accounts API endpoints (from discovery).
-// OAuth endpoints live on shopify.com/authentication/{shop_id}
-// GraphQL API lives on shopify.com/{shop_id}/account/customer/api/{version}/graphql
+// Shopify Customer Accounts API endpoints.
+// Use the shop domain (e.g. vagabound-books.myshopify.com) rather than
+// shopify.com/{shop_id} so the URLs match the discovery endpoints.
 const CA_OAUTH_BASE =
-  (SHOP_ID ? `https://shopify.com/authentication/${SHOP_ID}` : "");
+  (SHOP_DOMAIN ? `https://${SHOP_DOMAIN}/authentication` : "");
 const CA_API_URL =
-  (SHOP_ID ? `https://shopify.com/${SHOP_ID}/account/customer/api/${API_VERSION}/graphql` : "");
+  (SHOP_DOMAIN ? `https://${SHOP_DOMAIN}/customer/api/${API_VERSION}/graphql` : "");
 
 // Cookie names
 const CA_ACCESS_TOKEN = "ca_access_token";
