@@ -15,7 +15,7 @@ if (!handle) {
 
 const data = await shopifyFetchServer({
   query: GET_COLLECTION_BY_HANDLE,
-  variables: { handle, first: 24, after },
+  variables: { handle, first: 250, after },
   buyerIP: Astro.clientAddress,
 }).catch((err) => {
   console.error('[Shopify] Failed to fetch collection:', err);
@@ -49,7 +49,11 @@ const pageInfo = collection.products?.pageInfo || { hasNextPage: false, endCurso
           <h1>{collection.title}</h1>
         </div>
         <div class="vb-coll-head__meta">
-          <span class="count">{products.length}</span>
+          {pageInfo.hasNextPage ? (
+            <span class="count">{products.length}+</span>
+          ) : (
+            <span class="count">{products.length}</span>
+          )}
           <span>books</span>
         </div>
       </div>
@@ -61,7 +65,11 @@ const pageInfo = collection.products?.pageInfo || { hasNextPage: false, endCurso
       <div class="vb-coll__main">
         <div class="vb-coll__bar">
           <div class="left">
-            Showing <strong>{products.length}</strong> books
+            {pageInfo.hasNextPage ? (
+              <>Showing first <strong>{products.length}</strong> books</>
+            ) : (
+              <>Showing <strong>{products.length}</strong> books</>
+            )}
           </div>
         </div>
 
