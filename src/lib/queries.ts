@@ -350,7 +350,7 @@ export const CUSTOMER_ACCOUNTS_CUSTOMER_QUERY = `
         zip
         name
       }
-      addresses {
+      addresses(first: 10) {
         edges {
           node {
             id
