@@ -25,12 +25,15 @@ async function proxyToShopify(request: Request): Promise<Response> {
 
   try {
     const response = await fetch(proxyRequest);
-    // Rewrite any Location headers that point to myshopify.com or checkout subdomain
     const newHeaders = new Headers(response.headers);
     const location = newHeaders.get("location");
     if (location) {
-      // Keep the redirect as-is; browser will follow
-      // If Shopify redirects to the custom domain, that's expected behavior
+      // Rewrite redirects back to the storefront domain to use Shopify's origin,
+      // preventing a redirect loop through the proxy.
+      const rewrittenLocation = location
+        .replace("https://vagaboundbooks.com", SHOPIFY_ORIGIN)
+        .replace("https://checkout.vagaboundbooks.com", SHOPIFY_ORIGIN);
+      newHeaders.set("location", rewrittenLocation);
     }
     return new Response(response.body, {
       status: response.status,
