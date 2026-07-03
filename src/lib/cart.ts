@@ -9,6 +9,20 @@ import {
 } from "./shopify";
 import type { CartResult } from "./schemas";
 
+const CHECKOUT_DOMAIN = import.meta.env.PUBLIC_CHECKOUT_DOMAIN || "checkout.vagaboundbooks.com";
+
+function rewriteCheckoutUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "vagaboundbooks.com" || parsed.hostname.endsWith(".myshopify.com")) {
+      parsed.hostname = CHECKOUT_DOMAIN;
+    }
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
 // Cart drawer state (open or closed) with initial value (false) and no persistent state
 export const isCartDrawerOpen = atom(false);
 
@@ -50,7 +64,7 @@ export async function initCart() {
           cart.set({
             id: data.id,
             cost: data.cost,
-            checkoutUrl: data.checkoutUrl,
+            checkoutUrl: rewriteCheckoutUrl(data.checkoutUrl),
             totalQuantity: data.totalQuantity,
             lines: data.lines,
           });
@@ -77,7 +91,7 @@ export async function addCartItem(item: { id: string; quantity: number }) {
       cart.set({
         id: cartData.id,
         cost: cartData.cost,
-        checkoutUrl: cartData.checkoutUrl,
+        checkoutUrl: rewriteCheckoutUrl(cartData.checkoutUrl),
         totalQuantity: cartData.totalQuantity,
         lines: cartData.lines,
       });
@@ -90,7 +104,7 @@ export async function addCartItem(item: { id: string; quantity: number }) {
       cart.set({
         id: cartData.id,
         cost: cartData.cost,
-        checkoutUrl: cartData.checkoutUrl,
+        checkoutUrl: rewriteCheckoutUrl(cartData.checkoutUrl),
         totalQuantity: cartData.totalQuantity,
         lines: cartData.lines,
       });
@@ -112,7 +126,7 @@ export async function removeCartItems(lineIds: string[]) {
       cart.set({
         id: cartData.id,
         cost: cartData.cost,
-        checkoutUrl: cartData.checkoutUrl,
+        checkoutUrl: rewriteCheckoutUrl(cartData.checkoutUrl),
         totalQuantity: cartData.totalQuantity,
         lines: cartData.lines,
       });
@@ -139,7 +153,7 @@ export async function getOrCreateCart() {
         cart.set({
           id: data.id,
           cost: data.cost,
-          checkoutUrl: data.checkoutUrl,
+          checkoutUrl: rewriteCheckoutUrl(data.checkoutUrl),
           totalQuantity: data.totalQuantity,
           lines: data.lines,
         });
