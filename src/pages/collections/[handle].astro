@@ -49,6 +49,9 @@ const pageInfo = collection.products?.pageInfo || { hasNextPage: false, endCurso
           <h1>{collection.title}</h1>
         </div>
 
+        {collection.descriptionHtml && (
+          <div class="vb-coll-head__desc" set:html={collection.descriptionHtml} />
+        )}
       </div>
     </div>
   </div>
