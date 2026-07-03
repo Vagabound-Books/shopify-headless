@@ -111,7 +111,7 @@ export default function CartPage() {
       </div>
 
       <div style="margin-top: 32px;">
-        <a href={$cart?.checkoutUrl} class="vb-btn vb-btn--stamp vb-btn--block" style="text-align: center; display: block; text-decoration: none;">
+        <a href="/checkout" class="vb-btn vb-btn--stamp vb-btn--block" style="text-align: center; display: block; text-decoration: none;">
           Checkout
         </a>
         <a href="/" class="vb-btn vb-btn--ghost" style="margin-top: 12px; display: block; text-align: center;">

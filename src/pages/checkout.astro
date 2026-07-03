@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CheckoutPage from '../components/CheckoutPage.tsx';
+---
+
+<Layout title="Checkout">
+  <Header slot="header" />
+
+  <div class="vb-container">
+    <div class="vb-coll-head">
+      <div class="vb-coll-head__top">
+        <div class="vb-coll-head__title">
+          <div class="vb-coll-head__crumb">
+            <a href="/">Shop</a>
+            <span class="sep">/</span>
+            <a href="/cart">Cart</a>
+            <span class="sep">/</span>
+            <span class="now">Checkout</span>
+          </div>
+          <h1>Checkout</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vb-container" style="max-width: 720px; margin-top: 32px; min-height: 300px;">
+    <CheckoutPage client:load />
+  </div>
+
+  <Footer slot="footer" />
+</Layout>
