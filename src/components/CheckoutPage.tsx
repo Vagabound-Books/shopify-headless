@@ -2,22 +2,6 @@ import { useEffect, useState } from 'preact/hooks';
 import { useStore } from '@nanostores/preact';
 import { cart, initCart, getOrCreateCart } from '../lib/cart';
 
-const CHECKOUT_DOMAIN = import.meta.env.PUBLIC_CHECKOUT_DOMAIN || 'checkout.vagaboundbooks.com';
-const STORE_DOMAIN = import.meta.env.PUBLIC_SHOPIFY_SHOP?.replace('.myshopify.com', '') || 'vagabound-books';
-
-function rewriteCheckoutUrl(url: string): string {
-  try {
-    const parsed = new URL(url);
-    // If the checkout URL is on the storefront domain, rewrite it to the checkout domain
-    if (parsed.hostname === 'vagaboundbooks.com' || parsed.hostname.endsWith('.myshopify.com')) {
-      parsed.hostname = CHECKOUT_DOMAIN;
-    }
-    return parsed.toString();
-  } catch {
-    return url;
-  }
-}
-
 export default function CheckoutPage() {
   const $cart = useStore(cart);
   const [status, setStatus] = useState<'loading' | 'redirecting' | 'empty' | 'error'>('loading');
@@ -68,13 +52,13 @@ export default function CheckoutPage() {
         cart.set({
           id: freshCart.id,
           cost: freshCart.cost,
-          checkoutUrl: rewriteCheckoutUrl(freshCart.checkoutUrl),
+          checkoutUrl: freshCart.checkoutUrl,
           totalQuantity: freshCart.totalQuantity,
           lines: freshCart.lines,
         });
 
-        // Redirect to Shopify checkout (rewritten to checkout domain)
-        window.location.href = rewriteCheckoutUrl(checkoutUrl);
+        // Redirect to Shopify checkout
+        window.location.href = checkoutUrl;
       } catch (err) {
         console.error('[Checkout] Error proceeding to checkout:', err);
         setStatus('error');
