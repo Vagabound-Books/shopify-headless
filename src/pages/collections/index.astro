@@ -61,7 +61,10 @@ const collections = (data?.collections?.edges || [])
               <div class="vb-collection-row__info">
                 <h3>{collection.title}</h3>
                 {collection.descriptionHtml && (
-                  <p set:html={collection.descriptionHtml} />
+                  <div class="vb-collection-row__desc" set:html={collection.descriptionHtml} />
+                )}
+                {productCount > 0 && (
+                  <span class="vb-collection-row__count">{productCount} {productCount === 1 ? 'book' : 'books'}</span>
                 )}
               </div>
               {productCount > 0 && (
@@ -142,7 +145,7 @@ const collections = (data?.collections?.edges || [])
     background: var(--buckram);
   }
   .vb-collection-row:nth-child(odd) .vb-collection-row__info,
-  .vb-collection-row:nth-child(odd) .vb-collection-row__info :where(h3, p, div, span, a),
+  .vb-collection-row:nth-child(odd) .vb-collection-row__info :where(h3, .vb-collection-row__desc, div, span, a),
   .vb-collection-row:nth-child(odd) .vb-collection-row__count,
   .vb-collection-row:nth-child(odd) .vb-collection-row__arrow {
     color: var(--paper);
@@ -188,12 +191,22 @@ const collections = (data?.collections?.edges || [])
     margin: 0;
     letter-spacing: -0.01em;
   }
-  .vb-collection-row__info p {
+  .vb-collection-row__desc {
     margin: 0;
     font-size: 14px;
     color: var(--ink-soft);
     line-height: 1.5;
     max-width: 48ch;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .vb-collection-row__desc :global(p) {
+    margin: 0 0 0.5em;
+  }
+  .vb-collection-row__desc :global(p:last-child) {
+    margin-bottom: 0;
   }
   .vb-collection-row__count {
     font-family: var(--font-mono);
@@ -250,8 +263,9 @@ const collections = (data?.collections?.edges || [])
     .vb-collection-row__info h3 {
       font-size: 18px;
     }
-    .vb-collection-row__info p {
-      display: none;
+    .vb-collection-row__desc {
+      -webkit-line-clamp: 2;
+      max-width: none;
     }
     .vb-collection-row__book {
       width: 64px;
