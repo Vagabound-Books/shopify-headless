@@ -1,51 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
 
-const SHOPIFY_ORIGIN = "https://vagabound-books.myshopify.com";
-const PROXY_PATHS = ["/cart/c/", "/checkouts/", "/orders/"];
-
-function isShopifyProxyPath(pathname: string): boolean {
-  return PROXY_PATHS.some((prefix) => pathname.startsWith(prefix));
-}
-
-async function proxyToShopify(request: Request): Promise<Response> {
-  const url = new URL(request.url);
-  const targetUrl = new URL(url.pathname + url.search, SHOPIFY_ORIGIN);
-
-  // Clone headers but remove host-specific ones
-  const headers = new Headers(request.headers);
-  headers.delete("host");
-  headers.set("host", "vagabound-books.myshopify.com");
-
-  const proxyRequest = new Request(targetUrl.toString(), {
-    method: request.method,
-    headers,
-    body: request.body,
-    redirect: "manual",
-  });
-
-  try {
-    const response = await fetch(proxyRequest);
-    const newHeaders = new Headers(response.headers);
-    const location = newHeaders.get("location");
-    if (location) {
-      // Rewrite redirects back to the storefront domain to use Shopify's origin,
-      // preventing a redirect loop through the proxy.
-      const rewrittenLocation = location
-        .replace("https://vagaboundbooks.com", SHOPIFY_ORIGIN)
-        .replace("https://checkout.vagaboundbooks.com", SHOPIFY_ORIGIN);
-      newHeaders.set("location", rewrittenLocation);
-    }
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: newHeaders,
-    });
-  } catch (err) {
-    console.error("[Middleware] Proxy error:", err);
-    return new Response("Checkout temporarily unavailable", { status: 502 });
-  }
-}
-
 const allowedOrigins = (import.meta.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map((o) => o.trim())
@@ -68,13 +22,7 @@ function isAllowed(origin: string | null): boolean {
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { request, url } = context;
-
-  // Proxy Shopify checkout paths directly to Shopify
-  if (isShopifyProxyPath(url.pathname)) {
-    return proxyToShopify(request);
-  }
-
+  const request = context.request;
   const origin = request.headers.get("origin");
 
   if (request.method === "OPTIONS") {
