@@ -1,0 +1,69 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "astro",
+  "agent": {
+    "astro": {
+      "description": "Astro + Shopify headless storefront agent for Vagabound Books",
+      "mode": "subagent"
+    }
+  },
+  "command": {
+    "dev": {
+      "description": "Start Astro dev server in background mode",
+      "template": "command/dev.md"
+    },
+    "dev-stop": {
+      "description": "Stop the background Astro dev server",
+      "template": "command/dev-stop.md"
+    },
+    "dev-status": {
+      "description": "Check background Astro dev server status",
+      "template": "command/dev-status.md"
+    },
+    "dev-logs": {
+      "description": "View background Astro dev server logs",
+      "template": "command/dev-logs.md"
+    },
+    "build": {
+      "description": "Build the Astro storefront",
+      "template": "command/build.md"
+    },
+    "start": {
+      "description": "Start the production server",
+      "template": "command/start.md"
+    },
+    "preview": {
+      "description": "Preview the production build",
+      "template": "command/preview.md"
+    },
+    "check": {
+      "description": "Run Astro type check",
+      "template": "command/check.md"
+    },
+    "migrate": {
+      "description": "Run database migrations",
+      "template": "command/migrate.md"
+    }
+  },
+  "mcp": {
+    "digitalocean-app-platform": {
+      "type": "local",
+      "command": ["npx", "-y", "@digitalocean/mcp", "--services", "apps"],
+      "enabled": true,
+      "environment": {
+        "DIGITALOCEAN_API_TOKEN": "{env:DIGITALOCEAN_API_KEY}"
+      },
+      "timeout": 30000
+    },
+    "shopify-dev": {
+      "type": "local",
+      "command": ["./node_modules/.bin/shopify-dev-mcp"],
+      "enabled": true,
+      "timeout": 30000
+    }
+  },
+  "permission": {
+    "bash": { "npm run *": "allow", "git *": "allow", "astro *": "allow", "npx *": "allow", "*": "ask" },
+    "edit": "deny"
+  }
+}

@@ -28,7 +28,9 @@
   "license": "MIT",
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@shopify/dev-mcp": "^1.14.2",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "yaml": "^2.9.0"
   }
 }
