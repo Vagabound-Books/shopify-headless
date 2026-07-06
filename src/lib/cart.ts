@@ -8,6 +8,7 @@ import {
   removeCartLines,
 } from "./shopify";
 import type { CartResult } from "./schemas";
+import { normalizeCheckoutUrl } from "./shopify";
 
 // Cart drawer state (open or closed) with initial value (false) and no persistent state
 export const isCartDrawerOpen = atom(false);
@@ -50,7 +51,7 @@ export async function initCart() {
           cart.set({
             id: data.id,
             cost: data.cost,
-            checkoutUrl: data.checkoutUrl,
+            checkoutUrl: normalizeCheckoutUrl(data.checkoutUrl),
             totalQuantity: data.totalQuantity,
             lines: data.lines,
           });
@@ -77,7 +78,7 @@ export async function addCartItem(item: { id: string; quantity: number }) {
       cart.set({
         id: cartData.id,
         cost: cartData.cost,
-        checkoutUrl: cartData.checkoutUrl,
+        checkoutUrl: normalizeCheckoutUrl(cartData.checkoutUrl),
         totalQuantity: cartData.totalQuantity,
         lines: cartData.lines,
       });
@@ -90,7 +91,7 @@ export async function addCartItem(item: { id: string; quantity: number }) {
       cart.set({
         id: cartData.id,
         cost: cartData.cost,
-        checkoutUrl: cartData.checkoutUrl,
+        checkoutUrl: normalizeCheckoutUrl(cartData.checkoutUrl),
         totalQuantity: cartData.totalQuantity,
         lines: cartData.lines,
       });
@@ -112,7 +113,7 @@ export async function removeCartItems(lineIds: string[]) {
       cart.set({
         id: cartData.id,
         cost: cartData.cost,
-        checkoutUrl: cartData.checkoutUrl,
+        checkoutUrl: normalizeCheckoutUrl(cartData.checkoutUrl),
         totalQuantity: cartData.totalQuantity,
         lines: cartData.lines,
       });
@@ -139,7 +140,7 @@ export async function getOrCreateCart() {
         cart.set({
           id: data.id,
           cost: data.cost,
-          checkoutUrl: data.checkoutUrl,
+          checkoutUrl: normalizeCheckoutUrl(data.checkoutUrl),
           totalQuantity: data.totalQuantity,
           lines: data.lines,
         });

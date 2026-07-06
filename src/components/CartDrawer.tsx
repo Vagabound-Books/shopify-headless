@@ -8,6 +8,7 @@ import {
   initCart,
 } from '../lib/cart';
 import { formatMoney } from '../lib/money';
+import { normalizeCheckoutUrl } from '../lib/shopify';
 
 export default function CartDrawer() {
   const $open = useStore(isCartDrawerOpen);
@@ -158,7 +159,7 @@ export default function CartDrawer() {
               <span>{$cart?.cost?.subtotalAmount ? formatMoney($cart.cost.subtotalAmount.amount, $cart.cost.subtotalAmount.currencyCode) : ''}</span>
             </div>
             <a
-              href={$cart?.checkoutUrl}
+              href={normalizeCheckoutUrl($cart?.checkoutUrl || "")}
               class="vb-btn vb-btn--stamp vb-btn--block"
               style={{ marginTop: '16px', textAlign: 'center', display: 'block', textDecoration: 'none' }}
             >

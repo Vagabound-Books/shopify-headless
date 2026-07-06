@@ -142,3 +142,19 @@ export async function getProductByHandle(options: {
   const parsedProduct = ProductResult.parse(product);
   return parsedProduct;
 }
+
+/**
+ * Normalize a Shopify checkout URL to use the custom domain.
+ * Shopify returns checkout URLs like:
+ *   https://vagabound-books.myshopify.com/checkouts/c/...
+ * We rewrite them to:
+ *   https://www.vagaboundbooks.com/checkouts/c/...
+ * so customers stay on the branded domain during checkout.
+ */
+export function normalizeCheckoutUrl(url: string): string {
+  if (!url) return url;
+  return url.replace(
+    /^https:\/\/vagabound-books\.myshopify\.com/,
+    'https://www.vagaboundbooks.com'
+  );
+}
