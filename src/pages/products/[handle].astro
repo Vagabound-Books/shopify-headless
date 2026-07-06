@@ -2,7 +2,6 @@
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import ProductCard from '../../components/ProductCard.astro';
 import ShelfButton from '../../components/ShelfButton.tsx';
 import ShopifyBuyButton from '../../components/ShopifyBuyButton.tsx';
 import { shopifyFetchServer } from '../../lib/shopify';
@@ -34,21 +33,11 @@ if (!product) {
 const mf = parseMetafields(product.metafields);
 const firstVariant = product.variants?.edges?.[0]?.node;
 const price = product.priceRange?.minVariantPrice;
-const compareAtPrice = product.compareAtPriceRange?.minVariantPrice;
 const images = product.images?.edges?.map((e: any) => e.node) || [];
-
-// For related products, we'll query the first collection
-// For simplicity, we'll skip related products in the first pass
-// or use a collection handle if we know it
 ---
 
-<Layout title={product.title} description={product.description?.slice(0, 160)} hideCart={true}>
+<Layout title={product.title} description={product.description?.slice(0, 160)}>
   <Header slot="header" />
-
-  <style is:inline>
-    /* Hide existing custom cart icon when Buy Button is active on PDP */
-    .vb-actions .vb-iconbtn[aria-label="Cart"] { display: none !important; }
-  </style>
 
   <div class="vb-container">
     <div class="vb-pdp__crumb">
@@ -117,7 +106,7 @@ const images = product.images?.edges?.map((e: any) => e.node) || [];
 
         <div class="vb-pdp__cta-row">
           {firstVariant && (
-            <ShopifyBuyButton handle={product.handle} buttonText="Add to cart" client:load />
+            <ShopifyBuyButton handle={product.handle} variantId={firstVariant.id} buttonText="Add to cart" client:load />
           )}
           {firstVariant && (
             <ShelfButton handle={product.handle} variantId={firstVariant.id} client:load />

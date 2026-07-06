@@ -32,7 +32,7 @@ export default function ShelfButton({ handle, variantId, title, image, price, cu
 
   if (!mounted) {
     return (
-      <button type="button" class="wish js-wk-save" aria-label="Add to shelf">
+      <button type="button" class="vb-btn vb-btn--primary vb-btn--sm js-wk-save" aria-label="Add to shelf">
         <span class="wk-icon-unsaved" dangerouslySetInnerHTML={{ __html: SHELF_ICON }} />
       </button>
     );
@@ -47,7 +47,7 @@ export default function ShelfButton({ handle, variantId, title, image, price, cu
   return (
     <button
       type="button"
-      class={`wish js-wk-save${active ? ' is-active' : ''}`}
+      class={`vb-btn vb-btn--primary vb-btn--sm js-wk-save${active ? ' is-active' : ''}`}
       onClick={handleClick}
       aria-label={active ? 'Remove from shelf' : 'Add to shelf'}
     >
