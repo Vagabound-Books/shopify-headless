@@ -3635,3 +3635,25 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
     gap: 24px !important;
   }
 }
+
+/* ============================================ */
+/* Shopify Buy Button cart drawer overrides     */
+/* ============================================ */
+
+/* Cart iframe wrapper positioning */
+.shopify-buy__cart-wrapper {
+  z-index: 200 !important;
+}
+
+/* Cart toggle positioning - align with site header aesthetic */
+.shopify-buy__cart-toggle-wrapper {
+  z-index: 201 !important;
+}
+
+/* Ensure Buy Button wrapper in PDP CTA row fills grid cell */
+.vb-pdp__cta-row .shopify-buy-button-wrap,
+.vb-pdp__cta-row .shopify-buy-button-wrap > div,
+.vb-pdp__cta-row .shopify-buy-button-wrap .shopify-buy__btn-wrapper {
+  display: block;
+  width: 100%;
+}
