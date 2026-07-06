@@ -49,7 +49,7 @@ export default function ShopifyBuyButton({ handle, variantId, buttonText = 'Add 
 
     const initBuyButton = () => {
       const client = window.ShopifyBuy.buildClient({
-        domain: config.storeDomain,
+        domain: "vagaboundbooks.com",
         storefrontAccessToken: config.storefrontAccessToken,
       });
 
