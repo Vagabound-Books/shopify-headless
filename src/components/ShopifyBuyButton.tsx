@@ -49,7 +49,7 @@ export default function ShopifyBuyButton({ handle, variantId, buttonText = 'Add 
 
     const initBuyButton = () => {
       const client = window.ShopifyBuy.buildClient({
-        domain: "vagaboundbooks.com",
+        domain: config.storeDomain,
         storefrontAccessToken: config.storefrontAccessToken,
       });
 
@@ -82,9 +82,6 @@ export default function ShopifyBuyButton({ handle, variantId, buttonText = 'Add 
               outOfStock: 'Out of stock',
               unavailable: 'Unavailable',
             },
-            classes: {
-              button: 'shopify-buy__btn vb-btn vb-btn--primary vb-btn--sm vb-btn--block',
-            },
             styles: {
               button: {
                 'font-family': 'var(--font-body), Nunito, sans-serif',
@@ -112,23 +109,18 @@ export default function ShopifyBuyButton({ handle, variantId, buttonText = 'Add 
               },
             },
             events: {
-              afterRender: (product: any) => {
-                const btn = product.node.querySelector('.shopify-buy__btn');
-                if (btn && !btn.dataset.vbHooked) {
-                  btn.dataset.vbHooked = 'true';
-                  btn.addEventListener(
-                    'click',
-                    (e: Event) => {
-                      e.preventDefault();
-                      e.stopImmediatePropagation();
-                      addCartItem({ id: variantId, quantity: 1 }).catch((err: any) => {
-                        console.error('[ShopifyBuyButton] Failed to add to cart:', err);
-                      });
-                      isCartDrawerOpen.set(true);
-                    },
-                    true
-                  );
-                }
+              addVariantToCart: () => {
+                addCartItem({ id: variantId, quantity: 1 }).catch((err: any) => {
+                  console.error('[ShopifyBuyButton] Failed to add to cart:', err);
+                });
+                isCartDrawerOpen.set(true);
+
+                // Aggressively close any Buy Button cart that may have opened
+                requestAnimationFrame(() => {
+                  document.querySelectorAll('.shopify-buy__cart-wrapper, .shopify-buy__cart-toggle-wrapper').forEach((el) => {
+                    (el as HTMLElement).style.display = 'none';
+                  });
+                });
               },
             },
           },
