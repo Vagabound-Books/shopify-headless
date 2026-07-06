@@ -2,8 +2,8 @@
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+import AddToCart from '../../components/AddToCart.tsx';
 import ShelfButton from '../../components/ShelfButton.tsx';
-import ShopifyBuyButton from '../../components/ShopifyBuyButton.tsx';
 import { shopifyFetchServer } from '../../lib/shopify';
 import { GET_PRODUCT_BY_HANDLE } from '../../lib/queries';
 import { parseMetafields } from '../../lib/metafields';
@@ -106,7 +106,7 @@ const images = product.images?.edges?.map((e: any) => e.node) || [];
 
         <div class="vb-pdp__cta-row">
           {firstVariant && (
-            <ShopifyBuyButton handle={product.handle} variantId={firstVariant.id} buttonText="Add to cart" client:load />
+            <AddToCart variantId={firstVariant.id} client:load />
           )}
           {firstVariant && (
             <ShelfButton handle={product.handle} variantId={firstVariant.id} client:load />

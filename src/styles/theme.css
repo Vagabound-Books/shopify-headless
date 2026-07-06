@@ -3632,27 +3632,4 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
   }
 }
 
-/* ============================================ */
-/* Shopify Buy Button cart drawer overrides     */
-/* ============================================ */
 
-/* Hide Buy Button's built-in cart and toggle — we use the custom CartDrawer everywhere */
-.shopify-buy__cart-wrapper,
-.shopify-buy__cart-toggle-wrapper {
-  display: none !important;
-}
-
-/* Ensure Buy Button wrapper in PDP CTA row fills grid cell and button stretches */
-.vb-pdp__cta-row .shopify-buy-button-wrap,
-.vb-pdp__cta-row .shopify-buy-button-wrap > div,
-.vb-pdp__cta-row .shopify-buy-button-wrap .shopify-buy__btn-wrapper {
-  display: flex;
-  width: 100%;
-  height: 100%;
-}
-
-/* Force both PDP CTA buttons to the same stretched height */
-.vb-pdp__cta-row .shopify-buy__btn,
-.vb-pdp__cta-row .js-wk-save {
-  height: 100%;
-}

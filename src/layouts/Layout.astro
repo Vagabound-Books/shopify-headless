@@ -6,10 +6,9 @@ export interface Props {
   title?: string;
   description?: string;
   image?: string;
-  hideCart?: boolean;
 }
 
-const { title, description, image, hideCart = false } = Astro.props;
+const { title, description, image } = Astro.props;
 const siteTitle = title ? `Vagabound — ${title}` : 'Vagabound — a home for migratory words';
 
 const shopifyClientConfig = JSON.stringify({
@@ -56,7 +55,7 @@ const shopifyClientConfig = JSON.stringify({
 
   <body>
     <slot name="header" />
-{!hideCart && <CartDrawer client:idle />}
+    <CartDrawer client:idle />
 
     <main class="vb-main">
       <slot />
