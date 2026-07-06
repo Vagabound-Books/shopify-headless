@@ -3642,10 +3642,10 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
   display: none !important;
 }
 
-/* Ensure Buy Button wrapper in PDP CTA row fills grid cell */
+/* Ensure Buy Button wrapper in PDP CTA row fills grid cell and button stretches */
 .vb-pdp__cta-row .shopify-buy-button-wrap,
 .vb-pdp__cta-row .shopify-buy-button-wrap > div,
 .vb-pdp__cta-row .shopify-buy-button-wrap .shopify-buy__btn-wrapper {
-  display: block;
+  display: flex;
   width: 100%;
 }

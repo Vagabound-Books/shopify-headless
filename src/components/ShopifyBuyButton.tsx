@@ -85,14 +85,50 @@ export default function ShopifyBuyButton({ handle, variantId, buttonText = 'Add 
             classes: {
               button: 'shopify-buy__btn vb-btn vb-btn--primary vb-btn--sm vb-btn--block',
             },
-            styles: {},
+            styles: {
+              button: {
+                'font-family': 'var(--font-body), Nunito, sans-serif',
+                'font-weight': '700',
+                'font-size': '11.5px',
+                'letter-spacing': '0.05em',
+                'text-transform': 'uppercase',
+                'padding': '10px 14px',
+                'border-radius': 'var(--radius-sm)',
+                'border': '1.5px solid transparent',
+                'background': 'var(--buckram)',
+                'color': 'var(--paper)',
+                'cursor': 'pointer',
+                'width': '100%',
+                'height': '100%',
+                'display': 'inline-flex',
+                'align-items': 'center',
+                'justify-content': 'center',
+                'gap': '8px',
+                'white-space': 'nowrap',
+                'line-height': '1',
+                ':hover': {
+                  'filter': 'brightness(1.15)',
+                },
+              },
+            },
             events: {
-              addVariantToCart: () => {
-                // Sync Buy Button add-to-cart with our custom nanostores cart
-                addCartItem({ id: variantId, quantity: 1 }).catch((err: any) => {
-                  console.error('[ShopifyBuyButton] Failed to add to custom cart:', err);
-                });
-                isCartDrawerOpen.set(true);
+              afterRender: (product: any) => {
+                const btn = product.node.querySelector('.shopify-buy__btn');
+                if (btn && !btn.dataset.vbHooked) {
+                  btn.dataset.vbHooked = 'true';
+                  btn.addEventListener(
+                    'click',
+                    (e: Event) => {
+                      e.preventDefault();
+                      e.stopImmediatePropagation();
+                      addCartItem({ id: variantId, quantity: 1 }).catch((err: any) => {
+                        console.error('[ShopifyBuyButton] Failed to add to cart:', err);
+                      });
+                      isCartDrawerOpen.set(true);
+                    },
+                    true
+                  );
+                }
               },
             },
           },
