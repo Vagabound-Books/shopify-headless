@@ -89,7 +89,7 @@ export const CartItemResult = z.object({
     }),
     image: ImageResult.nullable().optional(),
   }),
-  quantity: z.number().positive().int(),
+  quantity: z.number().int().min(0),
 });
 
 export const CartResult = z

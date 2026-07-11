@@ -93,6 +93,10 @@ export async function shopifyFetchClient<T = any>({
 export async function createCart(id: string, quantity: number) {
   const data = await makeShopifyRequest(CREATE_CART, { lines: [{ merchandiseId: id, quantity }] });
   const { cartCreate } = data;
+  if (cartCreate.userErrors?.length > 0) {
+    const messages = cartCreate.userErrors.map((e: any) => e.message).join(', ');
+    throw new Error(messages);
+  }
   const { cart } = cartCreate;
   const parsedCart = CartResult.parse(cart);
   return parsedCart;
@@ -108,6 +112,10 @@ export async function addCartLines(
     lines: [{ merchandiseId, quantity }],
   });
   const { cartLinesAdd } = data;
+  if (cartLinesAdd.userErrors?.length > 0) {
+    const messages = cartLinesAdd.userErrors.map((e: any) => e.message).join(', ');
+    throw new Error(messages);
+  }
   const { cart } = cartLinesAdd;
   const parsedCart = CartResult.parse(cart);
   return parsedCart;
@@ -119,6 +127,10 @@ export async function removeCartLines(cartId: string, lineIds: string[]) {
     lineIds,
   });
   const { cartLinesRemove } = data;
+  if (cartLinesRemove.userErrors?.length > 0) {
+    const messages = cartLinesRemove.userErrors.map((e: any) => e.message).join(', ');
+    throw new Error(messages);
+  }
   const { cart } = cartLinesRemove;
   const parsedCart = CartResult.parse(cart);
   return parsedCart;

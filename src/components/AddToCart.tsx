@@ -4,9 +4,10 @@ import { addCartItem, isCartUpdating } from '../lib/cart';
 interface Props {
   variantId: string;
   quantity?: number;
+  availableForSale?: boolean;
 }
 
-export default function AddToCart({ variantId, quantity = 1 }: Props) {
+export default function AddToCart({ variantId, quantity = 1, availableForSale = true }: Props) {
   const [loading, setLoading] = useState(false);
 
   async function handleClick(e: Event) {
@@ -22,6 +23,18 @@ export default function AddToCart({ variantId, quantity = 1 }: Props) {
       setLoading(false);
       isCartUpdating.set(false);
     }
+  }
+
+  if (!availableForSale) {
+    return (
+      <button
+        type="button"
+        class="vb-btn vb-btn--primary"
+        disabled
+      >
+        Out of stock
+      </button>
+    );
   }
 
   return (

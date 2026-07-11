@@ -106,7 +106,7 @@ const images = product.images?.edges?.map((e: any) => e.node) || [];
 
         <div class="vb-pdp__cta-row">
           {firstVariant && (
-            <AddToCart variantId={firstVariant.id} client:load />
+            <AddToCart variantId={firstVariant.id} availableForSale={firstVariant.availableForSale} client:load />
           )}
           {firstVariant && (
             <ShelfButton handle={product.handle} variantId={firstVariant.id} client:load />
