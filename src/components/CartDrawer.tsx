@@ -81,6 +81,7 @@ export default function CartDrawer() {
           transition: 'transform 0.25s ease',
           display: 'flex',
           flexDirection: 'column',
+          textAlign: 'left',
         }}
       >
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--rule-soft, #e7e7e7)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -101,7 +102,7 @@ export default function CartDrawer() {
           )}
 
           {lines.length === 0 ? (
-            <div style={{ textAlign: 'center', marginTop: '40px' }}>
+            <div style={{ textAlign: 'left', marginTop: '40px' }}>
               <p style={{ color: 'var(--ink-soft)' }}>Your basket is empty.</p>
               <a href="/" class="vb-btn vb-btn--primary" style={{ marginTop: '16px', display: 'inline-block' }} onClick={close}>
                 Continue shopping
@@ -161,14 +162,14 @@ export default function CartDrawer() {
             <a
               href={normalizeCheckoutUrl($cart?.checkoutUrl || "")}
               class="vb-btn vb-btn--stamp vb-btn--block"
-              style={{ marginTop: '16px', textAlign: 'center', display: 'block', textDecoration: 'none' }}
+              style={{ marginTop: '16px', textAlign: 'left', display: 'block', textDecoration: 'none' }}
             >
               Checkout
             </a>
             <button
               type="button"
               onClick={close}
-              style={{ marginTop: '10px', display: 'block', width: '100%', background: 'none', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer', fontSize: '14px' }}
+              style={{ marginTop: '10px', display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', color: 'var(--ink-muted)', cursor: 'pointer', fontSize: '14px' }}
             >
               Continue shopping
             </button>
