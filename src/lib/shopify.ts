@@ -156,17 +156,18 @@ export async function getProductByHandle(options: {
 }
 
 /**
- * Normalize a Shopify checkout URL to use the custom domain.
+ * Normalize a Shopify checkout URL to use the checkout subdomain.
  * Shopify returns checkout URLs like:
- *   https://vagabound-books.myshopify.com/checkouts/c/...
+ *   https://vagabound-books.myshopify.com/cart/c/...
  * We rewrite them to:
- *   https://www.vagaboundbooks.com/checkouts/c/...
- * so customers stay on the branded domain during checkout.
+ *   https://checkout.vagaboundbooks.com/cart/c/...
+ * so checkout traffic goes to Shopify while the storefront stays separate.
  */
 export function normalizeCheckoutUrl(url: string): string {
   if (!url) return url;
-  return url.replace(
-    /^https:\/\/vagabound-books\.myshopify\.com/,
-    'https://www.vagaboundbooks.com'
-  );
+  // Rewrite both the myshopify origin and the primary custom domain
+  // to the dedicated checkout subdomain.
+  return url
+    .replace(/^https:\/\/vagabound-books\.myshopify\.com/, 'https://checkout.vagaboundbooks.com')
+    .replace(/^https:\/\/vagaboundbooks\.com/, 'https://checkout.vagaboundbooks.com');
 }
