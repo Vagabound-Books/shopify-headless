@@ -145,6 +145,20 @@ export const GET_COLLECTION_BY_HANDLE = `
   }
 `;
 
+export const GET_ALL_PRODUCTS = `
+  ${PRODUCT_FRAGMENT}
+  query GetAllProducts($first: Int!, $after: String) {
+    products(first: $first, after: $after) {
+      pageInfo { hasNextPage endCursor }
+      edges {
+        node {
+          ...productFields
+        }
+      }
+    }
+  }
+`;
+
 export const SEARCH_PRODUCTS = `
   ${PRODUCT_FRAGMENT}
   query SearchProducts($query: String!, $first: Int!, $after: String) {

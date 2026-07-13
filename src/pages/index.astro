@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { shopifyFetchServer } from '../lib/shopify';
-import { GET_BLOG_BY_HANDLE, GET_COLLECTION_BY_HANDLE, GET_COLLECTIONS } from '../lib/queries';
+import { GET_BLOG_BY_HANDLE, GET_ALL_PRODUCTS, GET_COLLECTIONS } from '../lib/queries';
 import { parseMetafields } from '../lib/metafields';
 import { formatMoney } from '../lib/money';
 
@@ -33,17 +33,17 @@ const collections = (collectionsData?.collections?.edges || [])
   .map((e: any) => e.node)
   .filter((c: any) => c.handle !== 'frontpage');
 
-// Fetch inventory collection for new arrivals
+// Fetch all store products for new arrivals
 const inventoryData = await shopifyFetchServer({
-  query: GET_COLLECTION_BY_HANDLE,
-  variables: { handle: 'inventory', first: 20 },
+  query: GET_ALL_PRODUCTS,
+  variables: { first: 20 },
   buyerIP: Astro.clientAddress,
 }).catch((err) => {
-  console.error('[Shopify] Failed to fetch inventory:', err);
+  console.error('[Shopify] Failed to fetch products:', err);
   return null;
 });
 
-const inventoryProducts = (inventoryData?.collection?.products?.edges || [])
+const inventoryProducts = (inventoryData?.products?.edges || [])
   .map((e: any) => e.node);
 
 // Determine volume number
@@ -198,7 +198,7 @@ function getExcerpt(article: any): string {
         <h2>Recently catalogued</h2>
       </div>
       <div class="vb-sec-head__right">
-        <a href="/collections/inventory" class="vb-link">Browse full inventory →</a>
+        <a href="/collections" class="vb-link">Browse full inventory →</a>
         <div class="vb-scroll-nav">
           <button type="button" class="vb-scroll-nav__btn js-scroll-prev" aria-label="Scroll left">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
@@ -246,7 +246,7 @@ function getExcerpt(article: any): string {
           </a>
         );
       })}
-      <a href="/collections/inventory" class="vb-scroll-card vb-scroll-card--more">
+      <a href="/collections" class="vb-scroll-card vb-scroll-card--more">
         <div class="vb-scroll-card__cover vb-scroll-card__cover--more">
           <span>Browse More</span>
         </div>
