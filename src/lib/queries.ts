@@ -204,6 +204,15 @@ export const GET_BLOG_BY_HANDLE = `
               altText
             }
             author { name }
+            metafields(identifiers: [
+              {namespace: "custom", key: "volume"}
+              {namespace: "custom", key: "related_books"}
+            ]) {
+              namespace
+              key
+              value
+              type
+            }
           }
         }
       }

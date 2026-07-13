@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { shopifyFetchServer } from '../lib/shopify';
-import { GET_BLOG_BY_HANDLE, GET_ALL_PRODUCTS, GET_COLLECTIONS } from '../lib/queries';
+import { GET_BLOG_BY_HANDLE, GET_ALL_PRODUCTS, GET_COLLECTIONS, GET_PRODUCT_BY_HANDLE } from '../lib/queries';
 import { parseMetafields } from '../lib/metafields';
 import { formatMoney } from '../lib/money';
 
@@ -61,17 +61,28 @@ if (latestArticle) {
   const relatedMeta = latestArticle.metafields?.find((m: any) => m?.key === 'related_books');
   if (relatedMeta?.value) {
     try {
-      const relatedHandles = JSON.parse(relatedMeta.value);
-      // We'll need to fetch these products individually or just use inventory
-      // For now, fallback to inventory products
-      heroBooks = inventoryProducts.slice(0, 3);
+      const relatedHandles: string[] = JSON.parse(relatedMeta.value);
+      if (relatedHandles.length > 0) {
+        const relatedProducts = await Promise.all(
+          relatedHandles.map((handle: string) =>
+            shopifyFetchServer({
+              query: GET_PRODUCT_BY_HANDLE,
+              variables: { handle },
+              buyerIP: Astro.clientAddress,
+            }).then((data: any) => data?.product).catch(() => null)
+          )
+        );
+        const fetched = relatedProducts.filter((p: any) => p != null);
+        if (fetched.length > 0) {
+          heroBooks = fetched;
+        }
+      }
     } catch {
-      heroBooks = inventoryProducts.slice(0, 3);
+      // ignore parse errors
     }
-  } else {
-    heroBooks = inventoryProducts.slice(0, 3);
   }
-} else {
+}
+if (heroBooks.length === 0) {
   heroBooks = inventoryProducts.slice(0, 3);
 }
 
