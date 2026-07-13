@@ -126,6 +126,17 @@ export const GET_PRODUCT_BY_HANDLE = `
   }
 `;
 
+
+export const GET_PRODUCT_BY_ID = `
+  ${PRODUCT_FRAGMENT}
+  query GetProductById($id: ID!) {
+    node(id: $id) {
+      ... on Product {
+        ...productFields
+      }
+    }
+  }
+`;
 export const GET_COLLECTION_BY_HANDLE = `
   ${PRODUCT_FRAGMENT}
   query GetCollection($handle: String!, $first: Int!, $after: String) {
