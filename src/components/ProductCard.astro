@@ -5,9 +5,10 @@ import ShelfButton from './ShelfButton.tsx';
 export interface Props {
   product: any;
   showShelf?: boolean;
+  isAuthenticated?: boolean;
 }
 
-const { product, showShelf = true } = Astro.props;
+const { product, showShelf = true, isAuthenticated = false } = Astro.props;
 const mf = parseMetafields(product.metafields);
 const featuredImage = product.featuredImage;
 const price = product.priceRange?.minVariantPrice;
@@ -64,6 +65,7 @@ const authorsList = Array.isArray(mf.authors) ? mf.authors : (mf.authors ? [mf.a
       currencyCode={price?.currencyCode}
       genre={mf.genre}
       authors={authorsList}
+      isAuthenticated={isAuthenticated}
       client:load
     />
   </div>

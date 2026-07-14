@@ -5,6 +5,7 @@ import Footer from '../components/Footer.astro';
 import ProductCard from '../components/ProductCard.astro';
 import { shopifyFetchServer } from '../lib/shopify';
 import { SEARCH_PRODUCTS } from '../lib/queries';
+import { getCustomerAccountsTokens } from '../lib/customer-accounts';
 
 const query = Astro.url.searchParams.get('q') || '';
 
@@ -23,6 +24,9 @@ if (query) {
   products = (data?.search?.edges || [])
     .map((e: any) => e.node);
 }
+
+const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
+const isAuthenticated = !!accessToken;
 ---
 
 <Layout title={query ? `Search: ${query}` : 'Search'}>
@@ -72,7 +76,7 @@ if (query) {
         {products.length > 0 && (
           <div class="vb-shelf">
             {products.map((product: any) => (
-              <ProductCard product={product} />
+              <ProductCard product={product} isAuthenticated={isAuthenticated} />
             ))}
           </div>
         )}

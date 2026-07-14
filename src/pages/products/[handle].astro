@@ -8,6 +8,7 @@ import { shopifyFetchServer } from '../../lib/shopify';
 import { GET_PRODUCT_BY_HANDLE } from '../../lib/queries';
 import { parseMetafields } from '../../lib/metafields';
 import { formatMoney } from '../../lib/money';
+import { getCustomerAccountsTokens } from '../../lib/customer-accounts';
 
 const { handle } = Astro.params;
 
@@ -34,6 +35,8 @@ const mf = parseMetafields(product.metafields);
 const firstVariant = product.variants?.edges?.[0]?.node;
 const price = product.priceRange?.minVariantPrice;
 const images = product.images?.edges?.map((e: any) => e.node) || [];
+const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
+const isAuthenticated = !!accessToken;
 ---
 
 <Layout title={product.title} description={product.description?.slice(0, 160)}>
@@ -109,7 +112,7 @@ const images = product.images?.edges?.map((e: any) => e.node) || [];
             <AddToCart variantId={firstVariant.id} availableForSale={firstVariant.availableForSale} client:load />
           )}
           {firstVariant && (
-            <ShelfButton handle={product.handle} variantId={firstVariant.id} client:load />
+            <ShelfButton handle={product.handle} variantId={firstVariant.id} isAuthenticated={isAuthenticated} client:load />
           )}
         </div>
 

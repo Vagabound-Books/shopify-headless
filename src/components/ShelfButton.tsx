@@ -12,11 +12,13 @@ interface Props {
   currencyCode?: string;
   genre?: string;
   authors?: string[];
+  isAuthenticated?: boolean;
 }
 
-export default function ShelfButton({ handle, variantId, title, image, price, currencyCode, genre, authors }: Props) {
+export default function ShelfButton({ handle, variantId, title, image, price, currencyCode, genre, authors, isAuthenticated = false }: Props) {
   const [active, setActive] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -46,17 +48,68 @@ export default function ShelfButton({ handle, variantId, title, image, price, cu
     // Sync entire shelf to cloud in the background (silently fails if not logged in)
     const items = getShelf();
     syncShelfToCloud(items);
+
+    // If guest just added a book, show the account nudge modal
+    if (!isAuthenticated && nowActive) {
+      setShowModal(true);
+    }
+  }
+
+  function closeModal() {
+    setShowModal(false);
   }
 
   return (
-    <button
-      type="button"
-      class={`vb-btn vb-btn--primary vb-btn--sm js-wk-save${active ? ' is-active' : ''}`}
-      onClick={handleClick}
-      aria-label={active ? 'Remove from shelf' : 'Add to shelf'}
-    >
-      <span class="wk-icon-unsaved" hidden={active} dangerouslySetInnerHTML={{ __html: SHELF_ICON }} />
-      <span class="wk-icon-saved" hidden={!active} dangerouslySetInnerHTML={{ __html: SHELF_ICON }} />
-    </button>
+    <>
+      <button
+        type="button"
+        class={`vb-btn vb-btn--primary vb-btn--sm js-wk-save${active ? ' is-active' : ''}`}
+        onClick={handleClick}
+        aria-label={active ? 'Remove from shelf' : 'Add to shelf'}
+      >
+        <span class="wk-icon-unsaved" hidden={active} dangerouslySetInnerHTML={{ __html: SHELF_ICON }} />
+        <span class="wk-icon-saved" hidden={!active} dangerouslySetInnerHTML={{ __html: SHELF_ICON }} />
+      </button>
+
+      {/* Guest nudge modal */}
+      {showModal && (
+        <div class="vb-modal is-open" onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
+          <div class="vb-modal__panel" style="max-width: 520px; grid-template-columns: 1fr;">
+            <button
+              type="button"
+              class="vb-modal__close"
+              onClick={closeModal}
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            <div class="vb-modal__info" style="padding: 36px 32px; text-align: center; align-items: center;">
+              <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">
+                Saved to your shelf
+              </div>
+              <h2 style="font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: -0.018em; line-height: 1.05; margin: 0;">
+                Keep your shelf with you
+              </h2>
+              <p style="font-size: 15px; color: var(--ink-soft); line-height: 1.65; margin: 0; max-width: 36ch;">
+                This browser will remember your saved books. Create an account and they'll follow you to any device.
+              </p>
+              <div class="actions" style="display: flex; gap: 10px; margin-top: 8px; justify-content: center;">
+                <a href="/account/login/" class="vb-btn vb-btn--primary">
+                  Sign in or create an account →
+                </a>
+                <button
+                  type="button"
+                  class="vb-btn vb-btn--ghost"
+                  onClick={closeModal}
+                >
+                  Keep browsing
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
