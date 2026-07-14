@@ -14,9 +14,10 @@ function formatMoneyLocal(amount?: string, currencyCode?: string): string {
 
 interface Props {
   cloudItems?: ShelfItem[];
+  isAuthenticated?: boolean;
 }
 
-export default function ShelfPage({ cloudItems = [] }: Props) {
+export default function ShelfPage({ cloudItems = [], isAuthenticated = false }: Props) {
   const [items, setItems] = useState<ShelfItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
@@ -47,6 +48,18 @@ export default function ShelfPage({ cloudItems = [] }: Props) {
   }
 
   if (items.length === 0) {
+    if (!isAuthenticated) {
+      return (
+        <div style="display: flex; flex-direction: column; gap: 16px; max-width: 48ch;">
+          <p style="color: var(--ink-soft); margin: 0;">
+            Your shelf is empty — and it lives in this browser only. Create an account and your saved books will follow you to any device.
+          </p>
+          <a href="/account/login/" class="vb-btn vb-btn--primary" style="align-self: flex-start;">
+            Sign in or create an account →
+          </a>
+        </div>
+      );
+    }
     return (
       <p style="color: var(--ink-soft);">
         Your shelf is empty. Start adding books you love!

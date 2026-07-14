@@ -13,6 +13,8 @@ import type { ShelfItem } from '../../lib/shelf';
 // Fetch cloud wishlist for authenticated customers
 let cloudItems: ShelfItem[] = [];
 const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
+const isAuthenticated = !!accessToken;
+
 if (accessToken) {
   try {
     const data = await customerAccountsFetch(
@@ -56,7 +58,7 @@ if (accessToken) {
   </div>
 
   <div class="vb-container">
-    <ShelfPage client:load cloudItems={cloudItems} />
+    <ShelfPage client:load cloudItems={cloudItems} isAuthenticated={isAuthenticated} />
   </div>
 
   <Footer slot="footer" />
