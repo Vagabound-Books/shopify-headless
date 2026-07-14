@@ -3,7 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { shopifyFetchServer } from '../../lib/shopify';
-import { GET_ARTICLE_BY_HANDLE, GET_BLOG_BY_HANDLE } from '../../lib/queries';
+import { GET_ARTICLE_BY_HANDLE, GET_BLOG_BY_HANDLE, GET_PRODUCT_BY_ID } from '../../lib/queries';
+import { parseMetafields } from '../../lib/metafields';
 
 const { handle } = Astro.params;
 
@@ -41,6 +42,29 @@ const date = new Date(article.publishedAt).toLocaleDateString('en-US', {
   day: 'numeric',
   year: 'numeric',
 });
+
+// Fetch related books
+let relatedBooks: any[] = [];
+const relatedMeta = article.metafields?.find((m: any) => m?.key === 'related_books');
+if (relatedMeta?.value) {
+  try {
+    const relatedIds: string[] = JSON.parse(relatedMeta.value);
+    if (relatedIds.length > 0) {
+      const relatedProducts = await Promise.all(
+        relatedIds.map((id: string) =>
+          shopifyFetchServer({
+            query: GET_PRODUCT_BY_ID,
+            variables: { id },
+            buyerIP: Astro.clientAddress,
+          }).then((data: any) => data?.node).catch(() => null)
+        )
+      );
+      relatedBooks = relatedProducts.filter((p: any) => p != null);
+    }
+  } catch {
+    // ignore parse errors
+  }
+}
 
 // Find previous and next articles
 const allArticles = (blogData?.blog?.articles?.edges || []).map((e: any) => e.node);
@@ -82,7 +106,44 @@ const nextDate = nextArticle
         />
       )}
 
-      <div class="article-content" set:html={article.contentHtml || article.excerptHtml} />
+      <div class="article-content" set:html={article.contentHtml} />
+
+      {relatedBooks.length > 0 && (
+        <div style="margin-top: 48px;">
+          <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted); margin-bottom: 20px;">
+            Books in this dispatch — {relatedBooks.length} title{relatedBooks.length !== 1 ? 's' : ''}
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px;">
+            {relatedBooks.map((book: any) => {
+              const mf = parseMetafields(book.metafields);
+              return (
+                <a href={`/products/${book.handle}`} style="text-decoration: none; display: flex; flex-direction: column; gap: 10px;">
+                  {book.featuredImage ? (
+                    <img
+                      src={book.featuredImage.url}
+                      alt={book.featuredImage.altText || book.title}
+                      loading="lazy"
+                      width="180"
+                      height="260"
+                      style="width: 100%; aspect-ratio: 5/7.2; object-fit: cover; border-radius: var(--radius-sm); box-shadow: 0 4px 12px -4px rgba(0,0,0,0.2);"
+                    />
+                  ) : (
+                    <div style="width: 100%; aspect-ratio: 5/7.2; background: var(--paper-soft); border: 1px dashed var(--rule-firm); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">
+                      No cover
+                    </div>
+                  )}
+                  <div style="font-family: var(--font-display); font-size: 14px; font-weight: 600; line-height: 1.25; color: var(--ink);">
+                    {book.title}
+                  </div>
+                  <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted);">
+                    {Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div style="margin-top: 32px; padding: 20px 24px; border: 1px dashed var(--rule-firm); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 14px;">
         <div>
