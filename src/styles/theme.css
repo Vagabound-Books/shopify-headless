@@ -1182,6 +1182,9 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
 
 @media (max-width: 1080px) {
   .vb-hero { grid-template-columns: 1fr; gap: 56px; }
+  .vb-hero__shelf-stage { grid-template-columns: 1fr; }
+  .vb-hero__shelf-stage .vb-hero__book:nth-child(odd),
+  .vb-hero__shelf-stage .vb-hero__book:nth-child(even) { transform: none; }
 }
 
 .vb-spine-row {
@@ -2000,7 +2003,10 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
   overflow-x: hidden;
 }
 @media (max-width: 1080px) {
-  .vb-pdp { grid-template-columns: 1fr; gap: 40px; }
+  .vb-hero { grid-template-columns: 1fr; gap: 56px; }
+  .vb-hero__shelf-stage { grid-template-columns: 1fr; }
+  .vb-hero__shelf-stage .vb-hero__book:nth-child(odd),
+  .vb-hero__shelf-stage .vb-hero__book:nth-child(even) { transform: none; }
 }
 
 .vb-pdp__gallery {
