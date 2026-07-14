@@ -244,21 +244,26 @@ const collections = (data?.collections?.edges || [])
 
   @media (max-width: 900px) {
     .vb-collection-row {
-      grid-template-columns: 110px 1fr auto;
+      grid-template-columns: 1fr auto;
       gap: 16px;
       padding: 16px;
     }
     .vb-collection-row__thumb {
-      height: 150px;
+      display: none;
     }
     .vb-collection-row__body {
       flex-direction: column;
       align-items: flex-start;
       gap: 12px;
+      grid-column: 1;
     }
     .vb-collection-row__slider {
-      justify-content: flex-start;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
       width: 100%;
+      overflow-x: visible;
+      justify-content: start;
     }
     .vb-collection-row__info h3 {
       font-size: 18px;
@@ -268,8 +273,18 @@ const collections = (data?.collections?.edges || [])
       max-width: none;
     }
     .vb-collection-row__book {
-      width: 64px;
-      height: 90px;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 5/7;
+    }
+    .vb-collection-row__arrow {
+      align-self: center;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .vb-collection-row__slider {
+      grid-template-columns: repeat(3, 1fr);
     }
   }
 </style>
