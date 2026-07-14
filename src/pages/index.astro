@@ -107,6 +107,15 @@ function getExcerpt(article: any): string {
   const firstPara = article.contentHtml?.split('</p>')[0]?.replace(/<[^>]+>/g, '').trim() || '';
   return firstPara.split(' ').slice(0, 40).join(' ') + '…';
 }
+
+function breakTitle(title: string): string {
+  if (title.length <= 18) return title;
+  const mid = Math.floor(title.length / 2);
+  let breakIndex = title.lastIndexOf(" ", mid);
+  if (breakIndex === -1) breakIndex = title.indexOf(" ", mid);
+  if (breakIndex === -1) return title;
+  return title.slice(0, breakIndex) + "<br />" + title.slice(breakIndex + 1);
+}
 ---
 
 <Layout title="A home for migratory words">
@@ -197,7 +206,7 @@ function getExcerpt(article: any): string {
           return (
             <a href={`/collections/${collection.handle}`} class={`vb-spine vb-spine--${(index % 8) + 1}`} title={collection.title}>
               <span class="vb-spine__meta">№ {num}</span>
-              <span class="vb-spine__name">{collection.title}</span>
+              <span class="vb-spine__name" set:html={breakTitle(collection.title)} />
               <span class="vb-spine__meta">{abbr}</span>
             </a>
           );
