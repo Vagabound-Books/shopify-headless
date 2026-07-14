@@ -63,3 +63,40 @@ export function toggleShelf(item: Omit<ShelfItem, 'addedAt'>): boolean {
     return true;
   }
 }
+
+/**
+ * Merge cloud and local shelf items. Local items take precedence when the
+ * same handle+variantId exists in both. Union of both sets otherwise.
+ */
+export function mergeShelfItems(cloud: ShelfItem[], local: ShelfItem[]): ShelfItem[] {
+  const map = new Map<string, ShelfItem>();
+
+  for (const item of cloud) {
+    const key = `${item.handle}:${item.variantId}`;
+    map.set(key, item);
+  }
+
+  for (const item of local) {
+    const key = `${item.handle}:${item.variantId}`;
+    map.set(key, item);
+  }
+
+  return Array.from(map.values());
+}
+
+/**
+ * Write the current local shelf to the customer's cloud metafield.
+ * Silently fails if the user is not authenticated or the API errors.
+ */
+export async function syncShelfToCloud(items: ShelfItem[]): Promise<boolean> {
+  try {
+    const res = await fetch('/api/wishlist/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

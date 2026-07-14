@@ -495,3 +495,41 @@ export const CUSTOMER_DEFAULT_ADDRESS_UPDATE = `
     }
   }
 `;
+
+export const CUSTOMER_WISHLIST_QUERY = `
+  query CustomerWishlist {
+    customer {
+      id
+      metafields(identifiers: [
+        {namespace: "custom", key: "wishlist"}
+      ]) {
+        namespace
+        key
+        value
+        type
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_WISHLIST_UPDATE = `
+  mutation customerUpdate($customer: CustomerUpdateInput!) {
+    customerUpdate(customer: $customer) {
+      customer {
+        id
+        metafields(identifiers: [
+          {namespace: "custom", key: "wishlist"}
+        ]) {
+          namespace
+          key
+          value
+          type
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;

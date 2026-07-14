@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
-import { getShelf, removeFromShelf, type ShelfItem } from '../lib/shelf';
+import { getShelf, removeFromShelf, syncShelfToCloud, mergeShelfItems, type ShelfItem } from '../lib/shelf';
 import { formatMoney } from '../lib/money';
 
 function formatMoneyLocal(amount?: string, currencyCode?: string): string {
@@ -12,21 +12,35 @@ function formatMoneyLocal(amount?: string, currencyCode?: string): string {
   }).format(value);
 }
 
-export default function ShelfPage() {
+interface Props {
+  cloudItems?: ShelfItem[];
+}
+
+export default function ShelfPage({ cloudItems = [] }: Props) {
   const [items, setItems] = useState<ShelfItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    setItems(getShelf());
+    const local = getShelf();
+    const merged = mergeShelfItems(cloudItems, local);
+    setItems(merged);
+
+    // If cloud had items local didn't have, write merged back to localStorage
+    if (merged.length !== local.length) {
+      const event = new Event('shelf:changed');
+      window.dispatchEvent(event);
+    }
 
     function handleChange() {
-      setItems(getShelf());
+      const currentLocal = getShelf();
+      const currentMerged = mergeShelfItems(cloudItems, currentLocal);
+      setItems(currentMerged);
     }
 
     window.addEventListener('shelf:changed', handleChange);
     return () => window.removeEventListener('shelf:changed', handleChange);
-  }, []);
+  }, [cloudItems]);
 
   if (!mounted) {
     return <p style="color: var(--ink-soft);">Loading your shelf…</p>;
@@ -42,7 +56,10 @@ export default function ShelfPage() {
 
   function handleRemove(handle: string, variantId: string) {
     removeFromShelf(handle, variantId);
-    setItems(getShelf());
+    const updated = getShelf();
+    const merged = mergeShelfItems(cloudItems, updated);
+    setItems(merged);
+    syncShelfToCloud(merged);
   }
 
   return (
