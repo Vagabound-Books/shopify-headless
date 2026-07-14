@@ -74,7 +74,7 @@ if (latestArticle) {
         );
         const fetched = relatedProducts.filter((p: any) => p != null);
         if (fetched.length > 0) {
-          heroBooks = fetched;
+          heroBooks = fetched.slice(0, 3);
         }
       }
     } catch {
