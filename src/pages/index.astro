@@ -74,6 +74,11 @@ if (latestArticle) {
         );
         const fetched = relatedProducts.filter((p: any) => p != null);
         if (fetched.length > 0) {
+          // Shuffle randomly so each visit shows different featured books
+          for (let i = fetched.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [fetched[i], fetched[j]] = [fetched[j], fetched[i]];
+          }
           heroBooks = fetched.slice(0, 3);
         }
       }
