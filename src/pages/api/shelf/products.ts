@@ -39,6 +39,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     );
   }
 
+  console.log(`[Shelf API] Fetching ${handles.length} product(s): ${handles.join(', ')}`);
+
   try {
     const { query, variables } = buildHandlesQuery(handles);
     const data = await shopifyFetchServer({
@@ -48,6 +50,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     });
 
     const products = Object.values(data || {}).filter(Boolean);
+    console.log(`[Shelf API] Returning ${products.length} product(s)`);
 
     return new Response(
       JSON.stringify({ products }),
@@ -56,7 +59,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   } catch (err: any) {
     console.error('[Shelf API] Failed to fetch products:', err);
     return new Response(
-      JSON.stringify({ error: err.message || String(err) }),
+      JSON.stringify({ error: err.message || String(err), handles }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

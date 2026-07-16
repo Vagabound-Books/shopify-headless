@@ -45,13 +45,18 @@ function buildProductsMap(products: ProductLike[]): Record<string, ProductLike> 
 
 async function fetchProductsByHandles(handles: string[]): Promise<ProductLike[]> {
   if (handles.length === 0) return [];
+  console.log('[ShelfPage] Fetching products for handles:', handles);
   const res = await fetch('/api/shelf/products', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ handles }),
   });
-  if (!res.ok) throw new Error('Failed to fetch products');
   const data = await res.json();
+  if (!res.ok) {
+    console.error('[ShelfPage] Product fetch failed:', data);
+    throw new Error(data?.error || 'Failed to fetch products');
+  }
+  console.log('[ShelfPage] Received products:', data.products?.length || 0);
   return data.products || [];
 }
 
@@ -59,6 +64,7 @@ export default function ShelfPage({ cloudItems = [], isAuthenticated = false }: 
   const [items, setItems] = useState<ShelfItem[]>([]);
   const [products, setProducts] = useState<Record<string, ProductLike>>({});
   const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -85,9 +91,10 @@ export default function ShelfPage({ cloudItems = [], isAuthenticated = false }: 
   useEffect(() => {
     if (items.length === 0) return;
     const handles = Array.from(new Set(items.map((i) => i.handle)));
+    setError(null);
     fetchProductsByHandles(handles)
       .then((fetched) => setProducts(buildProductsMap(fetched)))
-      .catch((err) => console.error('[ShelfPage] Failed to fetch products:', err));
+      .catch((err) => setError(err.message || 'Failed to load book details'));
   }, [items]);
 
   function handleRemove(handle: string, variantId: string) {
@@ -144,6 +151,25 @@ export default function ShelfPage({ cloudItems = [], isAuthenticated = false }: 
             Showing <strong>{items.length}</strong> book{items.length === 1 ? '' : 's'}
           </div>
         </div>
+
+        {error && (
+          <div style="padding: 16px; margin-bottom: 24px; border: 1px dashed var(--rule-firm); border-radius: var(--radius-sm); color: var(--ink-soft); background: var(--paper-soft);">
+            <p style="margin: 0 0 8px;">Couldn’t load full book details: {error}</p>
+            <button
+              type="button"
+              class="vb-btn vb-btn--primary"
+              onClick={() => {
+                setError(null);
+                const handles = Array.from(new Set(items.map((i) => i.handle)));
+                fetchProductsByHandles(handles)
+                  .then((fetched) => setProducts(buildProductsMap(fetched)))
+                  .catch((err) => setError(err.message || 'Failed to load book details'));
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         <div class="vb-shelf">
           {items.map((item) => (

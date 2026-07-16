@@ -112,7 +112,18 @@ const isAuthenticated = !!accessToken;
             <AddToCart variantId={firstVariant.id} availableForSale={firstVariant.availableForSale} client:load />
           )}
           {firstVariant && (
-            <ShelfButton handle={product.handle} variantId={firstVariant.id} isAuthenticated={isAuthenticated} client:load />
+            <ShelfButton
+              handle={product.handle}
+              variantId={firstVariant.id}
+              title={product.title}
+              image={product.featuredImage?.url}
+              price={price?.amount}
+              currencyCode={price?.currencyCode}
+              genre={mf.genre}
+              authors={Array.isArray(mf.authors) ? mf.authors : (mf.authors ? [mf.authors] : [])}
+              isAuthenticated={isAuthenticated}
+              client:load
+            />
           )}
         </div>
 
