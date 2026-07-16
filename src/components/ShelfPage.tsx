@@ -46,7 +46,7 @@ function buildProductsMap(products: ProductLike[]): Record<string, ProductLike> 
 async function fetchProductsByHandles(handles: string[]): Promise<ProductLike[]> {
   if (handles.length === 0) return [];
   console.log('[ShelfPage] Fetching products for handles:', handles);
-  const res = await fetch('/api/shelf/products', {
+  const res = await fetch('/api/shelf/products/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ handles }),

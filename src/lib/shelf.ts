@@ -90,7 +90,7 @@ export function mergeShelfItems(cloud: ShelfItem[], local: ShelfItem[]): ShelfIt
  */
 export async function syncShelfToCloud(items: ShelfItem[]): Promise<boolean> {
   try {
-    const res = await fetch('/api/wishlist/sync', {
+    const res = await fetch('/api/wishlist/sync/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items }),
