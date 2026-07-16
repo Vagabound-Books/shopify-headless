@@ -54,7 +54,7 @@ fragment cartFragment on Cart {
 }
 `;
 
-const PRODUCT_FRAGMENT = `#graphql
+export const PRODUCT_FRAGMENT = `#graphql
 fragment productFields on Product {
   id
   title
@@ -100,14 +100,14 @@ fragment productFields on Product {
     }
   }
   metafields(identifiers: [
-    {namespace: "app-ibp-book", key: "cover_palette"}
-    {namespace: "app-ibp-book", key: "genre"}
-    {namespace: "app-ibp-book", key: "authors"}
-    {namespace: "app-ibp-book", key: "publisher"}
-    {namespace: "app-ibp-book", key: "year"}
-    {namespace: "app-ibp-book", key: "binding"}
-    {namespace: "app-ibp-book", key: "pages"}
-    {namespace: "app-ibp-book", key: "provenance"}
+    {namespace: "custom", key: "cover_palette"}
+    {namespace: "custom", key: "genre"}
+    {namespace: "custom", key: "authors"}
+    {namespace: "custom", key: "publisher"}
+    {namespace: "custom", key: "year"}
+    {namespace: "custom", key: "binding"}
+    {namespace: "custom", key: "pages"}
+    {namespace: "custom", key: "provenance"}
   ]) {
     namespace
     key
@@ -137,19 +137,6 @@ export const GET_PRODUCT_BY_ID = `
     }
   }
 `;
-export const GET_PRODUCTS_BY_HANDLES = `
-  ${PRODUCT_FRAGMENT}
-  query GetProductsByHandles($query: String!, $first: Int!) {
-    products(first: $first, query: $query) {
-      edges {
-        node {
-          ...productFields
-        }
-      }
-    }
-  }
-`;
-
 export const GET_COLLECTION_BY_HANDLE = `
   ${PRODUCT_FRAGMENT}
   query GetCollection($handle: String!, $first: Int!, $after: String) {

@@ -1,6 +1,24 @@
 import type { APIRoute } from 'astro';
 import { shopifyFetchServer } from '../../../lib/shopify';
-import { GET_PRODUCTS_BY_HANDLES } from '../../../lib/queries';
+import { PRODUCT_FRAGMENT } from '../../../lib/queries';
+
+function buildHandlesQuery(handles: string[]): { query: string; variables: Record<string, unknown> } {
+  const uniqueHandles = Array.from(new Set(handles.filter(Boolean)));
+  const aliases: string[] = [];
+  const variables: Record<string, unknown> = {};
+  for (let i = 0; i < uniqueHandles.length; i++) {
+    const varName = `handle${i}`;
+    aliases.push(`product${i}: product(handle: $${varName}) { ...productFields }`);
+    variables[varName] = uniqueHandles[i];
+  }
+  const query = `
+    ${PRODUCT_FRAGMENT}
+    query GetProductsByHandles(${Object.keys(variables).map((k) => `$${k}: String!`).join(', ')}) {
+      ${aliases.join('\n      ')}
+    }
+  `;
+  return { query, variables };
+}
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   let body: { handles?: string[] };
@@ -21,16 +39,15 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     );
   }
 
-  const query = handles.map((h) => `handle:${h}`).join(' OR ');
-
   try {
+    const { query, variables } = buildHandlesQuery(handles);
     const data = await shopifyFetchServer({
-      query: GET_PRODUCTS_BY_HANDLES,
-      variables: { query, first: handles.length },
+      query,
+      variables,
       buyerIP: clientAddress || '',
     });
 
-    const products = (data?.products?.edges || []).map((e: any) => e.node);
+    const products = Object.values(data || {}).filter(Boolean);
 
     return new Response(
       JSON.stringify({ products }),
