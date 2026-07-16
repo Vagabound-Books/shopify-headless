@@ -137,6 +137,19 @@ export const GET_PRODUCT_BY_ID = `
     }
   }
 `;
+export const GET_PRODUCTS_BY_HANDLES = `
+  ${PRODUCT_FRAGMENT}
+  query GetProductsByHandles($query: String!, $first: Int!) {
+    products(first: $first, query: $query) {
+      edges {
+        node {
+          ...productFields
+        }
+      }
+    }
+  }
+`;
+
 export const GET_COLLECTION_BY_HANDLE = `
   ${PRODUCT_FRAGMENT}
   query GetCollection($handle: String!, $first: Int!, $after: String) {

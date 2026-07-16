@@ -1,9 +1,26 @@
 import { useState, useEffect } from 'preact/hooks';
 import { getShelf, removeFromShelf, syncShelfToCloud, mergeShelfItems, type ShelfItem } from '../lib/shelf';
+import { parseMetafields } from '../lib/metafields';
 
 interface Props {
   cloudItems?: ShelfItem[];
   isAuthenticated?: boolean;
+}
+
+interface ProductLike {
+  handle: string;
+  title: string;
+  vendor?: string;
+  featuredImage?: { url: string; altText?: string } | null;
+  priceRange?: {
+    minVariantPrice?: { amount: string; currencyCode: string } | null;
+  };
+  compareAtPriceRange?: {
+    minVariantPrice?: { amount: string; currencyCode: string } | null;
+  };
+  variants?: {
+    edges?: { node: { id: string; price?: { amount: string; currencyCode: string } | null; compareAtPrice?: { amount: string; currencyCode: string } | null } } }[];
+  metafields?: any[];
 }
 
 function formatMoney(amount?: string, currencyCode?: string): string {
@@ -16,8 +33,31 @@ function formatMoney(amount?: string, currencyCode?: string): string {
   }).format(value);
 }
 
+function buildProductsMap(products: ProductLike[]): Record<string, ProductLike> {
+  const map: Record<string, ProductLike> = {};
+  for (const product of products) {
+    if (product?.handle) {
+      map[product.handle] = product;
+    }
+  }
+  return map;
+}
+
+async function fetchProductsByHandles(handles: string[]): Promise<ProductLike[]> {
+  if (handles.length === 0) return [];
+  const res = await fetch('/api/shelf/products', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ handles }),
+  });
+  if (!res.ok) throw new Error('Failed to fetch products');
+  const data = await res.json();
+  return data.products || [];
+}
+
 export default function ShelfPage({ cloudItems = [], isAuthenticated = false }: Props) {
   const [items, setItems] = useState<ShelfItem[]>([]);
+  const [products, setProducts] = useState<Record<string, ProductLike>>({});
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -41,6 +81,14 @@ export default function ShelfPage({ cloudItems = [], isAuthenticated = false }: 
     window.addEventListener('shelf:changed', handleChange);
     return () => window.removeEventListener('shelf:changed', handleChange);
   }, [cloudItems]);
+
+  useEffect(() => {
+    if (items.length === 0) return;
+    const handles = Array.from(new Set(items.map((i) => i.handle)));
+    fetchProductsByHandles(handles)
+      .then((fetched) => setProducts(buildProductsMap(fetched)))
+      .catch((err) => console.error('[ShelfPage] Failed to fetch products:', err));
+  }, [items]);
 
   function handleRemove(handle: string, variantId: string) {
     removeFromShelf(handle, variantId);
@@ -99,52 +147,87 @@ export default function ShelfPage({ cloudItems = [], isAuthenticated = false }: 
 
         <div class="vb-shelf">
           {items.map((item) => (
-            <div class="vb-card" style="position: relative;" key={`${item.handle}:${item.variantId}`}>
-              <a href={`/products/${item.handle}`} style="text-decoration: none; color: inherit;">
-                <div class="vb-card__cover-wrap">
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.title || ''}
-                      loading="lazy"
-                      width="300"
-                      height="420"
-                      style="aspect-ratio: 5/7.4; object-fit: cover; border-radius: var(--radius-sm);"
-                    />
-                  ) : (
-                    <div class="vb-cover vb-cover--marginalia">
-                      <div class="vb-cover__head"><span class="lbl">{item.genre || 'Fiction'}</span></div>
-                      <div>
-                        <div class="vb-cover__title">{item.title}</div>
-                        <div class="vb-cover__rule"></div>
-                        <div class="vb-cover__author">{Array.isArray(item.authors) ? item.authors.join(', ') : item.authors || ''}</div>
-                      </div>
-                    </div>
-                  )}
-                  {item.price && (
-                    <span class="vb-card__price-badge">
-                      {formatMoney(item.price, item.currencyCode)}
-                    </span>
-                  )}
-                </div>
-                <div class="vb-card__body">
-                  <div class="vb-card__genre">{item.genre || 'Fiction'}</div>
-                  <div class="vb-card__title">{item.title}</div>
-                  <div class="vb-card__author">{Array.isArray(item.authors) ? item.authors.join(', ') : item.authors || ''}</div>
-                </div>
-              </a>
-              <button
-                type="button"
-                onClick={() => handleRemove(item.handle, item.variantId)}
-                aria-label={`Remove ${item.title || 'this book'} from your shelf`}
-                style="position: absolute; top: 8px; right: 8px; z-index: 2; background: var(--paper); border: 1px solid var(--rule-soft); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 12px; cursor: pointer; font-family: var(--font-body); color: var(--ink-soft);"
-              >
-                Remove
-              </button>
-            </div>
+            <ShelfItemCard
+              key={`${item.handle}:${item.variantId}`}
+              item={item}
+              product={products[item.handle]}
+              onRemove={() => handleRemove(item.handle, item.variantId)}
+            />
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+interface ShelfItemCardProps {
+  item: ShelfItem;
+  product?: ProductLike;
+  onRemove: () => void;
+}
+
+function ShelfItemCard({ item, product, onRemove }: ShelfItemCardProps) {
+  const mf = parseMetafields(product?.metafields);
+  const authorsList = Array.isArray(mf.authors) ? mf.authors : (mf.authors ? [mf.authors] : []);
+
+  // Prefer stored shelf data for title/image/authors/genre when product hasn't loaded yet
+  const title = product?.title || item.title || '';
+  const genre = mf.genre || item.genre || 'Fiction';
+  const authors = authorsList.length ? authorsList : (Array.isArray(item.authors) ? item.authors : (item.authors ? [item.authors] : []));
+  const coverPalette = mf.cover_palette || 'marginalia';
+  const featuredImage = product?.featuredImage;
+  const imageUrl = featuredImage?.url || item.image;
+
+  // Find the saved variant for accurate pricing
+  const variant = product?.variants?.edges?.find((e) => e.node.id === item.variantId)?.node;
+  const price = variant?.price || product?.priceRange?.minVariantPrice || (item.price ? { amount: item.price, currencyCode: item.currencyCode || 'GBP' } : null);
+  const compareAtPrice = variant?.compareAtPrice || product?.compareAtPriceRange?.minVariantPrice;
+  const hasSale = price && compareAtPrice && parseFloat(compareAtPrice.amount) > parseFloat(price.amount);
+
+  return (
+    <div class="vb-card" style="position: relative;">
+      <a href={`/products/${item.handle}`} style="text-decoration: none; color: inherit;">
+        <div class="vb-card__cover-wrap">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={featuredImage?.altText || title}
+              loading="lazy"
+              width="300"
+              height="420"
+              style="aspect-ratio: 5/7.4; object-fit: cover; border-radius: var(--radius-sm);"
+            />
+          ) : (
+            <div class={`vb-cover vb-cover--${coverPalette}`}>
+              <div class="vb-cover__head"><span class="lbl">{genre}</span></div>
+              <div>
+                <div class="vb-cover__title">{title}</div>
+                <div class="vb-cover__rule"></div>
+                <div class="vb-cover__author">{authors.join(', ') || product?.vendor || ''}</div>
+              </div>
+            </div>
+          )}
+          {price && (
+            <span class="vb-card__price-badge">
+              {formatMoney(price.amount, price.currencyCode)}
+            </span>
+          )}
+          {hasSale && <span class="vb-card__tag">Sale</span>}
+        </div>
+        <div class="vb-card__body">
+          <div class="vb-card__genre">{genre}</div>
+          <div class="vb-card__title">{title}</div>
+          <div class="vb-card__author">{authors.join(', ') || product?.vendor || ''}</div>
+        </div>
+      </a>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Remove ${title || 'this book'} from your shelf`}
+        style="position: absolute; top: 8px; right: 8px; z-index: 2; background: var(--paper); border: 1px solid var(--rule-soft); border-radius: var(--radius-sm); padding: 6px 10px; font-size: 12px; cursor: pointer; font-family: var(--font-body); color: var(--ink-soft);"
+      >
+        Remove
+      </button>
     </div>
   );
 }
