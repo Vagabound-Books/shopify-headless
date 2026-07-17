@@ -1,0 +1,192 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+
+const lastUpdated = 'July 17, 2026';
+---
+
+<Layout title="Terms of Service" description="The terms that govern your use of the Vagabound Books website and purchases from our shop.">
+  <Header slot="header" />
+
+  <div class="vb-container">
+    <div class="vb-coll-head">
+      <div class="vb-coll-head__top">
+        <div class="vb-coll-head__title">
+          <div class="vb-coll-head__crumb">
+            <a href="/">Shop</a>
+            <span class="sep">/</span>
+            <span class="now">Terms of Service</span>
+          </div>
+          <h1>Terms of Service</h1>
+        </div>
+      </div>
+    </div>
+
+    <div class="vb-page-body vb-legal" style="margin-top: 32px; max-width: 720px; line-height: 1.7;">
+      <p class="vb-legal__updated">Last updated: {lastUpdated}</p>
+
+      <p>
+        Welcome to Vagabound Books. These Terms of Service ("Terms") govern your
+        use of vagabound.com (the "Site") and any purchase you make through it.
+        By browsing the Site or placing an order, you agree to these Terms. If you
+        don't agree, please don't use the Site — though we hope you'll stay.
+      </p>
+
+      <h2>1. The shop</h2>
+      <p>
+        Vagabound Books ("we," "us," "our") is an independent bookstore based in
+        Pittsburgh, Pennsylvania, selling new, used, and collectible books and
+        related goods online. Our store is hosted on Shopify, which provides the
+        e-commerce platform and checkout.
+      </p>
+
+      <h2>2. Products and condition</h2>
+      <p>
+        Many of our books are used, out of print, or one-of-a-kind. We describe
+        each item's condition as accurately as we can, including notable wear,
+        markings, or defects. Reasonable signs of a previous life are part of the
+        character of a used book and are not defects. Product photos show the
+        actual item unless noted otherwise. Because stock is limited and often
+        unique, all items are subject to prior sale.
+      </p>
+
+      <h2>3. Pricing and availability</h2>
+      <p>
+        Prices are listed in U.S. dollars and are subject to change without notice.
+        We do our best to keep listings accurate, but errors happen: if an item is
+        mispriced or listed incorrectly, we reserve the right to cancel the order
+        and refund you in full, even after an order has been confirmed.
+      </p>
+
+      <h2>4. Orders</h2>
+      <p>
+        When you place an order, you make an offer to buy the item; we accept that
+        offer when we ship it. We may decline or cancel any order — for example,
+        in cases of suspected fraud, pricing errors, or an item having already
+        sold in the shop. If we cancel, any amount you've paid will be refunded
+        in full. Payment is processed securely through Shopify's checkout; we
+        never see or store your full card number.
+      </p>
+
+      <h2>5. Shipping and risk of loss</h2>
+      <p>
+        We ship to the address you provide at checkout — please double-check it.
+        Delivery estimates are estimates, not guarantees; carriers occasionally
+        wander. Title and risk of loss pass to you when we hand the package to
+        the carrier. If a package goes missing or arrives damaged, contact us and
+        we will work with you and the carrier to make it right.
+      </p>
+
+      <h2>6. Returns and refunds</h2>
+      <p>
+        If your order arrives damaged, isn't as described, or isn't what you
+        ordered, contact us within 14 days of delivery and we will arrange a
+        return, replacement, or refund. Returned items should come back in the
+        condition they were sent. Gift cards are final sale and are not
+        redeemable for cash except where required by law. Refunds are issued to
+        your original payment method.
+      </p>
+
+      <h2>7. Accounts</h2>
+      <p>
+        You may create a customer account to speed up checkout and keep addresses
+        on file. You're responsible for keeping your login credentials
+        confidential and for activity under your account. We may suspend accounts
+        that are misused.
+      </p>
+
+      <h2>8. Intellectual property</h2>
+      <p>
+        The Site's text, design, photographs, logos, and other content (other than
+        the books themselves) belong to Vagabound Books or our licensors and are
+        protected by copyright and other laws. You may not copy, reproduce, or
+        reuse them without our written permission.
+      </p>
+
+      <h2>9. Acceptable use</h2>
+      <p>You agree not to:</p>
+      <ul>
+        <li>Use the Site for any unlawful purpose or to violate any law;</li>
+        <li>Attempt to interfere with the Site's security or operation;</li>
+        <li>Scrape or harvest data from the Site by automated means without permission;</li>
+        <li>Impersonate another person or provide false information when ordering;</li>
+        <li>Use the Site in any way that could harm Vagabound, other customers, or third parties.</li>
+      </ul>
+
+      <h2>10. Disclaimers</h2>
+      <p>
+        The Site and its content are provided "as is" and "as available." To the
+        fullest extent permitted by law, we disclaim all warranties, express or
+        implied, including implied warranties of merchantability and fitness for
+        a particular purpose. We don't warrant that the Site will be
+        uninterrupted, error-free, or free of harmful components.
+      </p>
+
+      <h2>11. Limitation of liability</h2>
+      <p>
+        To the fullest extent permitted by law, Vagabound Books will not be liable
+        for any indirect, incidental, special, or consequential damages arising
+        from your use of the Site or purchase of products. Our total liability for
+        any claim relating to an order is limited to the amount you paid for the
+        item giving rise to the claim.
+      </p>
+
+      <h2>12. Governing law</h2>
+      <p>
+        These Terms are governed by the laws of the Commonwealth of Pennsylvania,
+        without regard to conflict-of-law principles. Any dispute arising from
+        these Terms or your use of the Site will be brought in the state or
+        federal courts located in Allegheny County, Pennsylvania.
+      </p>
+
+      <h2>13. Changes to these Terms</h2>
+      <p>
+        We may update these Terms from time to time. The current version will
+        always be posted on this page with the date above. Continued use of the
+        Site after changes take effect constitutes acceptance of the revised Terms.
+      </p>
+
+      <h2>14. Contact</h2>
+      <p>
+        Questions about these Terms? Reach us through the contact form on this
+        site, or by post at Vagabound Books, Pittsburgh, Pennsylvania.
+      </p>
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>
+
+<style is:global>
+  .vb-legal h2 {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    margin: 2.2em 0 0.6em;
+    color: var(--ink);
+  }
+  .vb-legal h3 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    margin: 1.6em 0 0.4em;
+    color: var(--ink);
+  }
+  .vb-legal p,
+  .vb-legal li {
+    color: var(--ink-soft);
+  }
+  .vb-legal ul {
+    padding-left: 1.4em;
+    margin: 0.6em 0 1em;
+  }
+  .vb-legal li { margin-bottom: 0.45em; }
+  .vb-legal a { color: var(--buckram); text-decoration: underline; }
+  .vb-legal__updated {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 1.6em;
+  }
+</style>
