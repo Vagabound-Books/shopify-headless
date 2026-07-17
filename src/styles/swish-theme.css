@@ -13,6 +13,13 @@
   fill: currentColor;
 }
 
+@media (max-width: 760px) {
+  .vb-actions .vb-iconbtn[aria-label="Shelf"] svg {
+    width: 26px;
+    height: 26px;
+  }
+}
+
 /* ============================================ */
 /* Save button - Product detail page            */
 /* ============================================ */

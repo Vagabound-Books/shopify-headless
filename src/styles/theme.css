@@ -866,10 +866,18 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
   .vb-search-btn { min-width: 160px; }
 }
 @media (max-width: 760px) {
-  .vb-header__row { padding: 14px var(--page-margin); gap: 12px; }
-  .vb-brand__wm .name { font-size: 22px; }
-  .vb-brand__wm .meta { display: none; }
-  .vb-actions { gap: 10px; }
+  .vb-header__row {
+    padding: 12px var(--page-margin);
+    gap: 10px 12px;
+    grid-template-columns: 1fr auto;
+  }
+  /* Brand mark moves to its own line above the menu row; wordmark removed */
+  .vb-header .vb-brand { grid-column: 1 / -1; justify-content: center; }
+  .vb-header .vb-brand__wm { display: none; }
+  .vb-actions { gap: 8px; }
+  /* Larger shelf / account / bag touch targets */
+  .vb-iconbtn { width: 48px; height: 48px; }
+  .vb-iconbtn svg, .vb-iconbtn img { width: 26px; height: 26px; }
   .vb-search-btn { min-width: 0; padding: 8px 10px; }
   .vb-search-btn .kbd { display: none; }
   .vb-search-input { max-width: 80px; font-size: 12px; }
