@@ -4,10 +4,9 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import ShelfPage from '../../components/ShelfPage.tsx';
 import {
-  customerAccountsFetch,
   getCustomerAccountsTokens,
+  getCustomerWishlist,
 } from '../../lib/customer-accounts';
-import { CUSTOMER_WISHLIST_QUERY } from '../../lib/queries';
 import type { ShelfItem } from '../../lib/shelf';
 
 // Fetch cloud wishlist for authenticated customers
@@ -17,22 +16,7 @@ const isAuthenticated = !!accessToken;
 
 if (accessToken) {
   try {
-    const data = await customerAccountsFetch(
-      CUSTOMER_WISHLIST_QUERY,
-      {},
-      accessToken
-    );
-    const metafield = data?.customer?.metafields?.[0];
-    if (metafield?.value) {
-      try {
-        const parsed = JSON.parse(metafield.value);
-        if (Array.isArray(parsed)) {
-          cloudItems = parsed;
-        }
-      } catch {
-        // ignore invalid JSON
-      }
-    }
+    cloudItems = await getCustomerWishlist(accessToken);
   } catch (err) {
     console.error('[Wishlist] Failed to fetch cloud wishlist:', err);
   }

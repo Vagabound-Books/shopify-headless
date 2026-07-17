@@ -99,8 +99,9 @@ export default function ShelfPage({ cloudItems = [], isAuthenticated = false }: 
 
   function handleRemove(handle: string, variantId: string) {
     removeFromShelf(handle, variantId);
-    const updated = getShelf();
-    const merged = mergeShelfItems(cloudItems, updated);
+    const merged = mergeShelfItems(cloudItems, getShelf()).filter(
+      (item) => !(item.handle === handle && item.variantId === variantId)
+    );
     setItems(merged);
     syncShelfToCloud(merged);
   }

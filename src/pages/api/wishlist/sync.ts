@@ -35,6 +35,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
     const customerId = customerData?.customer?.id;
     if (!customerId) {
+      console.error('[Wishlist Sync] Customer id not found in wishlist query response');
       return new Response(
         JSON.stringify({ error: 'Customer not found' }),
         { status: 404, headers: { 'Content-Type': 'application/json' } }
@@ -58,17 +59,20 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
 
     if (data?.metafieldsSet?.userErrors?.length > 0) {
+      console.error('[Wishlist Sync] metafieldsSet userErrors:', JSON.stringify(data.metafieldsSet.userErrors));
       return new Response(
         JSON.stringify({ error: data.metafieldsSet.userErrors }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log(`[Wishlist Sync] Saved ${items.length} item(s) for customer ${customerId}`);
     return new Response(
       JSON.stringify({ success: true }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
+    console.error('[Wishlist Sync] Failed:', err);
     return new Response(
       JSON.stringify({ error: err.message || String(err) }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

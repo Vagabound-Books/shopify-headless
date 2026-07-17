@@ -6,6 +6,7 @@ import {
   CUSTOMER_ADDRESS_UPDATE,
   CUSTOMER_ADDRESS_DELETE,
   CUSTOMER_DEFAULT_ADDRESS_UPDATE,
+  CUSTOMER_WISHLIST_QUERY,
 } from "./queries";
 
 // Use process.env for server-side secrets so they are read at runtime
@@ -438,6 +439,26 @@ function normalizeCustomer(caCustomer: any) {
       })),
     },
   };
+}
+
+/**
+ * Fetch the authenticated customer's cloud wishlist (the `custom.wishlist`
+ * JSON metafield) via the Customer Account API.
+ */
+export async function getCustomerWishlist(accessToken: string) {
+  const data = await customerAccountsFetch(
+    CUSTOMER_WISHLIST_QUERY,
+    {},
+    accessToken
+  );
+  const metafield = data?.customer?.metafields?.[0];
+  if (!metafield?.value) return [];
+  try {
+    const parsed = JSON.parse(metafield.value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 export async function getCustomerAccountsCustomer(cookies: AstroCookies) {

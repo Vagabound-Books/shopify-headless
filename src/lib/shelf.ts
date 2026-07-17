@@ -84,6 +84,23 @@ export function mergeShelfItems(cloud: ShelfItem[], local: ShelfItem[]): ShelfIt
   return Array.from(map.values());
 }
 
+let cloudShelfRequest: Promise<ShelfItem[]> | null = null;
+
+/**
+ * Fetch the authenticated customer's cloud shelf (their `custom.wishlist`
+ * metafield). Memoized per page load so multiple shelf buttons on a page
+ * share a single request. Returns [] for guests or on error.
+ */
+export function fetchCloudShelf(): Promise<ShelfItem[]> {
+  if (!cloudShelfRequest) {
+    cloudShelfRequest = fetch('/api/wishlist/')
+      .then((res) => (res.ok ? res.json() : { items: [] }))
+      .then((data) => (Array.isArray(data?.items) ? (data.items as ShelfItem[]) : []))
+      .catch(() => [] as ShelfItem[]);
+  }
+  return cloudShelfRequest;
+}
+
 /**
  * Write the current local shelf to the customer's cloud metafield.
  * Silently fails if the user is not authenticated or the API errors.
