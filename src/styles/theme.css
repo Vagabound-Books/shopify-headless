@@ -2225,11 +2225,17 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
   gap: 12px;
   align-items: stretch;
 }
-.vb-pdp__cta-row .js-wk-save svg {
+.js-wk-save svg {
   width: 20px;
   height: 20px;
   display: block;
   fill: currentColor;
+}
+/* Saved state: beige background with buckram-blue icon (icon inherits via currentColor) */
+.js-wk-save.is-active,
+.js-wk-save.is-active:hover {
+  background: var(--vellum);
+  color: var(--buckram);
 }
 
 .vb-pdp__shipping {

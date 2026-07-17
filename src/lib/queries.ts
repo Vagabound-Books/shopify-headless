@@ -513,18 +513,13 @@ export const CUSTOMER_WISHLIST_QUERY = `
 `;
 
 export const CUSTOMER_WISHLIST_UPDATE = `
-  mutation customerUpdate($customer: CustomerUpdateInput!) {
-    customerUpdate(customer: $customer) {
-      customer {
-        id
-        metafields(identifiers: [
-          {namespace: "custom", key: "wishlist"}
-        ]) {
-          namespace
-          key
-          value
-          type
-        }
+  mutation WishlistSet($metafields: [MetafieldsSetInput!]!) {
+    metafieldsSet(metafields: $metafields) {
+      metafields {
+        namespace
+        key
+        value
+        type
       }
       userErrors {
         field

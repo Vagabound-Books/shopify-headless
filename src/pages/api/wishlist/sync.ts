@@ -3,7 +3,7 @@ import {
   getCustomerAccountsTokens,
   customerAccountsFetch,
 } from '../../../lib/customer-accounts';
-import { CUSTOMER_WISHLIST_UPDATE } from '../../../lib/queries';
+import { CUSTOMER_WISHLIST_QUERY, CUSTOMER_WISHLIST_UPDATE } from '../../../lib/queries';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   const { accessToken } = getCustomerAccountsTokens(cookies);
@@ -27,26 +27,39 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const items = body.items || [];
 
   try {
+    // metafieldsSet writes against the customer resource, so resolve the id first
+    const customerData = await customerAccountsFetch(
+      CUSTOMER_WISHLIST_QUERY,
+      {},
+      accessToken
+    );
+    const customerId = customerData?.customer?.id;
+    if (!customerId) {
+      return new Response(
+        JSON.stringify({ error: 'Customer not found' }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const data = await customerAccountsFetch(
       CUSTOMER_WISHLIST_UPDATE,
       {
-        customer: {
-          metafields: [
-            {
-              namespace: 'custom',
-              key: 'wishlist',
-              value: JSON.stringify(items),
-              type: 'json',
-            },
-          ],
-        },
+        metafields: [
+          {
+            ownerId: customerId,
+            namespace: 'custom',
+            key: 'wishlist',
+            value: JSON.stringify(items),
+            type: 'json',
+          },
+        ],
       },
       accessToken
     );
 
-    if (data?.customerUpdate?.userErrors?.length > 0) {
+    if (data?.metafieldsSet?.userErrors?.length > 0) {
       return new Response(
-        JSON.stringify({ error: data.customerUpdate.userErrors }),
+        JSON.stringify({ error: data.metafieldsSet.userErrors }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
