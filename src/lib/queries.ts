@@ -100,14 +100,14 @@ fragment productFields on Product {
     }
   }
   metafields(identifiers: [
-    {namespace: "custom", key: "cover_palette"}
-    {namespace: "custom", key: "genre"}
-    {namespace: "custom", key: "authors"}
-    {namespace: "custom", key: "publisher"}
-    {namespace: "custom", key: "year"}
-    {namespace: "custom", key: "binding"}
-    {namespace: "custom", key: "pages"}
-    {namespace: "custom", key: "provenance"}
+    {namespace: "app-ibp-book", key: "cover_palette"}
+    {namespace: "app-ibp-book", key: "genre"}
+    {namespace: "app-ibp-book", key: "authors"}
+    {namespace: "app-ibp-book", key: "publisher"}
+    {namespace: "app-ibp-book", key: "publication_year"}
+    {namespace: "app-ibp-book", key: "binding"}
+    {namespace: "app-ibp-book", key: "pages"}
+    {namespace: "app-ibp-book", key: "provenance"}
   ]) {
     namespace
     key

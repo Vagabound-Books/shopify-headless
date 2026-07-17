@@ -9,21 +9,28 @@ export interface BookMetafields {
   provenance?: string;
 }
 
+/* Some keys differ between the source (app-ibp-book) namespace and the
+   shape the storefront expects. */
+const KEY_ALIASES: Record<string, keyof BookMetafields> = {
+  publication_year: 'year',
+};
+
 export function parseMetafields(metafields: any[]): BookMetafields {
   const result: BookMetafields = {};
 
   for (const mf of metafields || []) {
     if (!mf) continue;
-    const { key, value, type } = mf;
+    const { value, type } = mf;
+    const key = (KEY_ALIASES[mf.key] ?? mf.key) as keyof BookMetafields;
 
     if (type?.startsWith('list.')) {
       try {
-        result[key as keyof BookMetafields] = JSON.parse(value);
+        result[key] = JSON.parse(value);
       } catch {
-        result[key as keyof BookMetafields] = value;
+        result[key] = value;
       }
     } else {
-      result[key as keyof BookMetafields] = value;
+      result[key] = value;
     }
   }
 
