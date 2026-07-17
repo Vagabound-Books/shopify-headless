@@ -7,6 +7,11 @@ export default defineConfig({
   integrations: [preact()],
   output: 'server',
   trailingSlash: 'always',
+  redirects: {
+    '/pages/shelf': '/shelf',
+    '/pages/privacy': '/privacy',
+    '/pages/terms': '/terms',
+  },
   server: {
     // Bind to all interfaces so the container is reachable from
     // DigitalOcean's internal routing and health-check layers.

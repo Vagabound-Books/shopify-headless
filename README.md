@@ -96,6 +96,9 @@ astro-storefront/
 │   │   ├── search.astro         # Search results
 │   │   ├── cart.astro           # Cart page
 │   │   ├── 404.astro            # Not found
+│   │   ├── shelf.astro          # Shelf/wishlist page
+│   │   ├── privacy.astro        # Privacy policy
+│   │   ├── terms.astro          # Terms of service
 │   │   ├── products/[handle].astro
 │   │   ├── collections/
 │   │   │   ├── index.astro
@@ -104,7 +107,6 @@ astro-storefront/
 │   │   │   ├── index.astro
 │   │   │   └── [handle].astro
 │   │   ├── pages/
-│   │   │   ├── shelf.astro      # Shelf/wishlist page
 │   │   │   └── [handle].astro   # Generic Shopify pages
 │   │   └── api/
 │   │       └── contact.ts       # Contact form endpoint
@@ -124,7 +126,7 @@ astro-storefront/
 - No third-party app required
 - Stores items in `localStorage` with product metadata (title, image, price, genre, authors)
 - Shelf button appears on all product cards and product pages
-- Shelf page (`/pages/shelf`) renders saved items client-side
+- Shelf page (`/shelf`) renders saved items client-side
 - Items persist across sessions on the same device
 
 ### Cart
@@ -175,8 +177,7 @@ Before going live:
 - [ ] Verify `custom` metafields have storefront access in Shopify Admin
 - [ ] Update `.env` with production tokens
 - [ ] Set environment variables on hosting platform
-- [ ] Create Shopify pages: `/pages/shelf`, `/pages/privacy`, `/pages/terms`, `/pages/visit`
-- [ ] Assign `page.shelf` template to the Shelf page in Shopify Admin
+- [ ] Create Shopify page: `/pages/visit`
 - [ ] Wire up contact form handler (`src/pages/api/contact.ts`) to your email service
 - [ ] Test cart checkout flow end-to-end
 - [ ] Test shelf add/remove on product pages
