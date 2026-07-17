@@ -2267,6 +2267,36 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
   color: var(--ink-muted);
 }
 
+/* Mobile PDP: book image alone on top, content conforms to device width */
+@media (max-width: 900px) {
+  .vb-pdp {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    padding-block: 20px var(--space-8);
+  }
+  .vb-pdp__gallery {
+    position: static;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .vb-pdp__stage {
+    order: -1; /* main image first, thumbnails below */
+    padding: 24px;
+  }
+  .vb-pdp__thumbs {
+    flex-direction: row;
+    gap: 10px;
+    overflow-x: auto;
+  }
+  .vb-pdp__thumb {
+    flex: 0 0 64px;
+    width: 64px;
+  }
+  .vb-pdp__bibmeta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .vb-cond {
   border-top: 1px solid var(--rule-soft);
   padding: 56px 0;
