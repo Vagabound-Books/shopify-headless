@@ -474,7 +474,7 @@ code, kbd, samp {
   margin: 0 auto;
   padding: 20px var(--page-margin);
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 32px;
 }
@@ -859,11 +859,11 @@ body.is-mobile-nav-open { overflow: hidden; }
 body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
 
 @media (max-width: 1100px) {
-  .vb-header__row { grid-template-columns: minmax(0, auto) 1fr minmax(0, auto); gap: 18px; }
+  .vb-header__row { grid-template-columns: minmax(0, auto) 1fr auto auto; gap: 18px; }
   .vb-header__row > * { min-width: 0; }
   .vb-nav { display: none; }
   .vb-mobile-toggle { display: inline-flex; }
-  .vb-search-btn { min-width: 160px; }
+  .vb-search-btn { min-width: 160px; justify-self: end; }
 }
 @media (max-width: 760px) {
   .vb-header__row {
@@ -878,9 +878,9 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
   /* Larger shelf / account / bag touch targets */
   .vb-iconbtn { width: 48px; height: 48px; }
   .vb-iconbtn svg, .vb-iconbtn img { width: 26px; height: 26px; }
-  .vb-search-btn { min-width: 0; padding: 8px 10px; }
+  .vb-search-btn { grid-column: 1 / -1; width: 100%; min-width: 0; padding: 8px 10px; }
   .vb-search-btn .kbd { display: none; }
-  .vb-search-input { max-width: 80px; font-size: 12px; }
+  .vb-search-input { max-width: none; font-size: 12px; }
   .vb-footer__grid { grid-template-columns: 1fr 1fr; gap: 36px; }
   .vb-footer__brand { grid-column: 1 / -1; }
 }
