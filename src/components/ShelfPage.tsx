@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { getShelf, removeFromShelf, syncShelfToCloud, mergeShelfItems, type ShelfItem } from '../lib/shelf';
 import { parseMetafields } from '../lib/metafields';
+import AddToCart from './AddToCart.tsx';
 
 interface Props {
   cloudItems?: ShelfItem[];
@@ -19,7 +20,7 @@ interface ProductLike {
     minVariantPrice?: { amount: string; currencyCode: string } | null;
   };
   variants?: {
-    edges?: { node: { id: string; price?: { amount: string; currencyCode: string } | null; compareAtPrice?: { amount: string; currencyCode: string } | null } } }[];
+    edges?: { node: { id: string; availableForSale?: boolean; price?: { amount: string; currencyCode: string } | null; compareAtPrice?: { amount: string; currencyCode: string } | null } } }[];
   metafields?: any[];
 }
 
@@ -247,6 +248,13 @@ function ShelfItemCard({ item, product, onRemove }: ShelfItemCardProps) {
           <div class="vb-card__author">{authors.join(', ') || product?.vendor || ''}</div>
         </div>
       </a>
+      <div style="margin-top: 12px; display: flex; gap: 8px;">
+        <AddToCart
+          variantId={item.variantId}
+          availableForSale={variant?.availableForSale ?? true}
+          iconOnly
+        />
+      </div>
       <button
         type="button"
         onClick={onRemove}
