@@ -137,6 +137,34 @@ export const GET_PRODUCT_BY_ID = `
     }
   }
 `;
+export const GET_SIMILAR_PRODUCTS = `
+  ${PRODUCT_FRAGMENT}
+  query GetSimilarProducts($productId: ID!, $handle: String!) {
+    recommended: productRecommendations(productId: $productId, intent: RELATED) {
+      ...productFields
+      availableForSale
+    }
+    product(handle: $handle) {
+      collections(first: 3) {
+        edges {
+          node {
+            handle
+            title
+            products(first: 9) {
+              edges {
+                node {
+                  ...productFields
+                  availableForSale
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 export const GET_COLLECTION_BY_HANDLE = `
   ${PRODUCT_FRAGMENT}
   query GetCollection($handle: String!, $first: Int!, $after: String) {
@@ -150,6 +178,22 @@ export const GET_COLLECTION_BY_HANDLE = `
           node {
             ...productFields
           }
+        }
+      }
+    }
+  }
+`;
+
+export const GET_COLLECTION_CURSORS = `
+  query GetCollectionCursors($handle: String!, $after: String) {
+    collection(handle: $handle) {
+      id
+      title
+      descriptionHtml
+      products(first: 250, after: $after) {
+        pageInfo { hasNextPage endCursor }
+        edges {
+          cursor
         }
       }
     }

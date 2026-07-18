@@ -1,0 +1,28 @@
+---
+import ProductCard from './ProductCard.astro';
+
+export interface Props {
+  products: any[];
+  isAuthenticated?: boolean;
+}
+
+const { products, isAuthenticated = false } = Astro.props;
+---
+
+{products.length > 0 && (
+  <section class="vb-section vb-section--tight" style="border-top: 1px solid var(--rule-soft);">
+    <div class="vb-container">
+      <div class="vb-sec-head">
+        <div class="vb-sec-head__left">
+          <span class="vb-eyebrow">Similar volumes</span>
+          <h2>More from these shelves</h2>
+        </div>
+      </div>
+      <div class="vb-shelf">
+        {products.map((product: any) => (
+          <ProductCard product={product} isAuthenticated={isAuthenticated} />
+        ))}
+      </div>
+    </div>
+  </section>
+)}

@@ -3,34 +3,29 @@ import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import ProductCard from '../../components/ProductCard.astro';
-import { shopifyFetchServer } from '../../lib/shopify';
-import { GET_COLLECTION_BY_HANDLE } from '../../lib/queries';
+import Pagination from '../../components/Pagination.astro';
+import { getCollectionPage } from '../../lib/pagination';
 import { getCustomerAccountsTokens } from '../../lib/customer-accounts';
 
 const { handle } = Astro.params;
-const after = Astro.url.searchParams.get('after') || null;
 
 if (!handle) {
   return Astro.redirect('/404');
 }
 
-const data = await shopifyFetchServer({
-  query: GET_COLLECTION_BY_HANDLE,
-  variables: { handle, first: 24, after },
+const rawPage = Number.parseInt(Astro.url.searchParams.get('page') ?? '1', 10);
+
+const result = await getCollectionPage({
+  handle,
+  page: rawPage,
   buyerIP: Astro.clientAddress,
-}).catch((err) => {
-  console.error('[Shopify] Failed to fetch collection:', err);
-  return null;
 });
 
-const collection = data?.collection;
-
-if (!collection) {
+if (!result) {
   return Astro.redirect('/404');
 }
 
-const products = (collection.products?.edges || []).map((e: any) => e.node);
-const pageInfo = collection.products?.pageInfo || { hasNextPage: false, endCursor: null };
+const { collection, products, page, totalPages, totalCount, rangeStart, rangeEnd } = result;
 const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
 const isAuthenticated = !!accessToken;
 ---
@@ -64,7 +59,11 @@ const isAuthenticated = !!accessToken;
       <div class="vb-coll__main">
         <div class="vb-coll__bar">
           <div class="left">
-            Showing <strong>{products.length}</strong> books
+            {totalCount > 0 ? (
+              <>Showing <strong>{rangeStart}–{rangeEnd}</strong> of {totalCount} books</>
+            ) : (
+              <>Showing <strong>0</strong> books</>
+            )}
           </div>
         </div>
 
@@ -74,16 +73,7 @@ const isAuthenticated = !!accessToken;
           ))}
         </div>
 
-        {pageInfo.hasNextPage && (
-          <div style="margin-top: 48px; text-align: center;">
-            <a
-              href={`/collections/${handle}?after=${pageInfo.endCursor}`}
-              class="vb-btn vb-btn--primary"
-            >
-              Load more books
-            </a>
-          </div>
-        )}
+        <Pagination page={page} totalPages={totalPages} baseUrl={`/collections/${handle}/`} />
       </div>
     </div>
   </div>

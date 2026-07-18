@@ -200,9 +200,9 @@ Before going live:
 2. **Shelf sync**: Sync shelf to customer metafields when logged in
 3. **Newsletter**: Integrate with Klaviyo, Mailchimp, or Shopify customer API
 4. **Contact form**: Wire `src/pages/api/contact.ts` to Resend/SendGrid
-5. **Related products**: Add collection-based related products to product page
+5. ~~**Related products**~~ ✅ Done — "Similar volumes" section on PDP (native `productRecommendations` + collection top-up)
 6. **Variant selector**: Build interactive variant picker on product page
-7. **Pagination**: Add cursor-based pagination to collection/search pages
+7. **Pagination**: ✅ Collections done (numbered pagination via cursor map). Remaining: search results page
 8. **OG images**: Generate social share images dynamically
 9. **Sitemap**: Add Astro sitemap integration
 10. **Analytics**: Add Plausible or Fathom analytics

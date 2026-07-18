@@ -4,8 +4,10 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import AddToCart from '../../components/AddToCart.tsx';
 import ShelfButton from '../../components/ShelfButton.tsx';
+import Recommendations from '../../components/Recommendations.astro';
 import { shopifyFetchServer } from '../../lib/shopify';
 import { GET_PRODUCT_BY_HANDLE } from '../../lib/queries';
+import { getSimilarProducts } from '../../lib/recommendations';
 import { parseMetafields } from '../../lib/metafields';
 import { formatMoney } from '../../lib/money';
 import { getCustomerAccountsTokens } from '../../lib/customer-accounts';
@@ -37,6 +39,12 @@ const price = product.priceRange?.minVariantPrice;
 const images = product.images?.edges?.map((e: any) => e.node) || [];
 const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
 const isAuthenticated = !!accessToken;
+
+const similarProducts = await getSimilarProducts({
+  productId: product.id,
+  handle,
+  buyerIP: Astro.clientAddress,
+});
 ---
 
 <Layout title={product.title} description={product.description?.slice(0, 160)}>
@@ -161,6 +169,8 @@ const isAuthenticated = !!accessToken;
       </div>
     </section>
   )}
+
+  <Recommendations products={similarProducts} isAuthenticated={isAuthenticated} />
 
   <Footer slot="footer" />
 </Layout>

@@ -1,0 +1,53 @@
+---
+/**
+ * Numbered pagination nav. Uses the .vb-pagination styles in theme.css.
+ * Hidden when there is only one page. Page 1 links to the clean base URL.
+ */
+export interface Props {
+  page: number;
+  totalPages: number;
+  /** Base URL for the listing, e.g. `/collections/${handle}/` */
+  baseUrl: string;
+}
+
+const { page, totalPages, baseUrl } = Astro.props;
+
+const pageUrl = (n: number) => (n === 1 ? baseUrl : `${baseUrl}?page=${n}`);
+
+// Windowed page list: first, last, current ±1, with ellipsis gaps.
+const window: (number | 'ellipsis')[] = [];
+const candidates = new Set([1, totalPages, page - 1, page, page + 1]);
+const sorted = [...candidates].filter((n) => n >= 1 && n <= totalPages).sort((a, b) => a - b);
+let prev = 0;
+for (const n of sorted) {
+  if (prev && n - prev > 1) window.push('ellipsis');
+  window.push(n);
+  prev = n;
+}
+---
+
+{totalPages > 1 && (
+  <nav class="vb-pagination" aria-label="Pagination">
+    {page > 1 ? (
+      <a href={pageUrl(page - 1)} class="vb-pagination__prev" aria-label="Previous page">&larr; Prev</a>
+    ) : (
+      <span class="vb-pagination__prev" aria-hidden="true" style="visibility: hidden;">&larr; Prev</span>
+    )}
+
+    {window.map((item) =>
+      item === 'ellipsis' ? (
+        <span class="is-ellipsis">&hellip;</span>
+      ) : item === page ? (
+        <span class="is-current" aria-current="page">{item}</span>
+      ) : (
+        <a href={pageUrl(item)}>{item}</a>
+      )
+    )}
+
+    {page < totalPages ? (
+      <a href={pageUrl(page + 1)} class="vb-pagination__next" aria-label="Next page">Next &rarr;</a>
+    ) : (
+      <span class="vb-pagination__next" aria-hidden="true" style="visibility: hidden;">Next &rarr;</span>
+    )}
+  </nav>
+)}
