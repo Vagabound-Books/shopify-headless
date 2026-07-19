@@ -136,6 +136,14 @@ astro-storefront/
 - Client-side cart page with remove functionality
 - Checkout redirects to Shopify's native checkout
 
+### Free shipping nudge
+
+- Automatic discount: free shipping at 3+ items, capped at rates up to $5.50
+  (`npm run setup:free-shipping` — idempotent; needs `write_discounts` scope on the
+  Headless channel's Admin token)
+- Cart page shows a progress line; threshold comes from `PUBLIC_FREE_SHIPPING_THRESHOLD`
+  (build-time inlined) and the rate cap from `FREE_SHIPPING_MAX_RATE` (script-only)
+
 ### Collection sorting & pagination
 
 - Numbered pagination (24/page) via a lightweight cursor map — no "load more"
@@ -147,6 +155,9 @@ astro-storefront/
 - Shopify webhooks (`products/*`, `collections/*`) clear the cache on any change:
   set `SHOPIFY_WEBHOOK_SECRET` (the custom app's API secret key), then run
   `npm run register-webhooks` (idempotent; needs `write_webhooks` scope).
+  On this shop the webhooks were created via Settings → Notifications → Webhooks,
+  so `SHOPIFY_WEBHOOK_SECRET` holds the shop-level signing secret from that page.
+  The script is for API-based registration under an app token (e.g. new environments).
 
 ### Search
 

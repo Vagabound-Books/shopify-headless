@@ -48,6 +48,11 @@ export default function CartPage() {
 
   const lines = $cart?.lines?.edges?.map((e: any) => e.node as CartLine) || [];
 
+  const freeShippingThreshold = Number(import.meta.env.PUBLIC_FREE_SHIPPING_THRESHOLD);
+  const totalQuantity = $cart?.totalQuantity ?? lines.reduce((sum, line) => sum + line.quantity, 0);
+  const showFreeShippingNudge = Number.isFinite(freeShippingThreshold) && freeShippingThreshold > 0;
+  const booksAway = freeShippingThreshold - totalQuantity;
+
   if (lines.length === 0) {
     return (
       <div>
@@ -59,6 +64,20 @@ export default function CartPage() {
 
   return (
     <div>
+      {showFreeShippingNudge && (
+        <div style="background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 24px; font-size: var(--type-sm); color: var(--ink-soft);">
+          {booksAway > 0 ? (
+            <span>
+              <strong style={{ color: 'var(--ink)' }}>{booksAway} more book{booksAway === 1 ? '' : 's'}</strong>
+              {' '}and your shipping is on us.
+            </span>
+          ) : (
+            <span>
+              <strong style={{ color: 'var(--mossy)' }}>Free shipping</strong> — on the house.
+            </span>
+          )}
+        </div>
+      )}
       <div class="vb-cart-lines">
         {lines.map((line: CartLine) => (
           <div class="vb-cart-line" style="display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--rule-soft);">

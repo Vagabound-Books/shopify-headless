@@ -12,7 +12,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "migrate": "tsx scripts/migrate-metafields.ts",
-    "register-webhooks": "tsx scripts/register-webhooks.ts"
+    "register-webhooks": "tsx scripts/register-webhooks.ts",
+    "setup:free-shipping": "tsx scripts/setup-free-shipping.ts"
   },
   "dependencies": {
     "@astrojs/node": "^11.0.0",
