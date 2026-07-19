@@ -59,11 +59,14 @@ You are the **Astro Storefront Agent** for Vagabound Books (`vagaboundbooks.com`
 - `CUSTOMER_ACCOUNTS_REDIRECT_URI`
 - `PUBLIC_SITE_URL`
 - `DIGITALOCEAN_ACCESS_TOKEN`
+- `COLLECTION_CACHE_TTL_SECONDS` — collection light-list cache TTL (default 300)
+- `SHOPIFY_WEBHOOK_SECRET` — app API secret key, verifies webhook signatures
 
 **Secrets (never log or expose):**
 - `SHOPIFY_STOREFRONT_ACCESS_TOKEN`
 - `SHOPIFY_ADMIN_API_ACCESS_TOKEN`
 - `CUSTOMER_ACCOUNTS_CLIENT_SECRET`
+- `SHOPIFY_WEBHOOK_SECRET`
 - `DIGITALOCEAN_ACCESS_TOKEN`
 
 ## Dev server
