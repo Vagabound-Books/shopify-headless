@@ -136,6 +136,18 @@ astro-storefront/
 - Client-side cart page with remove functionality
 - Checkout redirects to Shopify's native checkout
 
+### Collection sorting & pagination
+
+- Numbered pagination (24/page) via a lightweight cursor map — no "load more"
+- Sort dropdown: Featured, Title A–Z/Z–A, Author A–Z/Z–A (by surname), Price low→high / high→low
+- Sorting is server-side (authors live in metafields, which the Storefront API can't sort by)
+- Sort choice persists across page links; changing sort resets to page 1
+- The collection's light product list is cached in-memory (default 5 min;
+  `COLLECTION_CACHE_TTL_SECONDS` to change). Set to `1` to nearly disable.
+- Shopify webhooks (`products/*`, `collections/*`) clear the cache on any change:
+  set `SHOPIFY_WEBHOOK_SECRET` (the custom app's API secret key), then run
+  `npm run register-webhooks` (idempotent; needs `write_webhooks` scope).
+
 ### Search
 
 - Server-rendered search results via Storefront API

@@ -1,18 +1,27 @@
 ---
 /**
  * Numbered pagination nav. Uses the .vb-pagination styles in theme.css.
- * Hidden when there is only one page. Page 1 links to the clean base URL.
+ * Hidden when there is only one page. Page 1 links to the clean base URL
+ * (keeping only a non-default sort param).
  */
 export interface Props {
   page: number;
   totalPages: number;
   /** Base URL for the listing, e.g. `/collections/${handle}/` */
   baseUrl: string;
+  /** Active sort key; 'featured' is omitted from URLs. */
+  sort?: string;
 }
 
-const { page, totalPages, baseUrl } = Astro.props;
+const { page, totalPages, baseUrl, sort = 'featured' } = Astro.props;
 
-const pageUrl = (n: number) => (n === 1 ? baseUrl : `${baseUrl}?page=${n}`);
+const pageUrl = (n: number) => {
+  const params = new URLSearchParams();
+  if (n !== 1) params.set('page', String(n));
+  if (sort !== 'featured') params.set('sort', sort);
+  const qs = params.toString();
+  return qs ? `${baseUrl}?${qs}` : baseUrl;
+};
 
 // Windowed page list: first, last, current ±1, with ellipsis gaps.
 const window: (number | 'ellipsis')[] = [];

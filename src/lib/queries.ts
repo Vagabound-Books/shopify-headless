@@ -184,8 +184,8 @@ export const GET_COLLECTION_BY_HANDLE = `
   }
 `;
 
-export const GET_COLLECTION_CURSORS = `
-  query GetCollectionCursors($handle: String!, $after: String) {
+export const GET_COLLECTION_PRODUCTS_LIGHT = `
+  query GetCollectionProductsLight($handle: String!, $after: String) {
     collection(handle: $handle) {
       id
       title
@@ -193,8 +193,35 @@ export const GET_COLLECTION_CURSORS = `
       products(first: 250, after: $after) {
         pageInfo { hasNextPage endCursor }
         edges {
-          cursor
+          node {
+            id
+            title
+            handle
+            availableForSale
+            priceRange {
+              minVariantPrice { amount currencyCode }
+            }
+            metafields(identifiers: [
+              {namespace: "app-ibp-book", key: "authors"}
+            ]) {
+              key
+              value
+              type
+            }
+          }
         }
+      }
+    }
+  }
+`;
+
+export const GET_PRODUCTS_BY_IDS = `
+  ${PRODUCT_FRAGMENT}
+  query GetProductsByIds($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
+        ...productFields
+        availableForSale
       }
     }
   }

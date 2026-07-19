@@ -4,7 +4,7 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import Pagination from '../../components/Pagination.astro';
-import { getCollectionPage } from '../../lib/pagination';
+import { getCollectionPage, parseSort, SORT_OPTIONS } from '../../lib/pagination';
 import { getCustomerAccountsTokens } from '../../lib/customer-accounts';
 
 const { handle } = Astro.params;
@@ -14,10 +14,12 @@ if (!handle) {
 }
 
 const rawPage = Number.parseInt(Astro.url.searchParams.get('page') ?? '1', 10);
+const sort = parseSort(Astro.url.searchParams.get('sort'));
 
 const result = await getCollectionPage({
   handle,
   page: rawPage,
+  sort,
   buyerIP: Astro.clientAddress,
 });
 
@@ -25,7 +27,7 @@ if (!result) {
   return Astro.redirect('/404');
 }
 
-const { collection, products, page, totalPages, totalCount, rangeStart, rangeEnd } = result;
+const { collection, products, page, totalPages, totalCount, rangeStart, rangeEnd, sort: activeSort } = result;
 const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
 const isAuthenticated = !!accessToken;
 ---
@@ -65,6 +67,19 @@ const isAuthenticated = !!accessToken;
               <>Showing <strong>0</strong> books</>
             )}
           </div>
+          <div class="right">
+            <form method="get" action={`/collections/${handle}/`} class="vb-sort">
+              <label for="sort">Sort</label>
+              <select id="sort" name="sort" onchange="this.form.submit()">
+                {SORT_OPTIONS.map((option) => (
+                  <option value={option.value} selected={option.value === activeSort}>{option.label}</option>
+                ))}
+              </select>
+              <noscript>
+                <button type="submit" class="vb-btn vb-btn--sm">Apply</button>
+              </noscript>
+            </form>
+          </div>
         </div>
 
         <div class="vb-shelf">
@@ -73,7 +88,7 @@ const isAuthenticated = !!accessToken;
           ))}
         </div>
 
-        <Pagination page={page} totalPages={totalPages} baseUrl={`/collections/${handle}/`} />
+        <Pagination page={page} totalPages={totalPages} baseUrl={`/collections/${handle}/`} sort={activeSort} />
       </div>
     </div>
   </div>
