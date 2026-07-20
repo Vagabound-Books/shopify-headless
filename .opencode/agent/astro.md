@@ -60,9 +60,11 @@ You are the **Astro Storefront Agent** for Vagabound Books (`vagaboundbooks.com`
 - `PUBLIC_SITE_URL`
 - `DIGITALOCEAN_ACCESS_TOKEN`
 - `COLLECTION_CACHE_TTL_SECONDS` — collection light-list cache TTL (default 300)
+- `SHOPIFY_CLIENT_SECRET`
 - `SHOPIFY_WEBHOOK_SECRET` — shop-level webhook signing secret (webhooks are admin-created)
 - `PUBLIC_FREE_SHIPPING_THRESHOLD` — items needed for free shipping; build-time inlined for the cart nudge
 - `FREE_SHIPPING_MAX_RATE` — script-only cap on eligible shipping rates
+- `SHOPIFY_CLIENT_ID` / `SHOPIFY_CLIENT_SECRET` — Librarian custom app credentials; scripts mint Admin tokens via client credentials grant
 
 **Secrets (never log or expose):**
 - `SHOPIFY_STOREFRONT_ACCESS_TOKEN`

@@ -139,8 +139,10 @@ astro-storefront/
 ### Free shipping nudge
 
 - Automatic discount: free shipping at 3+ items, capped at rates up to $5.50
-  (`npm run setup:free-shipping` — idempotent; needs `write_discounts` scope on the
-  Headless channel's Admin token)
+  (`npm run setup:free-shipping` — idempotent; created on the Librarian custom app)
+- Scripts mint their own Admin token via the client credentials grant
+  (`SHOPIFY_CLIENT_ID` + `SHOPIFY_CLIENT_SECRET` from the Librarian app); the token
+  inherits the app's configured scopes, so scope changes need no new tokens
 - Cart page shows a progress line; threshold comes from `PUBLIC_FREE_SHIPPING_THRESHOLD`
   (build-time inlined) and the rate cap from `FREE_SHIPPING_MAX_RATE` (script-only)
 

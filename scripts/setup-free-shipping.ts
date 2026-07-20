@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { getAdminToken } from './lib/admin-token';
 
 /**
  * Create the "free shipping on N+ items" automatic discount.
@@ -14,8 +15,9 @@ import 'dotenv/config';
  */
 
 const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || '';
-const SHOPIFY_ADMIN_API_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN || '';
 const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION || '2024-07';
+
+let SHOPIFY_ADMIN_API_ACCESS_TOKEN = '';
 
 const THRESHOLD = process.env.PUBLIC_FREE_SHIPPING_THRESHOLD || '3';
 const MAX_RATE = process.env.FREE_SHIPPING_MAX_RATE || ''; // '' = no cap
@@ -93,12 +95,20 @@ const CREATE_FREE_SHIPPING = `
 
 const SCOPE_HINT =
   'Hint: the Admin API token needs read_discounts + write_discounts scopes. ' +
-  'It belongs to the Headless sales channel — enable them in Shopify Admin → ' +
-  'Sales channels → Headless → Admin API access, then re-run.';
+  'Enable them on the app that issued the token: Shopify Admin → Develop apps → ' +
+  '[your app] → Configuration → Admin API integration → Edit → check both scopes → ' +
+  'Save → Reinstall app → paste the NEW token into SHOPIFY_DISCOUNT_ADMIN_TOKEN, then re-run.';
 
 async function main() {
-  if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_ADMIN_API_ACCESS_TOKEN) {
-    console.error('Missing SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_API_ACCESS_TOKEN in .env');
+  if (!SHOPIFY_STORE_DOMAIN) {
+    console.error('Missing SHOPIFY_STORE_DOMAIN in .env');
+    process.exit(1);
+  }
+
+  try {
+    SHOPIFY_ADMIN_API_ACCESS_TOKEN = await getAdminToken(SHOPIFY_STORE_DOMAIN);
+  } catch (err: any) {
+    console.error(err.message);
     process.exit(1);
   }
 
@@ -129,8 +139,6 @@ async function main() {
       quantity: { greaterThanOrEqualToQuantity: THRESHOLD },
     },
     destination: { all: true },
-    appliesOnOneTimePurchase: true,
-    appliesOnSubscription: false,
   };
   if (MAX_RATE) input.maximumShippingPrice = MAX_RATE;
 

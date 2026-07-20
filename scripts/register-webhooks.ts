@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { getAdminToken } from './lib/admin-token';
 
 /**
  * Register Shopify webhooks that keep the collection cache fresh.
@@ -14,8 +15,9 @@ import 'dotenv/config';
  */
 
 const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || '';
-const SHOPIFY_ADMIN_API_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN || '';
 const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION || '2024-07';
+
+let SHOPIFY_ADMIN_API_ACCESS_TOKEN = '';
 const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://vagaboundbooks.com').replace(/\/$/, '');
 
 const endpoint = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`;
@@ -93,8 +95,15 @@ const SCOPE_HINT =
   'then reinstall the app/token and re-run.';
 
 async function main() {
-  if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_ADMIN_API_ACCESS_TOKEN) {
-    console.error('Missing SHOPIFY_STORE_DOMAIN or SHOPIFY_ADMIN_API_ACCESS_TOKEN in .env');
+  if (!SHOPIFY_STORE_DOMAIN) {
+    console.error('Missing SHOPIFY_STORE_DOMAIN in .env');
+    process.exit(1);
+  }
+
+  try {
+    SHOPIFY_ADMIN_API_ACCESS_TOKEN = await getAdminToken(SHOPIFY_STORE_DOMAIN);
+  } catch (err: any) {
+    console.error(err.message);
     process.exit(1);
   }
 
