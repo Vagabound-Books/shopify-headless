@@ -230,7 +230,7 @@ export const GET_PRODUCTS_BY_IDS = `
 export const GET_ALL_PRODUCTS = `
   ${PRODUCT_FRAGMENT}
   query GetAllProducts($first: Int!, $after: String) {
-    products(first: $first, after: $after) {
+    products(first: $first, after: $after, sortKey: CREATED_AT, reverse: true) {
       pageInfo { hasNextPage endCursor }
       edges {
         node {
@@ -272,7 +272,7 @@ export const GET_BLOG_BY_HANDLE = `
     blog(handle: $handle) {
       id
       title
-      articles(first: $first) {
+      articles(first: $first, sortKey: PUBLISHED_AT, reverse: true) {
         edges {
           node {
             id
