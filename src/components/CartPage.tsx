@@ -58,6 +58,11 @@ export default function CartPage() {
       <div>
         <p style="color: var(--ink-soft);">Your basket is empty.</p>
         <a href="/" class="vb-btn vb-btn--primary" style="margin-top: 24px; display: inline-block;">Continue shopping</a>
+        {showFreeShippingNudge && (
+          <p style="margin-top: 20px; font-size: var(--type-sm); color: var(--ink-muted);">
+            Shipping is on us when you order {freeShippingThreshold} or more books.
+          </p>
+        )}
       </div>
     );
   }
