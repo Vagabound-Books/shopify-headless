@@ -31,11 +31,11 @@
         <h6>Wandering Mail</h6>
         <div class="vb-footer__newsletter">
           <p>A short occasional letter. New arrivals, store news, and a closing paragraph that may or may not be on-topic.</p>
-          <form class="newsletter-form js-newsletter-form" action="#">
+          <form class="newsletter-form js-newsletter-form" action="/api/newsletter/" method="POST">
             <input type="email" id="footer-email" name="email" placeholder="your.address@example.com" aria-label="Email address" required class="vb-input">
             <button type="submit" class="vb-btn vb-btn--primary vb-btn--sm">Subscribe</button>
           </form>
-          <span class="small">Unsubscribe in one click.</span>
+          <span class="small js-newsletter-message">Unsubscribe in one click.</span>
         </div>
 
         <div style="margin-top: 28px;">
@@ -54,6 +54,50 @@
       <span><a href="/">Shop</a> · <a href="https://www.instagram.com/vagaboundbooks/">IG</a></span>
     </div>
   </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.js-newsletter-form').forEach(function (form) {
+      const messageEl = form.closest('.vb-footer__newsletter')?.querySelector('.js-newsletter-message') || form.nextElementSibling;
+      const originalText = messageEl ? messageEl.textContent : '';
+      const button = form.querySelector('button[type="submit"]');
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (!button) return;
+        const emailInput = form.querySelector('input[type="email"]');
+        const email = emailInput?.value?.trim();
+        if (!email) return;
+
+        button.disabled = true;
+        const originalButtonText = button.textContent;
+        button.textContent = 'Subscribing…';
+
+        try {
+          const response = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+          });
+          const data = await response.json();
+          if (messageEl) {
+            messageEl.textContent = data.success ? data.message : (data.error || 'Something went wrong.');
+          }
+          if (data.success && emailInput) {
+            emailInput.value = '';
+          }
+        } catch (err) {
+          if (messageEl) messageEl.textContent = 'Something went wrong. Please try again.';
+        } finally {
+          button.disabled = false;
+          button.textContent = originalButtonText;
+          setTimeout(function () {
+            if (messageEl) messageEl.textContent = originalText;
+          }, 5000);
+        }
+      });
+    });
+  });
+</script>
 </footer>
 
 <style is:global>
