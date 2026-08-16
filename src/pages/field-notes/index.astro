@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { shopifyFetchServer } from '../../lib/shopify';
-import { GET_BLOG_BY_HANDLE } from '../../lib/queries';
+import { GET_BLOG_BY_HANDLE, GET_PRODUCTS_BY_IDS } from '../../lib/queries';
 
 const data = await shopifyFetchServer({
   query: GET_BLOG_BY_HANDLE,
@@ -16,6 +16,60 @@ const data = await shopifyFetchServer({
 
 const articles = (data?.blog?.articles?.edges || []).map((e: any) => e.node);
 const articlesCount = articles.length;
+
+// Collect related book IDs from all articles and fetch them in one batch.
+const relatedBookIds = new Set<string>();
+for (const article of articles) {
+  const relatedMeta = article.metafields?.find((m: any) => m?.key === 'related_books');
+  if (relatedMeta?.value) {
+    try {
+      const ids: string[] = JSON.parse(relatedMeta.value);
+      for (const id of ids) {
+        if (id) relatedBookIds.add(id);
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }
+}
+
+let productMap = new Map<string, any>();
+if (relatedBookIds.size > 0) {
+  const productsData = await shopifyFetchServer({
+    query: GET_PRODUCTS_BY_IDS,
+    variables: { ids: Array.from(relatedBookIds) },
+    buyerIP: Astro.clientAddress,
+  }).catch((err) => {
+    console.error('[Shopify] Failed to fetch related books:', err);
+    return null;
+  });
+  const products = productsData?.nodes || [];
+  for (const product of products) {
+    if (product?.id) {
+      productMap.set(product.id, product);
+    }
+  }
+}
+
+function getRandomBookCover(article: any): { url: string; altText: string } | null {
+  const relatedMeta = article.metafields?.find((m: any) => m?.key === 'related_books');
+  if (!relatedMeta?.value) return null;
+  try {
+    const ids: string[] = JSON.parse(relatedMeta.value);
+    const books = ids
+      .map((id: string) => productMap.get(id))
+      .filter((p: any) => p != null && p.featuredImage?.url);
+    if (books.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * books.length);
+    const book = books[randomIndex];
+    return {
+      url: book.featuredImage.url,
+      altText: book.featuredImage.altText || book.title,
+    };
+  } catch {
+    return null;
+  }
+}
 
 function truncateWords(html: string, count: number): string {
   const text = html.replace(/<[^>]+>/g, '').trim();
@@ -53,10 +107,20 @@ function truncateWords(html: string, count: number): string {
           : article.contentHtml
             ? truncateWords(article.contentHtml, 30)
             : '';
+        const bookCover = getRandomBookCover(article);
         return (
           <article class="vb-blog-item" style="display: grid; grid-template-columns: 280px 1fr; gap: 40px; align-items: start; padding-bottom: 40px; border-bottom: 1px solid var(--rule-soft);">
             <a href={`/field-notes/${article.handle}`} style="text-decoration: none;">
-              {article.image ? (
+              {bookCover ? (
+                <img
+                  src={bookCover.url}
+                  alt={bookCover.altText}
+                  loading="lazy"
+                  width="280"
+                  height="280"
+                  style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-md);"
+                />
+              ) : article.image ? (
                 <img
                   src={article.image.url}
                   alt={article.image.altText || article.title}
