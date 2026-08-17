@@ -1,69 +1,18 @@
 import type { APIRoute } from 'astro';
-import { shopifyAdminFetch } from '../../lib/shopify-admin';
 
-const FIND_CUSTOMER_BY_EMAIL = `
-  query FindCustomerByEmail($query: String!) {
-    customers(first: 1, query: $query) {
-      edges {
-        node {
-          id
-          email
-          emailMarketingConsent {
-            marketingState
-            consentUpdatedAt
-          }
-        }
-      }
-    }
-  }
-`;
-
-const CUSTOMER_CREATE = `
-  mutation CustomerCreate($input: CustomerInput!) {
-    customerCreate(input: $input) {
-      customer {
-        id
-        email
-        emailMarketingConsent {
-          marketingState
-        }
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }
-`;
-
-const CUSTOMER_UPDATE = `
-  mutation CustomerUpdate($input: CustomerInput!) {
-    customerUpdate(input: $input) {
-      customer {
-        id
-        email
-        emailMarketingConsent {
-          marketingState
-        }
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }
-`;
-
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+function getMailchimpConfig() {
+  const apiKey = import.meta.env.MAILCHIMP_KEY || '';
+  const audienceId = import.meta.env.MAILCHIMP_ID || '';
+  const datacenter = apiKey.split('-').pop() || '';
+  return { apiKey, audienceId, datacenter };
 }
 
-function makeConsentInput() {
-  return {
-    marketingState: "SUBSCRIBED",
-    marketingOptInLevel: "SINGLE_OPT_IN",
-    consentUpdatedAt: new Date().toISOString(),
-  };
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
+function encodeBasicAuth(apiKey: string): string {
+  return `Basic ${btoa(`anystring:${apiKey}`)}`;
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -78,45 +27,55 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Search for existing customer by email.
-    const existing = await shopifyAdminFetch<any>(FIND_CUSTOMER_BY_EMAIL, {
-      query: `email:${email}`,
-    });
-    const customer = existing?.customers?.edges?.[0]?.node;
-
-    let result;
-    if (customer) {
-      // Update existing customer marketing consent.
-      result = await shopifyAdminFetch<any>(CUSTOMER_UPDATE, {
-        input: {
-          id: customer.id,
-          emailMarketingConsent: makeConsentInput(),
-        },
-      });
-      const errors = result?.customerUpdate?.userErrors || [];
-      if (errors.length > 0) {
-        throw new Error(errors.map((e: any) => e.message).join(', '));
-      }
-    } else {
-      // Create a new customer with subscribed consent.
-      result = await shopifyAdminFetch<any>(CUSTOMER_CREATE, {
-        input: {
-          email,
-          emailMarketingConsent: makeConsentInput(),
-        },
-      });
-      const errors = result?.customerCreate?.userErrors || [];
-      if (errors.length > 0) {
-        throw new Error(errors.map((e: any) => e.message).join(', '));
-      }
+    const { apiKey, audienceId, datacenter } = getMailchimpConfig();
+    if (!apiKey || !audienceId || !datacenter) {
+      console.error('[Newsletter] Missing Mailchimp configuration.');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Newsletter signup is not configured.' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
+    const response = await fetch(
+      `https://${datacenter}.api.mailchimp.com/3.0/lists/${audienceId}/members`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': encodeBasicAuth(apiKey),
+        },
+        body: JSON.stringify({
+          email_address: email,
+          status: 'pending',
+        }),
+      }
+    );
+
+    if (response.ok) {
+      return new Response(
+        JSON.stringify({ success: true, message: 'Check your inbox to confirm your subscription.' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const errorBody = await response.json().catch(() => ({}));
+    const errorDetail = errorBody.detail || '';
+
+    // Member already exists = success.
+    if (response.status === 400 && /already a list member|member exists/i.test(errorDetail)) {
+      return new Response(
+        JSON.stringify({ success: true, message: 'You\'re already subscribed to Wandering Mail.' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.error('[Newsletter] Mailchimp error:', errorBody);
     return new Response(
-      JSON.stringify({ success: true, message: 'You\'re subscribed to Wandering Mail.' }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: false, error: 'Could not subscribe. Please try again.' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
-    console.error('[Newsletter] Subscription failed:', err);
+    console.error('[Newsletter] Unexpected error:', err);
     return new Response(
       JSON.stringify({ success: false, error: 'Something went wrong. Please try again.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
