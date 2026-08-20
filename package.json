@@ -30,6 +30,7 @@
   "license": "MIT",
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@astrojs/mdx": "^7.0.7",
     "@shopify/dev-mcp": "^1.14.2",
     "@types/node": "^22.20.1",
     "tsx": "^4.22.4",

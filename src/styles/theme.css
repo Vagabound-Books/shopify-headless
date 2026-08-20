@@ -3721,3 +3721,64 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
 }
 
 
+
+/* ============================================================
+   Long-form content pages (Terms, Privacy, About, etc.)
+   ============================================================ */
+
+.vb-content,
+.vb-legal {
+  margin-top: 32px;
+  max-width: 720px;
+  line-height: 1.7;
+}
+
+.vb-content h2,
+.vb-legal h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  margin: 2.2em 0 0.6em;
+  color: var(--ink);
+}
+
+.vb-content h3,
+.vb-legal h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 1.6em 0 0.4em;
+  color: var(--ink);
+}
+
+.vb-content p,
+.vb-content li,
+.vb-legal p,
+.vb-legal li {
+  color: var(--ink-soft);
+}
+
+.vb-content ul,
+.vb-legal ul {
+  padding-left: 1.4em;
+  margin: 0.6em 0 1em;
+}
+
+.vb-content li,
+.vb-legal li {
+  margin-bottom: 0.45em;
+}
+
+.vb-content a,
+.vb-legal a {
+  color: var(--buckram);
+  text-decoration: underline;
+}
+
+.vb-content__updated,
+.vb-legal__updated {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  margin-bottom: 1.6em;
+}

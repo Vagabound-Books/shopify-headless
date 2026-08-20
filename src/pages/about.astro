@@ -1,0 +1,35 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { Content, frontmatter } from '../content/about.mdx';
+
+const analytics = {
+  pageType: 'page',
+};
+---
+
+<Layout title={frontmatter.title} description={frontmatter.description} analytics={analytics}>
+  <Header slot="header" />
+
+  <div class="vb-container">
+    <div class="vb-coll-head">
+      <div class="vb-coll-head__top">
+        <div class="vb-coll-head__title">
+          <div class="vb-coll-head__crumb">
+            <a href="/">Shop</a>
+            <span class="sep">/</span>
+            <span class="now">{frontmatter.title}</span>
+          </div>
+          <h1>{frontmatter.title}</h1>
+        </div>
+      </div>
+    </div>
+
+    <div class="vb-page-body vb-content">
+      <Content />
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>

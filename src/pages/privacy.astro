@@ -27,8 +27,8 @@ const analytics = {
       </div>
     </div>
 
-    <div class="vb-page-body vb-legal" style="margin-top: 32px; max-width: 720px; line-height: 1.7;">
-      <p class="vb-legal__updated">Last updated: {lastUpdated}</p>
+    <div class="vb-page-body vb-content">
+      <p class="vb-content__updated">Last updated: {lastUpdated}</p>
 
       <p>
         Vagabound Books ("Vagabound," "we," "us," or "our") is a small independent
@@ -155,36 +155,3 @@ const analytics = {
 
   <Footer slot="footer" />
 </Layout>
-
-<style is:global>
-  .vb-legal h2 {
-    font-family: var(--font-display);
-    font-size: 1.6rem;
-    margin: 2.2em 0 0.6em;
-    color: var(--ink);
-  }
-  .vb-legal h3 {
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    margin: 1.6em 0 0.4em;
-    color: var(--ink);
-  }
-  .vb-legal p,
-  .vb-legal li {
-    color: var(--ink-soft);
-  }
-  .vb-legal ul {
-    padding-left: 1.4em;
-    margin: 0.6em 0 1em;
-  }
-  .vb-legal li { margin-bottom: 0.45em; }
-  .vb-legal a { color: var(--buckram); text-decoration: underline; }
-  .vb-legal__updated {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-muted);
-    margin-bottom: 1.6em;
-  }
-</style>
