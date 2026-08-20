@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+import NotFoundPage from '../../components/NotFoundPage.astro';
 import AddToCart from '../../components/AddToCart.tsx';
 import ShelfButton from '../../components/ShelfButton.tsx';
 import Recommendations from '../../components/Recommendations.astro';
@@ -21,10 +22,10 @@ function stripHtml(html: string, maxLength: number = 160): string {
 const { handle } = Astro.params;
 
 if (!handle) {
-  return Astro.redirect('/404');
+  Astro.response.status = 404;
 }
 
-const data = await shopifyFetchServer({
+const data = !handle ? null : await shopifyFetchServer({
   query: GET_PRODUCT_BY_HANDLE,
   variables: { handle },
   buyerIP: Astro.clientAddress,
@@ -36,24 +37,23 @@ const data = await shopifyFetchServer({
 const product = data?.product;
 
 if (!product) {
-  return Astro.redirect('/404');
+  Astro.response.status = 404;
 }
 
-const mf = parseMetafields(product.metafields);
-const firstVariant = product.variants?.edges?.[0]?.node;
-const price = product.priceRange?.minVariantPrice;
-const images = product.images?.edges?.map((e: any) => e.node) || [];
+const mf = product ? parseMetafields(product.metafields) : {};
+const firstVariant = product?.variants?.edges?.[0]?.node;
+const price = product?.priceRange?.minVariantPrice;
+const images = product?.images?.edges?.map((e: any) => e.node) || [];
 const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
 const isAuthenticated = !!accessToken;
 
-const similarProducts = await getSimilarProducts({
+const similarProducts = product ? await getSimilarProducts({
   productId: product.id,
   handle,
   buyerIP: Astro.clientAddress,
-});
+}).catch(() => []) : [];
 
-
-const analyticsProduct = firstVariant ? [{
+const analyticsProduct = product && firstVariant ? [{
   productGid: product.id,
   variantGid: firstVariant.id,
   name: product.title,
@@ -65,155 +65,159 @@ const analyticsProduct = firstVariant ? [{
   quantity: 1,
 }] : [];
 
-const description = product.description
+const description = product?.description
   ? stripHtml(product.description, 160)
-  : `Buy ${product.title} at Vagabound Books.`;
+  : undefined;
 
 const analytics = {
   pageType: 'product',
-  resourceId: product.id,
+  resourceId: product?.id,
   products: analyticsProduct,
   totalValue: price ? parseFloat(price.amount) : undefined,
 };
 ---
 
-<Layout title={product.title} description={description} analytics={analytics}>
-  <Header slot="header" />
+{!product ? (
+  <NotFoundPage />
+) : (
+  <Layout title={product.title} description={description} analytics={analytics}>
+    <Header slot="header" />
 
-  <div class="vb-container">
-    <div class="vb-pdp__crumb">
-      <a href="/">Shop</a>
-      <span class="sep">/</span>
-      <a href="/collections">All shelves</a>
-      <span class="sep">/</span>
-      <span class="now">{product.title}</span>
-    </div>
+    <div class="vb-container">
+      <div class="vb-pdp__crumb">
+        <a href="/">Shop</a>
+        <span class="sep">/</span>
+        <a href="/collections">All shelves</a>
+        <span class="sep">/</span>
+        <span class="now">{product.title}</span>
+      </div>
 
-    <div class="vb-pdp">
-      <div class="vb-pdp__gallery">
-        <div class="vb-pdp__thumbs">
-          {images.slice(0, 4).map((image: any, index: number) => (
-            <a href={image.url} class={`vb-pdp__thumb${index === 0 ? ' is-active' : ''}`}>
-              <img src={image.url} alt={image.altText || product.title} loading="lazy" width="88" height="130" style="width: 100%; height: 100%; object-fit: cover;" />
-            </a>
-          ))}
-        </div>
-        <div class="vb-pdp__stage">
-          {product.featuredImage ? (
-            <img src={product.featuredImage.url} alt={product.featuredImage.altText || product.title} loading="eager" width="400" height="560" style="height: 100%; width: auto; object-fit: contain;" />
-          ) : (
-            <div class={`vb-cover vb-cover--${mf.cover_palette || 'marginalia'}`} style="height: 100%; width: auto;">
-              <div class="vb-cover__head"><span class="lbl">{mf.genre || 'Fiction'}</span></div>
-              <div>
-                <div class="vb-cover__title">{product.title}</div>
-                <div class="vb-cover__rule"></div>
-                <div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || product.vendor || ''}</div>
+      <div class="vb-pdp">
+        <div class="vb-pdp__gallery">
+          <div class="vb-pdp__thumbs">
+            {images.slice(0, 4).map((image: any, index: number) => (
+              <a href={image.url} class={`vb-pdp__thumb${index === 0 ? ' is-active' : ''}`}>
+                <img src={image.url} alt={image.altText || product.title} loading="lazy" width="88" height="130" style="width: 100%; height: 100%; object-fit: cover;" />
+              </a>
+            ))}
+          </div>
+          <div class="vb-pdp__stage">
+            {product.featuredImage ? (
+              <img src={product.featuredImage.url} alt={product.featuredImage.altText || product.title} loading="eager" width="400" height="560" style="height: 100%; width: auto; object-fit: contain;" />
+            ) : (
+              <div class={`vb-cover vb-cover--${mf.cover_palette || 'marginalia'}`} style="height: 100%; width: auto;">
+                <div class="vb-cover__head"><span class="lbl">{mf.genre || 'Fiction'}</span></div>
+                <div>
+                  <div class="vb-cover__title">{product.title}</div>
+                  <div class="vb-cover__rule"></div>
+                  <div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || product.vendor || ''}</div>
+                </div>
               </div>
+            )}
+          </div>
+        </div>
+
+        <div class="vb-pdp__info">
+          <a href="/collections" class="genre">{mf.genre || 'Fiction'}</a>
+          <h1>{product.title}</h1>
+          <div class="author">by {Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || product.vendor || ''}</div>
+
+          <dl class="vb-pdp__bibmeta">
+            <div>
+              <dt>Publisher</dt>
+              <dd>{mf.publisher || '—'}</dd>
             </div>
-          )}
-        </div>
-      </div>
+            <div>
+              <dt>Year</dt>
+              <dd>{mf.year || '—'}</dd>
+            </div>
+            <div>
+              <dt>Binding</dt>
+              <dd>{mf.binding || '—'}</dd>
+            </div>
+            <div>
+              <dt>Pages</dt>
+              <dd>{mf.pages || '—'}</dd>
+            </div>
+          </dl>
 
-      <div class="vb-pdp__info">
-        <a href="/collections" class="genre">{mf.genre || 'Fiction'}</a>
-        <h1>{product.title}</h1>
-        <div class="author">by {Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || product.vendor || ''}</div>
+          <p class="vb-pdp__blurb">{product.description?.replace(/<[^>]+>/g, '') || ''}</p>
 
-        <dl class="vb-pdp__bibmeta">
-          <div>
-            <dt>Publisher</dt>
-            <dd>{mf.publisher || '—'}</dd>
+          <div class="vb-pdp__price-row">
+            <span class="price">{price ? formatMoney(price.amount, price.currencyCode) : ''}</span>
+            <span class="meta">SKU {firstVariant?.sku || '—'}</span>
           </div>
-          <div>
-            <dt>Year</dt>
-            <dd>{mf.year || '—'}</dd>
-          </div>
-          <div>
-            <dt>Binding</dt>
-            <dd>{mf.binding || '—'}</dd>
-          </div>
-          <div>
-            <dt>Pages</dt>
-            <dd>{mf.pages || '—'}</dd>
-          </div>
-        </dl>
 
-        <p class="vb-pdp__blurb">{product.description?.replace(/<[^>]+>/g, '') || ''}</p>
-
-        <div class="vb-pdp__price-row">
-          <span class="price">{price ? formatMoney(price.amount, price.currencyCode) : ''}</span>
-          <span class="meta">SKU {firstVariant?.sku || '—'}</span>
-        </div>
-
-        <div class="vb-pdp__cta-row">
-          {firstVariant && (
-            <AddToCart
-              variantId={firstVariant.id}
-              availableForSale={firstVariant.availableForSale}
-              product={{
-                id: product.id,
-                title: product.title,
-                vendor: product.vendor,
-                productType: product.productType,
-                variantTitle: firstVariant.title,
-                price: price?.amount,
-                sku: firstVariant.sku,
-              }}
-              client:load
-            />
-          )}
-          {firstVariant && (
-            <ShelfButton
-              handle={product.handle}
-              variantId={firstVariant.id}
-              title={product.title}
-              image={product.featuredImage?.url}
-              price={price?.amount}
-              currencyCode={price?.currencyCode}
-              genre={mf.genre}
-              authors={Array.isArray(mf.authors) ? mf.authors : (mf.authors ? [mf.authors] : [])}
-              isAuthenticated={isAuthenticated}
-              client:load
-            />
-          )}
-        </div>
-
-        <div class="vb-pdp__shipping">
-          <div>
-            <span class="lbl">Ships from</span>
-            <span>Pittsburgh, PA</span>
+          <div class="vb-pdp__cta-row">
+            {firstVariant && (
+              <AddToCart
+                variantId={firstVariant.id}
+                availableForSale={firstVariant.availableForSale}
+                product={{
+                  id: product.id,
+                  title: product.title,
+                  vendor: product.vendor,
+                  productType: product.productType,
+                  variantTitle: firstVariant.title,
+                  price: price?.amount,
+                  sku: firstVariant.sku,
+                }}
+                client:load
+              />
+            )}
+            {firstVariant && (
+              <ShelfButton
+                handle={product.handle}
+                variantId={firstVariant.id}
+                title={product.title}
+                image={product.featuredImage?.url}
+                price={price?.amount}
+                currencyCode={price?.currencyCode}
+                genre={mf.genre}
+                authors={Array.isArray(mf.authors) ? mf.authors : (mf.authors ? [mf.authors] : [])}
+                isAuthenticated={isAuthenticated}
+                client:load
+              />
+            )}
           </div>
-          <div>
-            <span class="lbl">Est. delivery</span>
-            <span>3–5 business days</span>
-          </div>
-          <div>
-            <span class="lbl">Condition</span>
-            <span>All of our books are sold as reading copies regardless of actual condition because books are meant to be read.</span>
+
+          <div class="vb-pdp__shipping">
+            <div>
+              <span class="lbl">Ships from</span>
+              <span>Pittsburgh, PA</span>
+            </div>
+            <div>
+              <span class="lbl">Est. delivery</span>
+              <span>3–5 business days</span>
+            </div>
+            <div>
+              <span class="lbl">Condition</span>
+              <span>All of our books are sold as reading copies regardless of actual condition because books are meant to be read.</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  {mf.provenance && (
-    <section class="vb-prov full-width">
-      <div class="vb-prov__inner">
-        <div class="vb-prov__stamp">
-          <span class="line1">Provenance</span>
-          <span class="center">Verified</span>
-          <span class="line2">Pittsburgh Estate</span>
+    {mf.provenance && (
+      <section class="vb-prov full-width">
+        <div class="vb-prov__inner">
+          <div class="vb-prov__stamp">
+            <span class="line1">Provenance</span>
+            <span class="center">Verified</span>
+            <span class="line2">Pittsburgh Estate</span>
+          </div>
+          <div class="vb-prov__copy">
+            <h4>Where this book came from</h4>
+            <blockquote>"{mf.provenance}"</blockquote>
+            <span class="source">Vagabound Books cataloguer</span>
+          </div>
         </div>
-        <div class="vb-prov__copy">
-          <h4>Where this book came from</h4>
-          <blockquote>"{mf.provenance}"</blockquote>
-          <span class="source">Vagabound Books cataloguer</span>
-        </div>
-      </div>
-    </section>
-  )}
+      </section>
+    )}
 
-  <Recommendations products={similarProducts} isAuthenticated={isAuthenticated} />
+    <Recommendations products={similarProducts} isAuthenticated={isAuthenticated} />
 
-  <Footer slot="footer" />
-</Layout>
+    <Footer slot="footer" />
+  </Layout>
+)}

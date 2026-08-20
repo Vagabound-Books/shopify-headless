@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+import NotFoundPage from '../../components/NotFoundPage.astro';
 import { shopifyFetchServer } from '../../lib/shopify';
 import { GET_ARTICLE_BY_HANDLE, GET_BLOG_BY_HANDLE, GET_PRODUCT_BY_ID } from '../../lib/queries';
 import { parseMetafields } from '../../lib/metafields';
@@ -15,10 +16,10 @@ function stripHtml(html: string, maxLength: number = 160): string {
 const { handle } = Astro.params;
 
 if (!handle) {
-  return Astro.redirect('/404');
+  Astro.response.status = 404;
 }
 
-const [articleData, blogData] = await Promise.all([
+const [articleData, blogData] = !handle ? [null, null] : await Promise.all([
   shopifyFetchServer({
     query: GET_ARTICLE_BY_HANDLE,
     variables: { blogHandle: 'field-notes', articleHandle: handle },
@@ -40,35 +41,39 @@ const [articleData, blogData] = await Promise.all([
 const article = articleData?.blog?.articleByHandle;
 
 if (!article) {
-  return Astro.redirect('/404');
+  Astro.response.status = 404;
 }
 
-const date = new Date(article.publishedAt).toLocaleDateString('en-US', {
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-});
+const date = article
+  ? new Date(article.publishedAt).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  : '';
 
 // Fetch related books
 let relatedBooks: any[] = [];
-const relatedMeta = article.metafields?.find((m: any) => m?.key === 'related_books');
-if (relatedMeta?.value) {
-  try {
-    const relatedIds: string[] = JSON.parse(relatedMeta.value);
-    if (relatedIds.length > 0) {
-      const relatedProducts = await Promise.all(
-        relatedIds.map((id: string) =>
-          shopifyFetchServer({
-            query: GET_PRODUCT_BY_ID,
-            variables: { id },
-            buyerIP: Astro.clientAddress,
-          }).then((data: any) => data?.node).catch(() => null)
-        )
-      );
-      relatedBooks = relatedProducts.filter((p: any) => p != null);
+if (article) {
+  const relatedMeta = article.metafields?.find((m: any) => m?.key === 'related_books');
+  if (relatedMeta?.value) {
+    try {
+      const relatedIds: string[] = JSON.parse(relatedMeta.value);
+      if (relatedIds.length > 0) {
+        const relatedProducts = await Promise.all(
+          relatedIds.map((id: string) =>
+            shopifyFetchServer({
+              query: GET_PRODUCT_BY_ID,
+              variables: { id },
+              buyerIP: Astro.clientAddress,
+            }).then((data: any) => data?.node).catch(() => null)
+          )
+        );
+        relatedBooks = relatedProducts.filter((p: any) => p != null);
+      }
+    } catch {
+      // ignore parse errors
     }
-  } catch {
-    // ignore parse errors
   }
 }
 
@@ -85,116 +90,120 @@ const nextDate = nextArticle
   ? new Date(nextArticle.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   : '';
 
-const description = article.excerptHtml
+const description = article?.excerptHtml
   ? stripHtml(article.excerptHtml, 160)
-  : article.contentHtml
+  : article?.contentHtml
     ? stripHtml(article.contentHtml, 160)
-    : `Field Notes dispatch: ${article.title}`;
+    : undefined;
 
 const analytics = {
   pageType: 'article',
 };
 ---
 
-<Layout title={article.title} description={description} analytics={analytics}>
-  <Header slot="header" />
+{!article ? (
+  <NotFoundPage />
+) : (
+  <Layout title={article.title} description={description} analytics={analytics}>
+    <Header slot="header" />
 
-  <div class="vb-container">
-    <section style="padding: var(--space-9) 0 var(--space-7); max-width: 72ch; margin: 0 auto; border-bottom: 1px solid var(--rule-soft);">
-      <div class="vb-eyebrow" style="margin-bottom: 18px;">Field Notes · {date}</div>
-      <h1 style="font-family: var(--font-display); font-size: clamp(40px, 5vw, 64px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0;">
-        {article.title}
-      </h1>
-      <p style="font-size: 21px; color: var(--ink-soft); line-height: 1.6; margin-top: 24px; font-family: var(--font-display); font-style: italic; max-width: 56ch;">
-        A short note from the shop on this week's arrivals.
-      </p>
-    </section>
-
-    <article style="padding: var(--space-7) 0; max-width: 62ch; margin: 0 auto;">
-      {article.image && (
-        <img
-          src={article.image.url}
-          alt={article.image.altText || article.title}
-          loading="eager"
-          width="1200"
-          height="auto"
-          style="width: 100%; border-radius: var(--radius-md); margin-bottom: 40px;"
-        />
-      )}
-
-      <div class="article-content" set:html={article.contentHtml} />
-
-      {relatedBooks.length > 0 && (
-        <div style="margin-top: 48px;">
-          <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted); margin-bottom: 20px;">
-            Books in this dispatch — {relatedBooks.length} title{relatedBooks.length !== 1 ? 's' : ''}
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px;">
-            {relatedBooks.map((book: any) => {
-              const mf = parseMetafields(book.metafields);
-              return (
-                <a href={`/products/${book.handle}`} style="text-decoration: none; display: flex; flex-direction: column; gap: 10px;">
-                  {book.featuredImage ? (
-                    <img
-                      src={book.featuredImage.url}
-                      alt={book.featuredImage.altText || book.title}
-                      loading="lazy"
-                      width="180"
-                      height="260"
-                      style="width: 100%; aspect-ratio: 5/7.2; object-fit: cover; border-radius: var(--radius-sm); box-shadow: 0 4px 12px -4px rgba(0,0,0,0.2);"
-                    />
-                  ) : (
-                    <div style="width: 100%; aspect-ratio: 5/7.2; background: var(--paper-soft); border: 1px dashed var(--rule-firm); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">
-                      No cover
-                    </div>
-                  )}
-                  <div style="font-family: var(--font-display); font-size: 14px; font-weight: 600; line-height: 1.25; color: var(--ink);">
-                    {book.title}
-                  </div>
-                  <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted);">
-                    {Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <div style="margin-top: 32px; padding: 20px 24px; border: 1px dashed var(--rule-firm); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 14px;">
-        <div>
-          <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">Wandering Mail</div>
-          <p style="margin: 4px 0 0; font-size: 15px; color: var(--ink-soft);">Sign up to get each week's Field Note in your inbox.</p>
-        </div>
-        <form class="js-newsletter-form" action="/api/newsletter/" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
-          <input type="email" name="email" placeholder="your.address@example.com" style="border: 1.5px solid var(--ink); border-radius: var(--radius-sm); padding: 10px 14px; background: transparent; outline: none; font-family: var(--font-body); font-size: 14px;" required>
-          <button type="submit" class="vb-btn vb-btn--primary vb-btn--sm" style="align-self: flex-start; border-radius: var(--radius-sm); padding: 6px 14px; font-size: 13px;">Subscribe</button>
-        </form>
-        <span class="js-newsletter-message" style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); margin-top: 6px;"></span>
-      </div>
-    </article>
-
-    {((prevArticle || nextArticle)) && (
-      <section style="padding: var(--space-7) 0 var(--space-9); border-top: 1px solid var(--rule-soft); display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
-        {prevArticle ? (
-          <a href={`/field-notes/${prevArticle.handle}`} style="text-decoration: none; padding: 28px; background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 8px;">
-            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">← Previous dispatch</div>
-            <h4 style="font-family: var(--font-display); font-size: 22px; font-weight: 600; margin: 0; color: var(--ink);">{prevArticle.title}</h4>
-            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">{prevDate}</div>
-          </a>
-        ) : (
-          <div></div>
-        )}
-        {nextArticle ? (
-          <a href={`/field-notes/${nextArticle.handle}`} style="text-decoration: none; padding: 28px; background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 8px; text-align: right;">
-            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">Next dispatch →</div>
-            <h4 style="font-family: var(--font-display); font-size: 22px; font-weight: 600; margin: 0; color: var(--ink);">{nextArticle.title}</h4>
-            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">{nextDate}</div>
-          </a>
-        ) : null}
+    <div class="vb-container">
+      <section style="padding: var(--space-9) 0 var(--space-7); max-width: 72ch; margin: 0 auto; border-bottom: 1px solid var(--rule-soft);">
+        <div class="vb-eyebrow" style="margin-bottom: 18px;">Field Notes · {date}</div>
+        <h1 style="font-family: var(--font-display); font-size: clamp(40px, 5vw, 64px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.05; margin: 0;">
+          {article.title}
+        </h1>
+        <p style="font-size: 21px; color: var(--ink-soft); line-height: 1.6; margin-top: 24px; font-family: var(--font-display); font-style: italic; max-width: 56ch;">
+          A short note from the shop on this week's arrivals.
+        </p>
       </section>
-    )}
-  </div>
 
-  <Footer slot="footer" />
-</Layout>
+      <article style="padding: var(--space-7) 0; max-width: 62ch; margin: 0 auto;">
+        {article.image && (
+          <img
+            src={article.image.url}
+            alt={article.image.altText || article.title}
+            loading="eager"
+            width="1200"
+            height="675"
+            style="width: 100%; border-radius: var(--radius-md); margin-bottom: 40px;"
+          />
+        )}
+
+        <div class="article-content" set:html={article.contentHtml} />
+
+        {relatedBooks.length > 0 && (
+          <div style="margin-top: 48px;">
+            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted); margin-bottom: 20px;">
+              Books in this dispatch — {relatedBooks.length} title{relatedBooks.length !== 1 ? 's' : ''}
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px;">
+              {relatedBooks.map((book: any) => {
+                const mf = parseMetafields(book.metafields);
+                return (
+                  <a href={`/products/${book.handle}`} style="text-decoration: none; display: flex; flex-direction: column; gap: 10px;">
+                    {book.featuredImage ? (
+                      <img
+                        src={book.featuredImage.url}
+                        alt={book.featuredImage.altText || book.title}
+                        loading="lazy"
+                        width="180"
+                        height="260"
+                        style="width: 100%; aspect-ratio: 5/7.2; object-fit: cover; border-radius: var(--radius-sm); box-shadow: 0 4px 12px -4px rgba(0,0,0,0.2);"
+                      />
+                    ) : (
+                      <div style="width: 100%; aspect-ratio: 5/7.2; background: var(--paper-soft); border: 1px dashed var(--rule-firm); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">
+                        No cover
+                      </div>
+                    )}
+                    <div style="font-family: var(--font-display); font-size: 14px; font-weight: 600; line-height: 1.25; color: var(--ink);">
+                      {book.title}
+                    </div>
+                    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted);">
+                      {Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div style="margin-top: 32px; padding: 20px 24px; border: 1px dashed var(--rule-firm); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">Wandering Mail</div>
+            <p style="margin: 4px 0 0; font-size: 15px; color: var(--ink-soft);">Sign up to get each week's Field Note in your inbox.</p>
+          </div>
+          <form class="js-newsletter-form" action="/api/newsletter/" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+            <input type="email" name="email" placeholder="your.address@example.com" style="border: 1.5px solid var(--ink); border-radius: var(--radius-sm); padding: 10px 14px; background: transparent; outline: none; font-family: var(--font-body); font-size: 14px;" required>
+            <button type="submit" class="vb-btn vb-btn--primary vb-btn--sm" style="align-self: flex-start; border-radius: var(--radius-sm); padding: 6px 14px; font-size: 13px;">Subscribe</button>
+          </form>
+          <span class="js-newsletter-message" style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); margin-top: 6px;"></span>
+        </div>
+      </article>
+
+      {((prevArticle || nextArticle)) && (
+        <section style="padding: var(--space-7) 0 var(--space-9); border-top: 1px solid var(--rule-soft); display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+          {prevArticle ? (
+            <a href={`/field-notes/${prevArticle.handle}`} style="text-decoration: none; padding: 28px; background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 8px;">
+              <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">← Previous dispatch</div>
+              <h4 style="font-family: var(--font-display); font-size: 22px; font-weight: 600; margin: 0; color: var(--ink);">{prevArticle.title}</h4>
+              <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">{prevDate}</div>
+            </a>
+          ) : (
+            <div></div>
+          )}
+          {nextArticle ? (
+            <a href={`/field-notes/${nextArticle.handle}`} style="text-decoration: none; padding: 28px; background: var(--paper-soft); border: 1px solid var(--rule-soft); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 8px; text-align: right;">
+              <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">Next dispatch →</div>
+              <h4 style="font-family: var(--font-display); font-size: 22px; font-weight: 600; margin: 0; color: var(--ink);">{nextArticle.title}</h4>
+              <div style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-muted);">{nextDate}</div>
+            </a>
+          ) : null}
+        </section>
+      )}
+    </div>
+
+    <Footer slot="footer" />
+  </Layout>
+)}

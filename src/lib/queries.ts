@@ -338,6 +338,7 @@ export const GET_COLLECTIONS = `
           id
           title
           handle
+          updatedAt
           descriptionHtml
           image {
             url(transform: { maxWidth: 400 })
