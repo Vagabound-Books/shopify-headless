@@ -16,9 +16,9 @@ const contentSecurityPolicy = isProd
   ? [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com",
-      "style-src 'self' 'unsafe-inline' https://cdn.shopify.com",
+      "style-src 'self' 'unsafe-inline' https://cdn.shopify.com https://use.typekit.net https://fonts.googleapis.com",
       "img-src 'self' data: https: https://cdn.shopify.com",
-      "font-src 'self' data: https://cdn.shopify.com",
+      "font-src 'self' data: https://cdn.shopify.com https://use.typekit.net https://*.typekit.net https://fonts.gstatic.com",
       "connect-src 'self' https://cdn.shopify.com https://monorail-edge.shopifysvc.com https://vagaboundbooks.myshopify.com https://vagaboundbooks.com",
       "frame-src 'self' https://checkout.vagaboundbooks.com https://vagaboundbooks.myshopify.com",
       "object-src 'none'",
@@ -29,9 +29,9 @@ const contentSecurityPolicy = isProd
   : [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com",
-      "style-src 'self' 'unsafe-inline' https://cdn.shopify.com",
+      "style-src 'self' 'unsafe-inline' https://cdn.shopify.com https://use.typekit.net https://fonts.googleapis.com",
       "img-src 'self' data: https: https://cdn.shopify.com",
-      "font-src 'self' data: https://cdn.shopify.com",
+      "font-src 'self' data: https://cdn.shopify.com https://use.typekit.net https://*.typekit.net https://fonts.gstatic.com",
       "connect-src *",
       "frame-src 'self' https://checkout.vagaboundbooks.com https://vagaboundbooks.myshopify.com",
       "object-src 'none'",
