@@ -38,6 +38,10 @@ function getBasePayload(): Pick<
   const config = window.__VB_ANALYTICS__;
   const allowed = analyticsProcessingAllowed();
 
+  if (!config?.shopId) {
+    console.warn('[Vagabound Analytics] shopId is missing; event will not validate.');
+  }
+
   return {
     hasUserConsent: allowed,
     shopId: config?.shopId || '',

@@ -4,9 +4,9 @@ import {
   createTrackingContext,
   getTrackingHeaders,
   collectTrackingResponseHeaders,
-  buildServerTimingHeader,
   trackingStorage,
-} from '../../../lib/analytics/trackingContext';
+} from '../../../lib/analytics/trackingContext.server';
+import { buildServerTimingHeader } from '../../../lib/analytics/trackingContext';
 
 const FORWARD_REQUEST_HEADERS = [
   'accept',

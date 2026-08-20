@@ -2,8 +2,8 @@ import { defineMiddleware } from "astro:middleware";
 import {
   createTrackingContext,
   trackingStorage,
-  buildServerTimingHeader,
-} from "./lib/analytics/trackingContext";
+} from "./lib/analytics/trackingContext.server";
+import { buildServerTimingHeader } from "./lib/analytics/trackingContext";
 
 const allowedOrigins = (import.meta.env.ALLOWED_ORIGINS || "")
   .split(",")
