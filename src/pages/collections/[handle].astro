@@ -7,6 +7,12 @@ import Pagination from '../../components/Pagination.astro';
 import { getCollectionPage, parseSort, SORT_OPTIONS } from '../../lib/pagination';
 import { getCustomerAccountsTokens } from '../../lib/customer-accounts';
 
+function stripHtml(html: string, maxLength: number = 160): string {
+  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength - 1).trimEnd() + '…';
+}
+
 const { handle } = Astro.params;
 
 if (!handle) {
@@ -31,6 +37,10 @@ const { collection, products, page, totalPages, totalCount, rangeStart, rangeEnd
 const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
 const isAuthenticated = !!accessToken;
 
+const description = collection.descriptionHtml
+  ? stripHtml(collection.descriptionHtml, 160)
+  : `Browse ${collection.title} at Vagabound Books.`;
+
 const analytics = {
   pageType: 'collection',
   resourceId: collection.id,
@@ -39,7 +49,7 @@ const analytics = {
 };
 ---
 
-<Layout title={collection.title} analytics={analytics}>
+<Layout title={collection.title} description={description} analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">

@@ -6,6 +6,11 @@ import ShopifyAnalyticsInit from '../components/ShopifyAnalyticsInit.astro';
 export interface Props {
   title?: string;
   description?: string;
+  canonicalUrl?: string;
+  ogImage?: string;
+  ogType?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, any> | Record<string, any>[];
   analytics?: {
     pageType?: string;
     resourceId?: string;
@@ -27,8 +32,30 @@ export interface Props {
   };
 }
 
-const { title, description, analytics } = Astro.props;
+const {
+  title,
+  description,
+  canonicalUrl,
+  ogImage,
+  ogType = 'website',
+  noindex = false,
+  jsonLd,
+  analytics,
+} = Astro.props;
+
 const siteTitle = title ? `Vagabound — ${title}` : 'Vagabound — a home for migratory words';
+const pageTitle = title || 'A home for migratory words';
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || Astro.url.origin;
+
+function resolveUrl(pathOrUrl: string): string {
+  if (pathOrUrl.startsWith('http')) return pathOrUrl;
+  const base = siteUrl.replace(/\/$/, '');
+  const path = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+  return `${base}${path}`;
+}
+
+const canonical = canonicalUrl ? resolveUrl(canonicalUrl) : `${siteUrl.replace(/\/$/, '')}${Astro.url.pathname}`;
+const ogImageUrl = ogImage ? resolveUrl(ogImage) : `${siteUrl.replace(/\/$/, '')}/og-image.png`;
 
 const shopifyClientConfig = JSON.stringify({
   storeDomain: process.env.SHOPIFY_STORE_DOMAIN || '',
@@ -44,6 +71,8 @@ const shopifyClientConfig = JSON.stringify({
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{siteTitle}</title>
     {description && <meta name="description" content={description} />}
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
@@ -52,7 +81,23 @@ const shopifyClientConfig = JSON.stringify({
     <meta name="msapplication-TileColor" content="#11314D">
     <meta name="msapplication-config" content="/browserconfig.xml">
     <meta name="theme-color" content="#11314D">
-    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={pageTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Vagabound" />
+    <meta property="og:image" content={ogImageUrl} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    {description && <meta name="twitter:description" content={description} />}
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <!-- Preconnect to Shopify CDN -->
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
 
     <!-- Adobe Fonts -->
     <link rel="stylesheet" href="https://use.typekit.net/qbg0hqo.css">
@@ -67,6 +112,9 @@ const shopifyClientConfig = JSON.stringify({
       @import '../styles/theme.css';
       @import '../styles/swish-theme.css';
     </style>
+
+    <!-- Structured data -->
+    {jsonLd && <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
 
     <!-- Shopify client config -->
     <script is:inline set:html={`window.__SHOPIFY_CONFIG__ = ${shopifyClientConfig};`} />

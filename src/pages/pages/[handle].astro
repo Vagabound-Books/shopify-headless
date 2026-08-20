@@ -5,6 +5,12 @@ import Footer from '../../components/Footer.astro';
 import { shopifyFetchServer } from '../../lib/shopify';
 import { GET_PAGE_BY_HANDLE } from '../../lib/queries';
 
+function stripHtml(html: string, maxLength: number = 160): string {
+  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength - 1).trimEnd() + '…';
+}
+
 const { handle } = Astro.params;
 
 if (!handle) {
@@ -26,12 +32,14 @@ if (!page) {
   return Astro.redirect('/404');
 }
 
+const description = page.body ? stripHtml(page.body, 160) : undefined;
+
 const analytics = {
   pageType: 'page',
 };
 ---
 
-<Layout title={page.title} analytics={analytics}>
+<Layout title={page.title} description={description} analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">

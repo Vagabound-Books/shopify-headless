@@ -6,6 +6,12 @@ import { shopifyFetchServer } from '../../lib/shopify';
 import { GET_ARTICLE_BY_HANDLE, GET_BLOG_BY_HANDLE, GET_PRODUCT_BY_ID } from '../../lib/queries';
 import { parseMetafields } from '../../lib/metafields';
 
+function stripHtml(html: string, maxLength: number = 160): string {
+  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength - 1).trimEnd() + '…';
+}
+
 const { handle } = Astro.params;
 
 if (!handle) {
@@ -79,12 +85,18 @@ const nextDate = nextArticle
   ? new Date(nextArticle.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   : '';
 
+const description = article.excerptHtml
+  ? stripHtml(article.excerptHtml, 160)
+  : article.contentHtml
+    ? stripHtml(article.contentHtml, 160)
+    : `Field Notes dispatch: ${article.title}`;
+
 const analytics = {
   pageType: 'article',
 };
 ---
 
-<Layout title={article.title} analytics={analytics}>
+<Layout title={article.title} description={description} analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">
