@@ -1,4 +1,12 @@
 import { parseGid } from './gid';
+function parseShopifyId(value: string | undefined | null): number {
+  if (!value) return 0;
+  const parsed = parseGid(value);
+  if (parsed.id) return parseInt(parsed.id, 10) || 0;
+  // Fallback for raw numeric IDs (e.g. from env vars).
+  return parseInt(value, 10) || 0;
+}
+
 import {
   buildUUID,
   getTrackingValues,
@@ -236,7 +244,7 @@ function formatPayload(
     navigation_type: payload.navigationType,
     navigation_api: payload.navigationApi,
 
-    shop_id: parseInt(parseGid(payload.shopId).id || '0', 10),
+    shop_id: parseShopifyId(payload.shopId),
     currency: payload.currency,
 
     ccpa_enforced: payload.ccpaEnforced || false,
@@ -321,7 +329,7 @@ function buildCustomerTrackingEvent(
       {
         event_name: eventName,
         canonical_url: (payload as ShopifyPageViewPayload).canonicalUrl || payload.url,
-        customer_id: parseInt(parseGid(payload.customerId).id || '0', 10),
+        customer_id: parseShopifyId(payload.customerId),
         ...extra,
       },
       base,
@@ -428,7 +436,7 @@ export function buildMonorailEvents(
         cart_token: cartToken.id ? `${cartToken.id}` : null,
         total_value: cartPayload.totalValue,
         products: formatProductPayload(cartPayload.products),
-        customer_id: parseInt(parseGid(cartPayload.customerId).id || '0', 10),
+        customer_id: parseShopifyId(cartPayload.customerId),
       }),
     ];
   }
