@@ -17,9 +17,13 @@ const data = await shopifyFetchServer({
 const collections = (data?.collections?.edges || [])
   .map((e: any) => e.node)
   .filter((c: any) => c.handle !== 'frontpage');
+
+const analytics = {
+  pageType: 'list-collections',
+};
 ---
 
-<Layout title="Collections">
+<Layout title="Collections" analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">
@@ -36,7 +40,7 @@ const collections = (data?.collections?.edges || [])
     </div>
 
     <div class="vb-collections">
-      {collections.map((collection: any, index: number) => {
+      {collections.map((collection: any) => {
         const products = collection.products?.edges?.map((e: any) => e.node) || [];
         const productCount = products.length;
         return (

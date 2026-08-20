@@ -116,9 +116,13 @@ function breakTitle(title: string): string {
   if (breakIndex === -1) return title;
   return title.slice(0, breakIndex) + "<br />" + title.slice(breakIndex + 1);
 }
+
+const analytics = {
+  pageType: 'index',
+};
 ---
 
-<Layout title="A home for migratory words">
+<Layout title="A home for migratory words" analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">
@@ -317,9 +321,9 @@ function breakTitle(title: string): string {
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const form = document.querySelector('.js-contact-form');
+    const form = document.querySelector('.js-contact-form') as HTMLFormElement | null;
     if (!form) return;
-    const button = form.querySelector('button[type="submit"]');
+    const button = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
     const messageEl = document.createElement('div');
     messageEl.style.marginTop = '12px';
     messageEl.style.fontFamily = 'var(--font-mono)';

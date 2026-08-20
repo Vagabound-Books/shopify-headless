@@ -45,9 +45,29 @@ const similarProducts = await getSimilarProducts({
   handle,
   buyerIP: Astro.clientAddress,
 });
+
+
+const analyticsProduct = firstVariant ? [{
+  productGid: product.id,
+  variantGid: firstVariant.id,
+  name: product.title,
+  variantName: firstVariant.title,
+  brand: product.vendor,
+  category: product.productType,
+  price: price?.amount || '0',
+  sku: firstVariant.sku,
+  quantity: 1,
+}] : [];
+
+const analytics = {
+  pageType: 'product',
+  resourceId: product.id,
+  products: analyticsProduct,
+  totalValue: price ? parseFloat(price.amount) : undefined,
+};
 ---
 
-<Layout title={product.title} description={product.description?.slice(0, 160)}>
+<Layout title={product.title} description={product.description?.slice(0, 160)} analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">
@@ -117,7 +137,20 @@ const similarProducts = await getSimilarProducts({
 
         <div class="vb-pdp__cta-row">
           {firstVariant && (
-            <AddToCart variantId={firstVariant.id} availableForSale={firstVariant.availableForSale} client:load />
+            <AddToCart
+              variantId={firstVariant.id}
+              availableForSale={firstVariant.availableForSale}
+              product={{
+                id: product.id,
+                title: product.title,
+                vendor: product.vendor,
+                productType: product.productType,
+                variantTitle: firstVariant.title,
+                price: price?.amount,
+                sku: firstVariant.sku,
+              }}
+              client:load
+            />
           )}
           {firstVariant && (
             <ShelfButton

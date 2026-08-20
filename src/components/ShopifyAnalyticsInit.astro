@@ -1,0 +1,206 @@
+---
+import ConsentBanner from './ConsentBanner.tsx';
+
+export interface Props {
+  pageType?: string;
+  resourceId?: string;
+  collectionHandle?: string;
+  collectionId?: string;
+  searchString?: string;
+  products?: Array<{
+    productGid: string;
+    variantGid?: string;
+    name: string;
+    variantName?: string;
+    brand?: string;
+    category?: string;
+    price: string;
+    sku?: string;
+    quantity?: number;
+  }>;
+  totalValue?: number;
+}
+
+const {
+  pageType,
+  resourceId,
+  collectionHandle,
+  collectionId,
+  searchString,
+  products,
+  totalValue,
+} = Astro.props;
+
+const shopId = process.env.SHOPIFY_SHOP_ID || '';
+const currency = 'USD';
+const acceptedLanguage = 'EN';
+const storefrontAccessToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || '';
+const checkoutDomain = 'checkout.vagaboundbooks.com';
+const storefrontDomain = process.env.PUBLIC_STORE_DOMAIN || 'vagaboundbooks.com';
+
+const analyticsConfig = JSON.stringify({
+  shopId,
+  currency,
+  acceptedLanguage,
+  storefrontAccessToken,
+  checkoutDomain,
+  storefrontDomain,
+  assetVersionId: 'headless/1.0',
+  pageType,
+  resourceId,
+  collectionHandle,
+  collectionId,
+  searchString,
+  products,
+  totalValue,
+});
+---
+
+<script is:inline src="https://cdn.shopify.com/shopifycloud/consent-tracking-api/v0.1/consent-tracking-api.js" async></script>
+
+<script is:inline set:html={`window.__VB_ANALYTICS__ = ${analyticsConfig};`} />
+
+<script>
+  import { sendShopifyAnalytics } from '../lib/analytics/monorail';
+  declare global {
+    interface Window {
+      __sendShopifyAnalytics?: typeof sendShopifyAnalytics;
+    }
+  }
+  window.__sendShopifyAnalytics = sendShopifyAnalytics;
+</script>
+
+<script is:inline>
+  (function () {
+    var pageViewSent = false;
+
+    function whenReady(callback) {
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(callback, 1);
+      } else {
+        document.addEventListener('DOMContentLoaded', callback);
+      }
+    }
+
+    function getApiAndSender() {
+      return {
+        api: window.Shopify && window.Shopify.customerPrivacy,
+        sender: window.__sendShopifyAnalytics,
+      };
+    }
+
+    function trySendPageView() {
+      var config = window.__VB_ANALYTICS__;
+      if (!config) return;
+      var api = getApiAndSender().api;
+      var sender = getApiAndSender().sender;
+      if (!api || !sender) return;
+      if (!api.analyticsProcessingAllowed()) return;
+      if (pageViewSent) return;
+      pageViewSent = true;
+
+      sender({
+        eventName: 'PAGE_VIEW',
+        payload: {
+          hasUserConsent: true,
+          shopId: config.shopId,
+          currency: config.currency,
+          acceptedLanguage: config.acceptedLanguage,
+          assetVersionId: config.assetVersionId,
+          shopifySalesChannel: 'headless',
+          analyticsAllowed: api.analyticsProcessingAllowed(),
+          marketingAllowed: api.marketingAllowed(),
+          saleOfDataAllowed: api.saleOfDataAllowed(),
+          pageType: config.pageType,
+          resourceId: config.resourceId,
+          collectionHandle: config.collectionHandle,
+          collectionId: config.collectionId,
+          searchString: config.searchString,
+          products: config.products,
+          totalValue: config.totalValue,
+        },
+      });
+    }
+
+    whenReady(function () {
+      var attempts = 0;
+      var maxAttempts = 50;
+      var interval = setInterval(function () {
+        attempts++;
+        var api = getApiAndSender().api;
+        var sender = getApiAndSender().sender;
+        if ((api && sender) || attempts >= maxAttempts) {
+          clearInterval(interval);
+          trySendPageView();
+        }
+      }, 100);
+    });
+
+    window.addEventListener('vagabound:consentUpdated', function () {
+      trySendPageView();
+    });
+  })();
+</script>
+
+<ConsentBanner
+  client:load
+  storefrontAccessToken={storefrontAccessToken}
+  checkoutRootDomain={checkoutDomain}
+  storefrontRootDomain={storefrontDomain}
+/>
+
+<style is:global>
+  .vb-consent-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--paper);
+    border-bottom: 1.5px solid var(--rule-firm);
+    padding: 12px 16px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .vb-consent-banner__inner {
+    max-width: var(--container-width, 1440px);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .vb-consent-banner__text {
+    margin: 0;
+  }
+
+  .vb-consent-banner__text a {
+    color: var(--buckram);
+    text-decoration: underline;
+  }
+
+  .vb-consent-banner__actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 640px) {
+    .vb-consent-banner__inner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .vb-consent-banner__actions {
+      width: 100%;
+    }
+
+    .vb-consent-banner__actions .vb-btn {
+      flex: 1;
+    }
+  }
+</style>

@@ -40,6 +40,11 @@ SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
 SHOPIFY_STOREFRONT_ACCESS_TOKEN=your-storefront-access-token
 SHOPIFY_ADMIN_API_ACCESS_TOKEN=your-admin-api-access-token
 SHOPIFY_API_VERSION=2024-07
+
+# Customer Accounts / analytics
+SHOPIFY_SHOP_ID=your-shop-id
+PUBLIC_STORE_DOMAIN=your-public-domain.com
+PUBLIC_SITE_URL=https://your-public-domain.com
 ```
 
 **How to get these tokens:**
@@ -90,7 +95,8 @@ astro-storefront/
 │   │   ├── metafields.ts        # Metafield parsing helpers
 │   │   ├── money.ts             # Currency formatting
 │   │   ├── shelf.ts             # Shelf state (localStorage)
-│   │   └── cart.ts              # Cart state (Storefront API)
+│   │   ├── cart.ts              # Cart state (Storefront API)
+│   │   └── analytics/           # Shopify Customer Events / Monorail analytics
 │   ├── pages/
 │   │   ├── index.astro          # Homepage
 │   │   ├── search.astro         # Search results
@@ -167,6 +173,15 @@ astro-storefront/
 - Searches products only
 - Same grid layout as collection pages
 
+### Shopify analytics & consent
+
+- Full Shopify Customer Events API integration (page views, add-to-cart, cart viewed, checkout started)
+- Events sent via Shopify's Monorail endpoint
+- Custom Vagabound-branded consent banner with Accept/Reject
+- Cookie preferences link in footer
+- Strictly necessary cookies remain active; analytics cookies require consent
+- All Storefront API calls proxied through `/api/[version]/graphql.json` for same-origin cookies and Server-Timing
+
 ## Deployment
 
 This project uses `output: 'server'` and requires a hosting platform that supports server-side rendering:
@@ -207,6 +222,9 @@ Before going live:
 - [ ] Test cart checkout flow end-to-end
 - [ ] Test shelf add/remove on product pages
 - [ ] Verify mobile menu and scroll behaviors
+- [ ] Verify the consent banner appears for new visitors
+- [ ] Confirm Shopify analytics cookies are only set after consent is accepted
+- [ ] Check that `Content-Security-Policy` headers allow Shopify CDN and Monorail
 
 ## Differences from Original Theme
 
@@ -230,7 +248,7 @@ Before going live:
 7. **Pagination**: ✅ Collections done (numbered pagination via cursor map). Remaining: search results page
 8. **OG images**: Generate social share images dynamically
 9. **Sitemap**: Add Astro sitemap integration
-10. **Analytics**: Add Plausible or Fathom analytics
+10. ~~**Analytics**~~ ✅ Done — Shopify native Customer Events API with custom consent banner
 
 ## License
 

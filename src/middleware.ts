@@ -1,11 +1,56 @@
 import { defineMiddleware } from "astro:middleware";
+import {
+  createTrackingContext,
+  trackingStorage,
+  buildServerTimingHeader,
+} from "./lib/analytics/trackingContext";
 
 const allowedOrigins = (import.meta.env.ALLOWED_ORIGINS || "")
   .split(",")
-  .map((o) => o.trim())
+  .map((o: string) => o.trim())
   .filter(Boolean);
 
 const isProd = import.meta.env.PROD;
+
+const contentSecurityPolicy = isProd
+  ? [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com",
+      "style-src 'self' 'unsafe-inline' https://cdn.shopify.com",
+      "img-src 'self' data: https: https://cdn.shopify.com",
+      "font-src 'self' data: https://cdn.shopify.com",
+      "connect-src 'self' https://cdn.shopify.com https://monorail-edge.shopifysvc.com https://vagaboundbooks.myshopify.com https://vagaboundbooks.com",
+      "frame-src 'self' https://checkout.vagaboundbooks.com https://vagaboundbooks.myshopify.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self' https://checkout.vagaboundbooks.com",
+      "upgrade-insecure-requests",
+    ].join("; ")
+  : [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com",
+      "style-src 'self' 'unsafe-inline' https://cdn.shopify.com",
+      "img-src 'self' data: https: https://cdn.shopify.com",
+      "font-src 'self' data: https://cdn.shopify.com",
+      "connect-src *",
+      "frame-src 'self' https://checkout.vagaboundbooks.com https://vagaboundbooks.myshopify.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self' https://checkout.vagaboundbooks.com",
+    ].join("; ");
+
+
+function cookieName(setCookieValue: string): string {
+  const match = setCookieValue.match(/^([^=]+)=/);
+  return match ? match[1].trim() : setCookieValue;
+}
+
+function mergeCookies(existing: string[], incoming: string[]): string[] {
+  const map = new Map<string, string>();
+  for (const c of existing) map.set(cookieName(c), c);
+  for (const c of incoming) map.set(cookieName(c), c);
+  return Array.from(map.values());
+}
 
 function isAllowed(origin: string | null): boolean {
   if (!origin) return false;
@@ -14,7 +59,7 @@ function isAllowed(origin: string | null): boolean {
   // In prod, require explicit configuration
   if (allowedOrigins.length === 0) return false;
   return allowedOrigins.some(
-    (allowed) =>
+    (allowed: string) =>
       origin === allowed ||
       (allowed.startsWith("http://") && origin === allowed) ||
       (allowed.startsWith("https://") && origin === allowed)
@@ -41,13 +86,29 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return new Response(null, { status: 204 });
   }
 
-  const response = await next();
+  const trackingContext = createTrackingContext(request);
+
+  const response = await trackingStorage.run(trackingContext, async () => next());
+
+  // Forward Shopify tracking cookies and server-timing headers collected during rendering
+  const existingCookies = response.headers.getSetCookie ? response.headers.getSetCookie() : [];
+  const mergedCookies = mergeCookies(existingCookies, trackingContext.setCookies);
+  response.headers.delete("Set-Cookie");
+  for (const cookie of mergedCookies) {
+    response.headers.append("Set-Cookie", cookie);
+  }
+
+  const serverTiming = buildServerTimingHeader(trackingContext);
+  if (serverTiming) {
+    response.headers.append("Server-Timing", serverTiming);
+  }
 
   // Security headers
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  response.headers.set("Content-Security-Policy", contentSecurityPolicy);
 
   if (isAllowed(origin)) {
     response.headers.set("Access-Control-Allow-Origin", origin || "*");

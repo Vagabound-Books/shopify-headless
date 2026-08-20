@@ -77,9 +77,13 @@ function truncateWords(html: string, count: number): string {
   if (words.length <= count) return text;
   return words.slice(0, count).join(' ') + '…';
 }
+
+const analytics = {
+  pageType: 'blog',
+};
 ---
 
-<Layout title="Field Notes">
+<Layout title="Field Notes" analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">

@@ -127,26 +127,52 @@ async function ensureMetafieldDefinitions() {
   }
 }
 
+interface ProductsResponse {
+  products?: {
+    pageInfo?: {
+      hasNextPage?: boolean;
+      endCursor?: string | null;
+    };
+    edges?: Array<{
+      node: {
+        id: string;
+        handle: string;
+        metafields?: {
+          edges?: Array<{
+            node: {
+              id: string;
+              namespace: string;
+              key: string;
+              value: string;
+              type: string;
+            };
+          }>;
+        };
+      };
+    }>;
+  };
+}
+
 async function migrateMetafields() {
   console.log('Starting metafield migration...\n');
 
   await ensureMetafieldDefinitions();
   console.log('');
 
-  let hasNextPage = true;
+  let hasNextPage: boolean = true;
   let after: string | null = null;
   let totalMigrated = 0;
   let totalProducts = 0;
 
   while (hasNextPage) {
-    const data = await adminFetch({
+    const data: ProductsResponse = await adminFetch<ProductsResponse>({
       query: GET_PRODUCTS_WITH_METAFIELDS,
       variables: { first: 50, after },
     });
 
     const products = data?.products?.edges || [];
-    hasNextPage = data?.products?.pageInfo?.hasNextPage;
-    after = data?.products?.pageInfo?.endCursor;
+    hasNextPage = data?.products?.pageInfo?.hasNextPage ?? false;
+    after = data?.products?.pageInfo?.endCursor ?? null;
 
     for (const edge of products) {
       const product = edge.node;

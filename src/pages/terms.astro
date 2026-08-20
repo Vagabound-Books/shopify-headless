@@ -4,9 +4,13 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
 const lastUpdated = 'July 17, 2026';
+
+const analytics = {
+  pageType: 'page',
+};
 ---
 
-<Layout title="Terms of Service" description="The terms that govern your use of the Vagabound Books website and purchases from our shop.">
+<Layout title="Terms of Service" description="The terms that govern your use of the Vagabound Books website and purchases from our shop." analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">

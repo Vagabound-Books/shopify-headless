@@ -15,7 +15,6 @@ const CLIENT_ID = process.env.CUSTOMER_ACCOUNTS_CLIENT_ID || "";
 const CLIENT_SECRET = process.env.CUSTOMER_ACCOUNTS_CLIENT_SECRET || "";
 const SHOP_ID = process.env.SHOPIFY_SHOP_ID || "";
 const SHOP_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || "";
-const API_VERSION = process.env.SHOPIFY_API_VERSION || "2026-07";
 const SITE_URL = process.env.PUBLIC_SITE_URL || "";
 const REDIRECT_URI =
   process.env.CUSTOMER_ACCOUNTS_REDIRECT_URI ||
@@ -40,7 +39,7 @@ let discoveryCache: {
     graphql_api: string;
     mcp_api?: string;
   } | null;
-} | null = null;
+} = { auth: null, api: null };
 
 async function discoverAuthEndpoints() {
   if (discoveryCache?.auth) return discoveryCache.auth;

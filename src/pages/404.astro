@@ -2,9 +2,13 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+
+const analytics = {
+  pageType: '404',
+};
 ---
 
-<Layout title="Page not found">
+<Layout title="Page not found" analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container" style="text-align: center; padding: 120px 24px;">

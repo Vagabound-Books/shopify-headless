@@ -9,12 +9,28 @@ import {
 } from '../lib/cart';
 import { formatMoney } from '../lib/money';
 import { normalizeCheckoutUrl } from '../lib/shopify';
+import { trackCartViewed, trackCheckoutStarted } from '../lib/analytics/events';
+import type { ShopifyAnalyticsProduct } from '../lib/analytics/monorail';
+
+function linesToProducts(lines: any[]): ShopifyAnalyticsProduct[] {
+  return lines.map((line) => ({
+    productGid: line.merchandise.product.id || '',
+    variantGid: line.merchandise.id,
+    name: line.merchandise.product.title,
+    variantName: line.merchandise.title,
+    brand: line.merchandise.product.vendor,
+    category: line.merchandise.product.productType,
+    price: line.cost.subtotalAmount.amount,
+    quantity: line.quantity,
+  }));
+}
 
 export default function CartDrawer() {
   const $open = useStore(isCartDrawerOpen);
   const $cart = useStore(cart);
   const $updating = useStore(isCartUpdating);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const trackedOpenRef = useRef(false);
 
   useEffect(() => {
     initCart();
@@ -27,12 +43,19 @@ export default function CartDrawer() {
     if ($open) {
       document.addEventListener('keydown', onKey);
       document.body.style.overflow = 'hidden';
+
+      if ($cart?.id && ($cart.lines?.edges?.length || 0) > 0 && !trackedOpenRef.current) {
+        trackedOpenRef.current = true;
+        trackCartViewed().catch((err) => console.error('Analytics cart_viewed failed:', err));
+      }
+    } else {
+      trackedOpenRef.current = false;
     }
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-  }, [$open]);
+  }, [$open, $cart?.id]);
 
   function close() {
     isCartDrawerOpen.set(false);
@@ -49,6 +72,18 @@ export default function CartDrawer() {
       await removeCartItems([lineId]);
     } catch (err) {
       console.error('Failed to remove item:', err);
+    }
+  }
+
+  function handleCheckout() {
+    if ($cart?.id) {
+      const lines = $cart.lines?.edges?.map((e: any) => e.node) || [];
+      const totalValue = $cart.cost?.subtotalAmount?.amount
+        ? parseFloat($cart.cost.subtotalAmount.amount)
+        : undefined;
+      trackCheckoutStarted($cart.id, linesToProducts(lines), totalValue).catch((err) =>
+        console.error('Analytics checkout_started failed:', err),
+      );
     }
   }
 
@@ -163,6 +198,7 @@ export default function CartDrawer() {
               href={normalizeCheckoutUrl($cart?.checkoutUrl || "")}
               class="vb-btn vb-btn--stamp vb-btn--block"
               style={{ marginTop: '16px', textAlign: 'left', display: 'block', textDecoration: 'none' }}
+              onClick={handleCheckout}
             >
               Checkout
             </a>

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'preact/hooks';
 import { useStore } from '@nanostores/preact';
 import { cart, removeCartItems, isCartUpdating, initCart } from '../lib/cart';
 import { formatMoney } from '../lib/money';
+import { trackCartViewed, trackCheckoutStarted } from '../lib/analytics/events';
+import type { ShopifyAnalyticsProduct } from '../lib/analytics/monorail';
 
 interface CartLine {
   id: string;
@@ -12,6 +14,9 @@ interface CartLine {
     product: {
       title: string;
       handle: string;
+      vendor?: string;
+      productType?: string;
+      id?: string;
     };
     image?: {
       url: string;
@@ -25,6 +30,19 @@ interface CartLine {
   };
 }
 
+function linesToProducts(lines: CartLine[]): ShopifyAnalyticsProduct[] {
+  return lines.map((line) => ({
+    productGid: line.merchandise.product.id || '',
+    variantGid: line.merchandise.id,
+    name: line.merchandise.product.title,
+    variantName: line.merchandise.title,
+    brand: line.merchandise.product.vendor,
+    category: line.merchandise.product.productType,
+    price: line.cost.subtotalAmount.amount,
+    quantity: line.quantity,
+  }));
+}
+
 export default function CartPage() {
   const $cart = useStore(cart);
   const $updating = useStore(isCartUpdating);
@@ -34,11 +52,29 @@ export default function CartPage() {
     initCart().finally(() => setInitialized(true));
   }, []);
 
+  useEffect(() => {
+    if (initialized && $cart?.id && ($cart.lines?.edges?.length || 0) > 0) {
+      trackCartViewed().catch((err) => console.error('Analytics cart_viewed failed:', err));
+    }
+  }, [initialized, $cart?.id]);
+
   async function handleRemove(lineId: string) {
     try {
       await removeCartItems([lineId]);
     } catch (err) {
       console.error('Failed to remove item:', err);
+    }
+  }
+
+  function handleCheckout() {
+    if ($cart?.id) {
+      const lines = $cart.lines?.edges?.map((e: any) => e.node as CartLine) || [];
+      const totalValue = $cart.cost?.subtotalAmount?.amount
+        ? parseFloat($cart.cost.subtotalAmount.amount)
+        : undefined;
+      trackCheckoutStarted($cart.id, linesToProducts(lines), totalValue).catch((err) =>
+        console.error('Analytics checkout_started failed:', err),
+      );
     }
   }
 
@@ -135,7 +171,12 @@ export default function CartPage() {
       </div>
 
       <div style="margin-top: 32px;">
-        <a href="/checkout" class="vb-btn vb-btn--stamp vb-btn--block" style="text-align: center; display: block; text-decoration: none;">
+        <a
+          href="/checkout"
+          class="vb-btn vb-btn--stamp vb-btn--block"
+          style="text-align: center; display: block; text-decoration: none;"
+          onClick={handleCheckout}
+        >
           Checkout
         </a>
         <a href="/" class="vb-btn vb-btn--ghost" style="margin-top: 12px; display: block; text-align: center;">

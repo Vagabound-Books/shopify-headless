@@ -24,6 +24,7 @@
         <ul>
           <li><a href="/privacy">Privacy</a></li>
           <li><a href="/terms">Terms</a></li>
+          <li><a href="#" class="js-cookie-preferences">Cookie preferences</a></li>
         </ul>
       </div>
 
@@ -57,15 +58,23 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.js-newsletter-form').forEach(function (form) {
+    document.querySelectorAll('.js-newsletter-form').forEach(function (formEl) {
+      const form = formEl as HTMLFormElement;
       const messageEl = form.closest('.vb-footer__newsletter')?.querySelector('.js-newsletter-message') || form.nextElementSibling;
       const originalText = messageEl ? messageEl.textContent : '';
-      const button = form.querySelector('button[type="submit"]');
+      const button = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+
+      document.querySelectorAll('.js-cookie-preferences').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent('vagabound:show-consent'));
+        });
+      });
 
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
         if (!button) return;
-        const emailInput = form.querySelector('input[type="email"]');
+        const emailInput = form.querySelector('input[type="email"]') as HTMLInputElement | null;
         const email = emailInput?.value?.trim();
         if (!email) return;
 

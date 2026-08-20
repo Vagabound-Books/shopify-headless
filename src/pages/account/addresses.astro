@@ -18,9 +18,13 @@ const navItems = [
   { label: 'Orders', href: '/account/orders/', active: false },
   { label: 'Addresses', href: '/account/addresses/', active: true },
 ];
+
+const analytics = {
+  pageType: 'customers/addresses',
+};
 ---
 
-<Layout title="Addresses">
+<Layout title="Addresses" analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container" style="padding-block: var(--space-9);">
@@ -144,8 +148,8 @@ const navItems = [
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.js-address-card').forEach(function(card) {
-      const view = card.querySelector('.js-address-view');
-      const edit = card.querySelector('.js-address-edit');
+      const view = card.querySelector('.js-address-view') as HTMLElement | null;
+      const edit = card.querySelector('.js-address-edit') as HTMLElement | null;
       const editBtn = card.querySelector('.js-edit-btn');
       const cancelBtn = card.querySelector('.js-cancel-btn');
 

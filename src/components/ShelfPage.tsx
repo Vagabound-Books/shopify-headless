@@ -9,9 +9,11 @@ interface Props {
 }
 
 interface ProductLike {
+  id: string;
   handle: string;
   title: string;
   vendor?: string;
+  productType?: string;
   featuredImage?: { url: string; altText?: string } | null;
   priceRange?: {
     minVariantPrice?: { amount: string; currencyCode: string } | null;
@@ -20,7 +22,8 @@ interface ProductLike {
     minVariantPrice?: { amount: string; currencyCode: string } | null;
   };
   variants?: {
-    edges?: { node: { id: string; availableForSale?: boolean; price?: { amount: string; currencyCode: string } | null; compareAtPrice?: { amount: string; currencyCode: string } | null } } }[];
+    edges?: { node: { id: string; title?: string; availableForSale?: boolean; price?: { amount: string; currencyCode: string } | null; compareAtPrice?: { amount: string; currencyCode: string } | null; sku?: string } }[];
+  };
   metafields?: any[];
 }
 
@@ -253,6 +256,15 @@ function ShelfItemCard({ item, product, onRemove }: ShelfItemCardProps) {
           variantId={item.variantId}
           availableForSale={variant?.availableForSale ?? true}
           iconOnly
+          product={product ? {
+            id: product.id,
+            title: product.title,
+            vendor: product.vendor,
+            productType: product.productType,
+            variantTitle: variant?.title,
+            price: price?.amount,
+            sku: variant?.sku,
+          } : undefined}
         />
       </div>
       <button

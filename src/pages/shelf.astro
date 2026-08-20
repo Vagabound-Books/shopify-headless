@@ -21,9 +21,13 @@ if (accessToken) {
     console.error('[Wishlist] Failed to fetch cloud wishlist:', err);
   }
 }
+
+const analytics = {
+  pageType: 'page',
+};
 ---
 
-<Layout title="Shelf">
+<Layout title="Shelf" analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">

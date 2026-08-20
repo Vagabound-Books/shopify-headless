@@ -32,9 +32,13 @@ const navItems = [
   { label: 'Orders', href: '/account/orders/', active: false },
   { label: 'Addresses', href: '/account/addresses/', active: false },
 ];
+
+const analytics = {
+  pageType: 'customers/account',
+};
 ---
 
-<Layout title="Account">
+<Layout title="Account" analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container" style="padding-block: var(--space-9);">

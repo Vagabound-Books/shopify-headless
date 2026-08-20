@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
-import { useStore } from '@nanostores/preact';
 import { cart, initCart, getOrCreateCart } from '../lib/cart';
 
 export default function CheckoutPage() {
-  const $cart = useStore(cart);
   const [status, setStatus] = useState<'loading' | 'redirecting' | 'empty' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
 

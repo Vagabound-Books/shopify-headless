@@ -24,7 +24,7 @@ if (!error && (!code || !state)) {
 }
 
 if (!error) {
-  const allCookies = Astro.cookies.headers();
+  const allCookies = Array.from(Astro.cookies.headers());
   console.log('[OAuth Callback] cookies present:', allCookies.length > 0);
   console.log('[OAuth Callback] state param:', state?.slice(0, 10));
   console.log('[OAuth Callback] state cookie:', Astro.cookies.get('ca_state')?.value?.slice(0, 10));
@@ -36,9 +36,13 @@ if (!error) {
     error = 'Unable to complete sign in. Please try again.';
   }
 }
+
+const analytics = {
+  pageType: 'page',
+};
 ---
 
-<Layout title="Sign In">
+<Layout title="Sign In" analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container" style="padding-block: var(--space-9);">

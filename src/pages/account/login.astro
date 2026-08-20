@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { getCustomer } from '../../lib/auth';
-import { isCustomerAccountsEnabled, buildAuthorizeUrl } from '../../lib/customer-accounts';
+import { isCustomerAccountsEnabled } from '../../lib/customer-accounts';
 
 const customer = await getCustomer(Astro.cookies);
 if (customer) {
@@ -11,12 +11,15 @@ if (customer) {
 }
 
 if (isCustomerAccountsEnabled()) {
-  const authorizeUrl = await buildAuthorizeUrl(Astro.cookies);
-  return Astro.redirect(authorizeUrl);
+  return Astro.redirect(await buildAuthorizeUrl(Astro.cookies));
 }
+
+const analytics = {
+  pageType: 'customers/login',
+};
 ---
 
-<Layout title="Sign In">
+<Layout title="Sign In" analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container" style="padding-block: var(--space-9);">

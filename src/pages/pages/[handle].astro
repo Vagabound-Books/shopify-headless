@@ -25,9 +25,13 @@ const page = data?.page;
 if (!page) {
   return Astro.redirect('/404');
 }
+
+const analytics = {
+  pageType: 'page',
+};
 ---
 
-<Layout title={page.title}>
+<Layout title={page.title} analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">

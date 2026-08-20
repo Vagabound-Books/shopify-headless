@@ -3,10 +3,14 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
-const lastUpdated = 'July 17, 2026';
+const lastUpdated = 'August 19, 2026';
+
+const analytics = {
+  pageType: 'policy',
+};
 ---
 
-<Layout title="Privacy Policy" description="How Vagabound Books collects, uses, and protects your personal information.">
+<Layout title="Privacy Policy" description="How Vagabound Books collects, uses, and protects your personal information." analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">
@@ -48,7 +52,7 @@ const lastUpdated = 'July 17, 2026';
       <ul>
         <li><strong>Device and usage data.</strong> Like most websites, our servers and commerce platform automatically record standard technical information when you visit, such as your IP address, browser type, referring page, and pages viewed.</li>
         <li><strong>Local browser storage.</strong> Your shopping cart and your Shelf (wishlist) are stored in your own browser's local storage so they persist between visits. This information stays on your device unless you choose to sync it with a customer account.</li>
-        <li><strong>Cookies.</strong> We and our commerce platform use cookies that are strictly necessary to run the shop — keeping your cart intact, keeping you signed in, and completing checkout securely. We do not use advertising or cross-site tracking cookies.</li>
+        <li><strong>Cookies.</strong> We and our commerce platform use cookies. Some are strictly necessary to run the shop — keeping your cart intact, keeping you signed in, and completing checkout securely. With your consent, we also use analytics cookies through Shopify to understand, in aggregate, how visitors use the Site. We do not use advertising or cross-site tracking cookies.</li>
       </ul>
 
       <h2>How we use your information</h2>
@@ -59,7 +63,7 @@ const lastUpdated = 'July 17, 2026';
         <li>To send the newsletter you asked for (and nothing you didn't);</li>
         <li>To respond to your questions and offers to sell books to us;</li>
         <li>To keep the Site secure, prevent fraud, and comply with legal obligations;</li>
-        <li>To understand, in aggregate, how the shop is used so we can make it better.</li>
+        <li>To understand, in aggregate, how the shop is used so we can make it better. When you consent to analytics cookies, Shopify collects limited technical information (such as pages viewed and device type) on our behalf. This data is aggregated and not used to target you with advertising.</li>
       </ul>
       <p>We do not sell your personal information, and we do not share it for third-party advertising.</p>
 
@@ -87,6 +91,19 @@ const lastUpdated = 'July 17, 2026';
         to records we are required by law to retain.
       </p>
 
+      <h2>Cookies and analytics</h2>
+      <p>
+        When you first visit the Site, you may see a banner asking for consent to
+        analytics cookies. Analytics cookies help us understand which pages are
+        popular, where visitors come from, and how the shop is performing. They are
+        only set if you click "Accept." Strictly necessary cookies required for
+        checkout, sign-in, and cart functionality are always active.
+      </p>
+      <p>
+        You can open the consent banner again and change your choice at any time by
+        clicking "Cookie preferences" in the footer.
+      </p>
+
       <h2>Your rights</h2>
       <p>
         Depending on where you live, you may have the right to access, correct, or
@@ -99,7 +116,9 @@ const lastUpdated = 'July 17, 2026';
       <p>
         Because we do not sell personal information or use it for targeted
         advertising, there is nothing to opt out of in that respect. You can
-        unsubscribe from the newsletter at any time using the link in any email.
+        change your cookie preferences at any time using the "Cookie preferences"
+        link in the footer. You can unsubscribe from the newsletter at any time
+        using the link in any email.
       </p>
 
       <h2>Security</h2>

@@ -30,9 +30,16 @@ if (!result) {
 const { collection, products, page, totalPages, totalCount, rangeStart, rangeEnd, sort: activeSort } = result;
 const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
 const isAuthenticated = !!accessToken;
+
+const analytics = {
+  pageType: 'collection',
+  resourceId: collection.id,
+  collectionHandle: collection.handle,
+  collectionId: collection.id,
+};
 ---
 
-<Layout title={collection.title}>
+<Layout title={collection.title} analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">

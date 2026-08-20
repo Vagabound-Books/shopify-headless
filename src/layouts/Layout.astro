@@ -1,14 +1,33 @@
 ---
 import 'dotenv/config';
 import CartDrawer from '../components/CartDrawer.tsx';
+import ShopifyAnalyticsInit from '../components/ShopifyAnalyticsInit.astro';
 
 export interface Props {
   title?: string;
   description?: string;
-  image?: string;
+  analytics?: {
+    pageType?: string;
+    resourceId?: string;
+    collectionHandle?: string;
+    collectionId?: string;
+    searchString?: string;
+    products?: Array<{
+      productGid: string;
+      variantGid?: string;
+      name: string;
+      variantName?: string;
+      brand?: string;
+      category?: string;
+      price: string;
+      sku?: string;
+      quantity?: number;
+    }>;
+    totalValue?: number;
+  };
 }
 
-const { title, description, image } = Astro.props;
+const { title, description, analytics } = Astro.props;
 const siteTitle = title ? `Vagabound — ${title}` : 'Vagabound — a home for migratory words';
 
 const shopifyClientConfig = JSON.stringify({
@@ -62,6 +81,8 @@ const shopifyClientConfig = JSON.stringify({
     </main>
 
     <slot name="footer" />
+
+    <ShopifyAnalyticsInit {...analytics} />
 
     <button type="button" class="vb-back-to-top js-back-to-top" aria-label="Back to top">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>

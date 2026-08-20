@@ -3,9 +3,13 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CartPage from '../components/CartPage.tsx';
+
+const analytics = {
+  pageType: 'cart',
+};
 ---
 
-<Layout title="Cart">
+<Layout title="Cart" analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">

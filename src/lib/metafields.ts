@@ -15,7 +15,7 @@ const KEY_ALIASES: Record<string, keyof BookMetafields> = {
   publication_year: 'year',
 };
 
-export function parseMetafields(metafields: any[]): BookMetafields {
+export function parseMetafields(metafields: any[] | undefined): BookMetafields {
   const result: BookMetafields = {};
 
   for (const mf of metafields || []) {

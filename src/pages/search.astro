@@ -27,9 +27,14 @@ if (query) {
 
 const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
 const isAuthenticated = !!accessToken;
+
+const analytics = {
+  pageType: 'search',
+  searchString: query,
+};
 ---
 
-<Layout title={query ? `Search: ${query}` : 'Search'}>
+<Layout title={query ? `Search: ${query}` : 'Search'} analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">
