@@ -233,7 +233,7 @@ function formatPayload(
     hydrogenSubchannelId: payload.storefrontId || payload.hydrogenSubchannelId || '0',
 
     is_persistent_cookie: payload.hasUserConsent,
-    deprecated_visit_token: payload.visitToken,
+    visit_token: payload.visitToken,
     unique_token: payload.uniqueToken,
     event_time: Date.now(),
     event_id: buildUUID(),
@@ -349,7 +349,7 @@ function buildTrekkiePageView(
     addDataIf(
       {
         pageType: payload.pageType,
-        customerId: parseInt(parseGid(payload.customerId).id || '0', 10),
+        customerId: parseShopifyId(payload.customerId),
         resourceType,
         resourceId: parseInt(id || '0', 10),
       },

@@ -18,6 +18,8 @@ declare global {
       checkoutDomain: string;
       storefrontDomain: string;
       assetVersionId: string;
+      uniqueToken?: string;
+      visitToken?: string;
     };
   }
 }
@@ -57,8 +59,13 @@ function getBasePayload(): Pick<
 
 function withBrowserParams(payload: Record<string, unknown>): ShopifyPageViewPayload {
   const trackingValues = getTrackingValues();
+  const config = window.__VB_ANALYTICS__;
   return {
-    ...getClientBrowserParameters(trackingValues),
+    ...getClientBrowserParameters({
+      uniqueToken: trackingValues.uniqueToken || config?.uniqueToken || '',
+      visitToken: trackingValues.visitToken || config?.visitToken || '',
+      consent: trackingValues.consent,
+    }),
     ...payload,
   } as ShopifyPageViewPayload;
 }

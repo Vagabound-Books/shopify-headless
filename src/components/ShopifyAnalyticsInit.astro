@@ -1,5 +1,6 @@
 ---
 import ConsentBanner from './ConsentBanner.tsx';
+import { SHOPIFY_Y, SHOPIFY_S, buildUUID } from '../lib/analytics/cookies';
 
 export interface Props {
   pageType?: string;
@@ -42,6 +43,40 @@ const storefrontAccessToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || '';
 const checkoutDomain = 'checkout.vagaboundbooks.com';
 const storefrontDomain = process.env.PUBLIC_STORE_DOMAIN || 'vagaboundbooks.com';
 
+function getSharedCookieDomain(domain: string): string {
+  if (!domain || /^localhost/.test(domain)) return '';
+  // Strip any leading protocol/port and use a leading dot so subdomains (checkout) share it.
+  const host = domain.replace(/^https?:\/\//, '').split(':')[0];
+  return `.${host}`;
+}
+
+function getOrCreateToken(name: string): string {
+  const existing = Astro.cookies.get(name);
+  if (existing?.value) return existing.value;
+
+  const token = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : buildUUID();
+
+  const maxAge = name === SHOPIFY_Y ? 60 * 60 * 24 * 365 : 60 * 30;
+  const cookieDomain = getSharedCookieDomain(storefrontDomain);
+  const isLocalhost = !cookieDomain;
+
+  Astro.cookies.set(name, token, {
+    maxAge,
+    path: '/',
+    sameSite: 'lax',
+    secure: !isLocalhost,
+    httpOnly: false,
+    domain: cookieDomain || undefined,
+  });
+
+  return token;
+}
+
+const uniqueToken = getOrCreateToken(SHOPIFY_Y);
+const visitToken = getOrCreateToken(SHOPIFY_S);
+
 const analyticsConfig = JSON.stringify({
   shopId,
   currency,
@@ -49,6 +84,8 @@ const analyticsConfig = JSON.stringify({
   storefrontAccessToken,
   checkoutDomain,
   storefrontDomain,
+  uniqueToken,
+  visitToken,
   assetVersionId: 'headless/1.0',
   pageType,
   resourceId,
@@ -129,6 +166,8 @@ const analyticsConfig = JSON.stringify({
           analyticsAllowed: api.analyticsProcessingAllowed(),
           marketingAllowed: api.marketingAllowed(),
           saleOfDataAllowed: api.saleOfDataAllowed(),
+          uniqueToken: config.uniqueToken,
+          visitToken: config.visitToken,
           pageType: config.pageType,
           resourceId: config.resourceId,
           collectionHandle: config.collectionHandle,
