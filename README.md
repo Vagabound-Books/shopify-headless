@@ -105,7 +105,7 @@ astro-storefront/
 │   │   ├── shelf.astro          # Shelf/wishlist page
 │   │   ├── privacy.astro        # Privacy policy
 │   │   ├── terms.astro          # Terms of service
-│   │   ├── products/[handle].astro
+│   │   ├── books/[handle].astro
 │   │   ├── collections/
 │   │   │   ├── index.astro
 │   │   │   └── [handle].astro
