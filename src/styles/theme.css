@@ -1227,7 +1227,7 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
   display: flex;
   align-items: stretch;
   gap: 6px;
-  height: 320px;
+  height: 400px;
   position: relative;
 }
 .vb-spine {
