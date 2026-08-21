@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import DictionaryEntry from '../components/DictionaryEntry.astro';
 import { shopifyFetchServer } from '../lib/shopify';
 import { GET_BLOG_BY_HANDLE, GET_ALL_PRODUCTS, GET_COLLECTIONS, GET_PRODUCT_BY_ID } from '../lib/queries';
 import { parseMetafields } from '../lib/metafields';
@@ -188,6 +189,8 @@ const analytics = {
       </div>
     </section>
   </div>
+
+  <DictionaryEntry />
 
   {/* Spine row */}
   <section class="vb-section vb-section--deep full-width">
