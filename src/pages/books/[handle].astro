@@ -74,7 +74,7 @@ const description = product?.description
   : undefined;
 
 const siteUrl = (import.meta.env.PUBLIC_SITE_URL || Astro.url.origin).replace(/\/$/, '');
-const productUrl = `${siteUrl}/products/${handle}/`;
+const productUrl = `${siteUrl}/books/${handle}/`;
 
 const productImages = product.images?.edges
   ? product.images.edges.slice(0, 5).map((e: any) => e.node.url)

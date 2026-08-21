@@ -19,7 +19,7 @@ const firstVariant = product.variants?.edges?.[0]?.node;
 const authorsList = Array.isArray(mf.authors) ? mf.authors : (mf.authors ? [mf.authors] : []);
 ---
 
-<a href={`/products/${product.handle}`} class="vb-card">
+<a href={`/books/${product.handle}`} class="vb-card">
   <div class="vb-card__cover-wrap">
     {featuredImage ? (
       <img

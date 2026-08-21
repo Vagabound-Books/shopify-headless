@@ -176,7 +176,7 @@ const analytics = {
               {relatedBooks.map((book: any) => {
                 const mf = parseMetafields(book.metafields);
                 return (
-                  <a href={`/products/${book.handle}`} style="text-decoration: none; display: flex; flex-direction: column; gap: 10px;">
+                  <a href={`/books/${book.handle}`} style="text-decoration: none; display: flex; flex-direction: column; gap: 10px;">
                     {book.featuredImage ? (
                       <img
                         src={book.featuredImage.url}

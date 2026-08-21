@@ -163,7 +163,7 @@ const analytics = {
           {heroBooks.map((book) => {
             const mf = parseMetafields(book.metafields);
             return (
-              <a href={`/products/${book.handle}`} class="vb-hero__book">
+              <a href={`/books/${book.handle}`} class="vb-hero__book">
                 {book.featuredImage ? (
                   <img
                     src={book.featuredImage.url}
@@ -246,7 +246,7 @@ const analytics = {
         const mf = parseMetafields(book.metafields);
         const price = book.priceRange?.minVariantPrice;
         return (
-          <a href={`/products/${book.handle}`} class="vb-scroll-card">
+          <a href={`/books/${book.handle}`} class="vb-scroll-card">
             <div class="vb-scroll-card__cover">
               {book.featuredImage ? (
                 <img

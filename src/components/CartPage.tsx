@@ -132,7 +132,7 @@ export default function CartPage() {
               />
             )}
             <div style="flex: 1;">
-              <a href={`/products/${line.merchandise.product.handle}`} style="font-weight: 600; color: inherit; text-decoration: none;">
+              <a href={`/books/${line.merchandise.product.handle}`} style="font-weight: 600; color: inherit; text-decoration: none;">
                 {line.merchandise.product.title}
               </a>
               <div style="font-size: var(--type-xs); color: var(--ink-muted); margin-top: 4px;">

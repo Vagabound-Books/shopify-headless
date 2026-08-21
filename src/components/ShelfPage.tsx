@@ -50,7 +50,7 @@ function buildProductsMap(products: ProductLike[]): Record<string, ProductLike> 
 async function fetchProductsByHandles(handles: string[]): Promise<ProductLike[]> {
   if (handles.length === 0) return [];
   console.log('[ShelfPage] Fetching products for handles:', handles);
-  const res = await fetch('/api/shelf/products/', {
+  const res = await fetch('/api/shelf/books/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ handles }),
@@ -217,7 +217,7 @@ function ShelfItemCard({ item, product, onRemove }: ShelfItemCardProps) {
 
   return (
     <div class="vb-card" style="position: relative;">
-      <a href={`/products/${item.handle}`} style="text-decoration: none; color: inherit;">
+      <a href={`/books/${item.handle}`} style="text-decoration: none; color: inherit;">
         <div class="vb-card__cover-wrap">
           {imageUrl ? (
             <img

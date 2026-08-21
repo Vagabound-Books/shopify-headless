@@ -163,7 +163,7 @@ export default function CartDrawer() {
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <a
-                      href={`/products/${line.merchandise.product.handle}`}
+                      href={`/books/${line.merchandise.product.handle}`}
                       style={{ fontWeight: 600, color: 'inherit', textDecoration: 'none', display: 'block' }}
                       onClick={close}
                     >

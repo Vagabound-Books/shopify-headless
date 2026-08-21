@@ -12,6 +12,7 @@ export default defineConfig({
     '/pages/shelf': '/shelf',
     '/pages/privacy': '/privacy',
     '/pages/terms': '/terms',
+    '/products/[...slug]': '/books/[...slug]',
   },
   server: {
     // Bind to all interfaces so the container is reachable from
