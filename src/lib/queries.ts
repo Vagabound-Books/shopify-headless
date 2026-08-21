@@ -62,6 +62,8 @@ fragment productFields on Product {
   description
   descriptionHtml
   vendor
+  tags
+  availableForSale
   priceRange {
     minVariantPrice { amount currencyCode }
     maxVariantPrice { amount currencyCode }
@@ -142,10 +144,10 @@ export const GET_SIMILAR_PRODUCTS = `
   query GetSimilarProducts($productId: ID!, $handle: String!) {
     recommended: productRecommendations(productId: $productId, intent: RELATED) {
       ...productFields
-      availableForSale
     }
     product(handle: $handle) {
-      collections(first: 3) {
+      ...productFields
+      collections(first: 10) {
         edges {
           node {
             handle
@@ -154,7 +156,6 @@ export const GET_SIMILAR_PRODUCTS = `
               edges {
                 node {
                   ...productFields
-                  availableForSale
                 }
               }
             }
