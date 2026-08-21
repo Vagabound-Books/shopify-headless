@@ -89,6 +89,11 @@ export default function CartDrawer() {
 
   const lines = $cart?.lines?.edges?.map((e: any) => e.node) || [];
 
+  const freeShippingThreshold = Number(import.meta.env.PUBLIC_FREE_SHIPPING_THRESHOLD);
+  const totalQuantity = $cart?.totalQuantity ?? lines.reduce((sum, line) => sum + line.quantity, 0);
+  const showFreeShippingNudge = Number.isFinite(freeShippingThreshold) && freeShippingThreshold > 0;
+  const booksAway = freeShippingThreshold - totalQuantity;
+
   return (
     <div
       ref={drawerRef}
@@ -190,6 +195,28 @@ export default function CartDrawer() {
 
         {lines.length > 0 && (
           <div style={{ padding: '20px 24px', borderTop: '1px solid var(--rule-soft, #e7e7e7)' }}>
+            {showFreeShippingNudge && (
+              <div style={{
+                marginBottom: '14px',
+                background: 'var(--paper-soft)',
+                border: '1px solid var(--rule-soft)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '12px 16px',
+                fontSize: 'var(--type-sm)',
+                color: 'var(--ink-soft)',
+              }}>
+                {booksAway > 0 ? (
+                  <span>
+                    <strong style={{ color: 'var(--ink)' }}>{booksAway} more book{booksAway === 1 ? '' : 's'}</strong>
+                    {' '}and your shipping is on us.
+                  </span>
+                ) : (
+                  <span>
+                    <strong style={{ color: 'var(--mossy)' }}>Free shipping</strong> — on the house.
+                  </span>
+                )}
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: '16px' }}>
               <span>Subtotal</span>
               <span>{$cart?.cost?.subtotalAmount ? formatMoney($cart.cost.subtotalAmount.amount, $cart.cost.subtotalAmount.currencyCode) : ''}</span>
