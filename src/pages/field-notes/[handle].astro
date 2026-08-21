@@ -96,6 +96,41 @@ const description = article?.excerptHtml
     ? stripHtml(article.contentHtml, 160)
     : undefined;
 
+const siteUrl = (import.meta.env.PUBLIC_SITE_URL || Astro.url.origin).replace(/\/$/, '');
+const articleUrl = `${siteUrl}/field-notes/${handle}/`;
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: article.title,
+  image: article.image?.url,
+  datePublished: article.publishedAt,
+  author: {
+    '@type': 'Person',
+    name: 'The Vagabound',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Vagabound Books',
+    logo: {
+      '@type': 'ImageObject',
+      url: `${siteUrl}/assets/vagabound-logo.png`,
+    },
+  },
+  url: articleUrl,
+  description: description,
+};
+
+const breadcrumbSchema = article ? {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
+    { '@type': 'ListItem', position: 2, name: 'Field Notes', item: `${siteUrl}/field-notes/` },
+    { '@type': 'ListItem', position: 3, name: article.title, item: articleUrl },
+  ],
+} : undefined;
+
 const analytics = {
   pageType: 'article',
 };
@@ -104,7 +139,7 @@ const analytics = {
 {!article ? (
   <NotFoundPage />
 ) : (
-  <Layout title={article.title} description={description} analytics={analytics}>
+  <Layout title={article.title} description={description} jsonLd={[articleSchema, breadcrumbSchema].filter(Boolean)} analytics={analytics}>
     <Header slot="header" />
 
     <div class="vb-container">

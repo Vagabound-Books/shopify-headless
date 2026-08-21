@@ -57,6 +57,36 @@ function resolveUrl(pathOrUrl: string): string {
 const canonical = canonicalUrl ? resolveUrl(canonicalUrl) : `${siteUrl.replace(/\/$/, '')}${Astro.url.pathname}`;
 const ogImageUrl = ogImage ? resolveUrl(ogImage) : `${siteUrl.replace(/\/$/, '')}/og-image.png`;
 
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Vagabound Books',
+  url: `${siteUrl.replace(/\/$/, '')}/`,
+  logo: resolveUrl('/assets/vagabound-logo.png'),
+  sameAs: [
+    'https://www.instagram.com/vagaboundbooks/',
+  ],
+};
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Vagabound Books',
+  url: `${siteUrl.replace(/\/$/, '')}/`,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${siteUrl.replace(/\/$/, '')}/search/?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
+};
+
+const structuredData = jsonLd
+  ? [organizationSchema, websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : [jsonLd])]
+  : [organizationSchema, websiteSchema];
+
 const shopifyClientConfig = JSON.stringify({
   storeDomain: process.env.SHOPIFY_STORE_DOMAIN || '',
   storefrontAccessToken: process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || '',
@@ -114,7 +144,9 @@ const shopifyClientConfig = JSON.stringify({
     </style>
 
     <!-- Structured data -->
-    {jsonLd && <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    {structuredData.map((data) => (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(data)} />
+    ))}
 
     <!-- Shopify client config -->
     <script is:inline set:html={`window.__SHOPIFY_CONFIG__ = ${shopifyClientConfig};`} />

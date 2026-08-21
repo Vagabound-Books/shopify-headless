@@ -5,12 +5,23 @@ import Footer from '../components/Footer.astro';
 
 const lastUpdated = 'July 17, 2026';
 
+const siteUrl = (import.meta.env.PUBLIC_SITE_URL || Astro.url.origin).replace(/\/$/, '');
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
+    { '@type': 'ListItem', position: 2, name: 'Terms of Service', item: `${siteUrl}/terms/` },
+  ],
+};
+
 const analytics = {
   pageType: 'page',
 };
 ---
 
-<Layout title="Terms of Service" description="The terms that govern your use of the Vagabound Books website and purchases from our shop." analytics={analytics}>
+<Layout title="Terms of Service" description="The terms that govern your use of the Vagabound Books website and purchases from our shop." jsonLd={breadcrumbSchema} analytics={analytics}>
   <Header slot="header" />
 
   <div class="vb-container">

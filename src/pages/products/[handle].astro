@@ -69,6 +69,46 @@ const description = product?.description
   ? stripHtml(product.description, 160)
   : undefined;
 
+const siteUrl = (import.meta.env.PUBLIC_SITE_URL || Astro.url.origin).replace(/\/$/, '');
+const productUrl = `${siteUrl}/products/${handle}/`;
+
+const productImages = product.images?.edges
+  ? product.images.edges.slice(0, 5).map((e: any) => e.node.url)
+  : (product.featuredImage ? [product.featuredImage.url] : []);
+
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.title,
+  image: productImages,
+  description: description,
+  sku: firstVariant?.sku,
+  brand: {
+    '@type': 'Brand',
+    name: product.vendor || 'Vagabound Books',
+  },
+  ...(firstVariant?.availableForSale && price ? {
+    offers: {
+      '@type': 'Offer',
+      url: productUrl,
+      priceCurrency: price.currencyCode,
+      price: price.amount,
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/UsedCondition',
+    },
+  } : {}),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
+    { '@type': 'ListItem', position: 2, name: 'All shelves', item: `${siteUrl}/collections/` },
+    { '@type': 'ListItem', position: 3, name: product.title, item: productUrl },
+  ],
+};
+
 const analytics = {
   pageType: 'product',
   resourceId: product?.id,
@@ -80,7 +120,7 @@ const analytics = {
 {!product ? (
   <NotFoundPage />
 ) : (
-  <Layout title={product.title} description={description} analytics={analytics}>
+  <Layout title={product.title} description={description} jsonLd={[productSchema, breadcrumbSchema]} analytics={analytics}>
     <Header slot="header" />
 
     <div class="vb-container">
