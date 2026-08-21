@@ -41,6 +41,10 @@ if (!product) {
 }
 
 const mf = product ? parseMetafields(product.metafields) : {};
+const author = product
+  ? (Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || product.vendor || '')
+  : '';
+const pageTitle = product ? `${product.title}${author ? ` — ${author}` : ''}` : '';
 const firstVariant = product?.variants?.edges?.[0]?.node;
 const price = product?.priceRange?.minVariantPrice;
 const images = product?.images?.edges?.map((e: any) => e.node) || [];
@@ -120,7 +124,7 @@ const analytics = {
 {!product ? (
   <NotFoundPage />
 ) : (
-  <Layout title={product.title} description={description} jsonLd={[productSchema, breadcrumbSchema]} analytics={analytics}>
+  <Layout title={pageTitle} description={description} jsonLd={[productSchema, breadcrumbSchema]} analytics={analytics}>
     <Header slot="header" />
 
     <div class="vb-container">

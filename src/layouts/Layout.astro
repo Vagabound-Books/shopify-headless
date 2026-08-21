@@ -43,8 +43,8 @@ const {
   analytics,
 } = Astro.props;
 
-const siteTitle = title ? `Vagabound — ${title}` : 'Vagabound — a home for migratory words';
-const pageTitle = title || 'A home for migratory words';
+const siteTitle = title ? `${title} | Vagabound Books` : 'Vagabound Books — a home for migratory words';
+const pageTitle = siteTitle;
 const siteUrl = import.meta.env.PUBLIC_SITE_URL || Astro.url.origin;
 
 function resolveUrl(pathOrUrl: string): string {
