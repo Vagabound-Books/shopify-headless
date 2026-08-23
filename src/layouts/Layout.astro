@@ -150,6 +150,16 @@ const shopifyClientConfig = JSON.stringify({
 
     <!-- Shopify client config -->
     <script is:inline set:html={`window.__SHOPIFY_CONFIG__ = ${shopifyClientConfig};`} />
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7KYXF4DM12"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-7KYXF4DM12');
+    </script>
   </head>
 
   <body>
