@@ -11,6 +11,7 @@ import {
 } from '../lib/analytics/cookies';
 
 interface Props {
+  alwaysShow?: boolean;
   storefrontAccessToken: string;
   checkoutRootDomain: string;
   storefrontRootDomain: string;
@@ -32,6 +33,7 @@ export default function ConsentBanner({
   storefrontAccessToken,
   checkoutRootDomain,
   storefrontRootDomain,
+  alwaysShow = false,
 }: Props) {
   const [api, setApi] = useState<CustomerPrivacyApi | null>(null);
   const [show, setShow] = useState(false);
@@ -58,7 +60,7 @@ export default function ConsentBanner({
         }
 
         const shouldShow = loadedApi.shouldShowBanner();
-        setShow(forceShow || shouldShow);
+        setShow(forceShow || shouldShow || alwaysShow);
         setLoading(false);
       })
       .catch((err) => {

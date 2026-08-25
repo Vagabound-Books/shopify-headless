@@ -45,6 +45,9 @@ SHOPIFY_API_VERSION=2024-07
 SHOPIFY_SHOP_ID=your-shop-id
 PUBLIC_STORE_DOMAIN=your-public-domain.com
 PUBLIC_SITE_URL=https://your-public-domain.com
+
+# Consent banner: show for all first-time visitors, not just privacy-regulated regions
+PUBLIC_ALWAYS_SHOW_CONSENT_BANNER=true
 ```
 
 **How to get these tokens:**
@@ -185,6 +188,7 @@ astro-storefront/
   - Custom events: `add_to_shelf`, `remove_from_shelf`, `open_cart`, `close_cart`, `newsletter_signup`, `contact_submit`, `outbound_link_click`, `scroll_90`, `select_item`
 - Custom Vagabound-branded consent banner with Accept/Reject
 - Cookie preferences link in footer
+- Optional `PUBLIC_ALWAYS_SHOW_CONSENT_BANNER=true` to display the banner for all first-time visitors (by default Shopify only shows it in privacy-regulated regions)
 - Strictly necessary cookies remain active; analytics cookies require consent
 - All Storefront API calls proxied through `/api/[version]/graphql.json` for same-origin cookies and Server-Timing
 

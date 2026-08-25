@@ -42,6 +42,7 @@ const acceptedLanguage = 'EN';
 const storefrontAccessToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || '';
 const checkoutDomain = 'checkout.vagaboundbooks.com';
 const storefrontDomain = process.env.PUBLIC_STORE_DOMAIN || 'vagaboundbooks.com';
+const alwaysShowConsentBanner = import.meta.env.PUBLIC_ALWAYS_SHOW_CONSENT_BANNER === 'true';
 
 function getSharedCookieDomain(domain: string): string {
   if (!domain || /^localhost/.test(domain)) return '';
@@ -254,6 +255,7 @@ const analyticsConfig = JSON.stringify({
   storefrontAccessToken={storefrontAccessToken}
   checkoutRootDomain={checkoutDomain}
   storefrontRootDomain={storefrontDomain}
+  alwaysShow={alwaysShowConsentBanner}
 />
 
 <style is:global>
