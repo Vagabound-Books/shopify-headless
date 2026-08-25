@@ -41,6 +41,9 @@ const {
           {example && <p class="vb-dictionary__example">{example}<br/>—Virginia Woolf, kind-of</p>}
         </div>
       )}
+      <div class="vb-dictionary__action">
+        <a href="/collections" class="vb-btn vb-btn--primary">Shop the collection</a>
+      </div>
     </div>
   </div>
 </section>
@@ -120,6 +123,10 @@ const {
 
   .vb-dictionary__example {
     font-style: italic;
+  }
+
+  .vb-dictionary__action {
+    margin-top: var(--space-6);
   }
 
   @media (max-width: 640px) {
