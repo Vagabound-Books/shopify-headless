@@ -100,6 +100,9 @@
           }
           if (data.success && emailInput) {
             emailInput.value = '';
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', 'newsletter_signup', { method: 'footer' });
+            }
           }
         } catch (err) {
           if (messageEl) messageEl.textContent = 'Something went wrong. Please try again.';

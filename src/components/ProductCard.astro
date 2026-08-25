@@ -17,9 +17,21 @@ const hasSale = compareAtPrice && parseFloat(compareAtPrice.amount) > parseFloat
 const firstVariant = product.variants?.edges?.[0]?.node;
 
 const authorsList = Array.isArray(mf.authors) ? mf.authors : (mf.authors ? [mf.authors] : []);
+
+const ga4Product = JSON.stringify({
+  productGid: product.id,
+  variantGid: firstVariant?.id,
+  name: product.title,
+  variantName: firstVariant?.title,
+  brand: product.vendor,
+  category: product.productType,
+  price: price?.amount,
+  sku: firstVariant?.sku,
+  currency: price?.currencyCode,
+});
 ---
 
-<a href={`/books/${product.handle}`} class="vb-card">
+<a href={`/books/${product.handle}`} class="vb-card" data-ga-product={ga4Product}>
   <div class="vb-card__cover-wrap">
     {featuredImage ? (
       <img

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { getShelf, removeFromShelf, syncShelfToCloud, mergeShelfItems, type ShelfItem } from '../lib/shelf';
 import { parseMetafields } from '../lib/metafields';
 import AddToCart from './AddToCart.tsx';
+import { sendGa4ShelfRemove } from '../lib/analytics/ga4';
 
 interface Props {
   cloudItems?: ShelfItem[];
@@ -102,12 +103,26 @@ export default function ShelfPage({ cloudItems = [], isAuthenticated = false }: 
   }, [items]);
 
   function handleRemove(handle: string, variantId: string) {
+    const item = items.find((i) => i.handle === handle && i.variantId === variantId);
     removeFromShelf(handle, variantId);
     const merged = mergeShelfItems(cloudItems, getShelf()).filter(
       (item) => !(item.handle === handle && item.variantId === variantId)
     );
     setItems(merged);
     syncShelfToCloud(merged);
+    if (item?.title && item?.price) {
+      sendGa4ShelfRemove({
+        productGid: '',
+        variantGid: variantId,
+        name: item.title,
+        variantName: '',
+        brand: '',
+        category: item.genre,
+        price: item.price,
+        sku: '',
+        quantity: 1,
+      }, item.currencyCode || 'USD');
+    }
   }
 
   if (!mounted) {

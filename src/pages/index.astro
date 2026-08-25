@@ -241,12 +241,26 @@ const analytics = {
         </div>
       </div>
     </div>
-    <div class="vb-scroll-row vb-no-scrollbar js-scroll-row">
+    <div class="vb-scroll-row vb-no-scrollbar js-scroll-row" data-ga-list-name="recently_catalogued">
       {inventoryProducts.map((book: any) => {
         const mf = parseMetafields(book.metafields);
         const price = book.priceRange?.minVariantPrice;
         return (
-          <a href={`/books/${book.handle}`} class="vb-scroll-card">
+          <a
+            href={`/books/${book.handle}`}
+            class="vb-scroll-card"
+            data-ga-product={JSON.stringify({
+              productGid: book.id,
+              variantGid: book.variants?.edges?.[0]?.node?.id,
+              name: book.title,
+              variantName: book.variants?.edges?.[0]?.node?.title,
+              brand: book.vendor,
+              category: book.productType,
+              price: price?.amount,
+              sku: book.variants?.edges?.[0]?.node?.sku,
+              currency: price?.currencyCode,
+            })}
+          >
             <div class="vb-scroll-card__cover">
               {book.featuredImage ? (
                 <img
@@ -348,7 +362,12 @@ const analytics = {
         const data = await response.json();
         messageEl.textContent = data.success ? data.message : (data.error || 'Something went wrong.');
         messageEl.style.color = data.success ? 'var(--ink-soft)' : '#c9372d';
-        if (data.success) form.reset();
+        if (data.success) {
+          form.reset();
+          if (typeof window.gtag === 'function') {
+            window.gtag('event', 'contact_submit', { form: 'sell_to_us' });
+          }
+        }
       } catch (err) {
         messageEl.textContent = 'Something went wrong. Please try again.';
         messageEl.style.color = '#c9372d';

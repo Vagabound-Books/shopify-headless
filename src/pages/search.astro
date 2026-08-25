@@ -79,7 +79,7 @@ const analytics = {
         )}
 
         {products.length > 0 && (
-          <div class="vb-shelf">
+          <div class="vb-shelf" data-ga-list-name={`search:${query || ""}`}>
             {products.map((product: any) => (
               <ProductCard product={product} isAuthenticated={isAuthenticated} />
             ))}

@@ -103,12 +103,39 @@ const analyticsConfig = JSON.stringify({
 
 <script>
   import { sendShopifyAnalytics } from '../lib/analytics/monorail';
+  import {
+    updateConsentFromPrivacyApi,
+    sendGa4PageView,
+    sendGa4ViewItem,
+    sendGa4ViewItemList,
+    sendGa4Search,
+  } from '../lib/analytics/ga4';
+  import type { ShopifyAnalyticsProduct } from '../lib/analytics/monorail';
+
   declare global {
     interface Window {
       __sendShopifyAnalytics?: typeof sendShopifyAnalytics;
+      __VAGABOUND_GA4__?: {
+        updateConsent: () => void;
+        sendPageView: (params?: Record<string, unknown>) => void;
+        sendViewItem: (product: ShopifyAnalyticsProduct) => void;
+        sendViewItemList: (products: ShopifyAnalyticsProduct[], itemListName?: string) => void;
+        sendSearch: (term: string) => void;
+      };
     }
   }
+
   window.__sendShopifyAnalytics = sendShopifyAnalytics;
+  window.__VAGABOUND_GA4__ = {
+    updateConsent: updateConsentFromPrivacyApi,
+    sendPageView: sendGa4PageView,
+    sendViewItem: sendGa4ViewItem,
+    sendViewItemList: sendGa4ViewItemList,
+    sendSearch: sendGa4Search,
+  };
+
+  // Layout.astro initializes GA4 consent mode defaults before gtag config.
+  // This component only updates consent and sends page views / e-commerce events.
 </script>
 
 <script is:inline>
@@ -142,6 +169,22 @@ const analyticsConfig = JSON.stringify({
         title: document.title,
         userAgent: navigator.userAgent,
       };
+    }
+
+    function sendGa4PageForConfig(config) {
+      if (!window.__VAGABOUND_GA4__) return;
+      window.__VAGABOUND_GA4__.sendPageView({
+        pageType: config.pageType,
+        resourceId: config.resourceId,
+      });
+
+      if (config.pageType === 'product' && config.products && config.products.length > 0) {
+        window.__VAGABOUND_GA4__.sendViewItem(config.products[0]);
+      } else if (config.pageType === 'collection' && config.products && config.products.length > 0) {
+        window.__VAGABOUND_GA4__.sendViewItemList(config.products, config.collectionHandle);
+      } else if (config.pageType === 'search' && config.searchString) {
+        window.__VAGABOUND_GA4__.sendSearch(config.searchString);
+      }
     }
 
     function trySendPageView() {
@@ -178,6 +221,8 @@ const analyticsConfig = JSON.stringify({
           ...getBrowserParams(),
         },
       });
+
+      sendGa4PageForConfig(config);
     }
 
     whenReady(function () {
@@ -195,6 +240,10 @@ const analyticsConfig = JSON.stringify({
     });
 
     window.addEventListener('vagabound:consentUpdated', function () {
+      if (window.__VAGABOUND_GA4__) {
+        window.__VAGABOUND_GA4__.updateConsent();
+      }
+      pageViewSent = false;
       trySendPageView();
     });
   })();

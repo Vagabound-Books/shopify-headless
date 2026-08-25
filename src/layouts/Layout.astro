@@ -92,6 +92,9 @@ const shopifyClientConfig = JSON.stringify({
   storefrontAccessToken: process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || '',
   apiVersion: process.env.SHOPIFY_API_VERSION || '2024-07',
 });
+
+const ga4MeasurementId = 'G-7KYXF4DM12';
+const ga4LinkerDomains = JSON.stringify(['checkout.vagaboundbooks.com']);
 ---
 
 <!doctype html>
@@ -152,13 +155,33 @@ const shopifyClientConfig = JSON.stringify({
     <script is:inline set:html={`window.__SHOPIFY_CONFIG__ = ${shopifyClientConfig};`} />
 
     <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7KYXF4DM12"></script>
-    <script>
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${ga4MeasurementId}`}></script>
+    <script is:inline define:vars={{ ga4MeasurementId, ga4LinkerDomains }}>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+      function gtag(){window.dataLayer.push(arguments);}
+      window.gtag = gtag;
 
-      gtag('config', 'G-7KYXF4DM12');
+      // Consent Mode v2 defaults: deny everything except security until the user consents.
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        functionality_storage: 'denied',
+        personalization_storage: 'denied',
+        security_storage: 'granted',
+        wait_for_update: 500,
+      });
+
+      gtag('js', new Date());
+      gtag('config', ga4MeasurementId, {
+        linker: {
+          domains: JSON.parse(ga4LinkerDomains),
+        },
+        send_page_view: false,
+        allow_google_signals: false,
+        allow_ad_personalization_signals: false,
+      });
     </script>
   </head>
 
@@ -271,6 +294,81 @@ const shopifyClientConfig = JSON.stringify({
 
         document.querySelectorAll('.js-scroll-next').forEach(function(btn) {
           btn.addEventListener('click', function() { scrollRow(btn, 1); });
+        });
+      })();
+    </script>
+
+    <script is:inline>
+      // Global behavior tracking for GA4
+      (function () {
+        function gtagEvent(name, params) {
+          if (typeof window === 'undefined' || !window.gtag) return;
+          window.gtag('event', name, params || {});
+        }
+
+        function isOutbound(href) {
+          if (!href || href.indexOf('http') !== 0) return false;
+          try {
+            return new URL(href).hostname !== window.location.hostname;
+          } catch (e) {
+            return false;
+          }
+        }
+
+        // Outbound link tracking
+        document.addEventListener('click', function (e) {
+          var el = e.target.closest('a');
+          if (!el || !el.href) return;
+          if (isOutbound(el.href)) {
+            gtagEvent('outbound_link_click', {
+              link_url: el.href,
+              link_text: el.textContent.trim().slice(0, 100),
+              link_domain: new URL(el.href).hostname,
+            });
+          }
+        });
+
+        // Scroll depth: fire once at 90%
+        var scrollSent = false;
+        window.addEventListener('scroll', function () {
+          if (scrollSent) return;
+          var doc = document.documentElement;
+          var scrollable = doc.scrollHeight - doc.clientHeight;
+          if (scrollable <= 0) return;
+          var scrollPercent = (window.scrollY / scrollable) * 100;
+          if (scrollPercent >= 90) {
+            scrollSent = true;
+            gtagEvent('scroll_90', { percent_scrolled: 90 });
+          }
+        }, { passive: true });
+
+        // Product card select_item tracking (grid cards and scroll-row cards)
+        document.addEventListener('click', function (e) {
+          var card = e.target.closest('a.vb-card, a.vb-scroll-card');
+          if (!card) return;
+          // Skip the "browse more" placeholder card
+          if (card.classList.contains('vb-scroll-card--more')) return;
+          var section = card.closest('[data-ga-list-name]');
+          var listName = section ? section.getAttribute('data-ga-list-name') : undefined;
+          var productData = card.getAttribute('data-ga-product');
+          if (!productData) return;
+          try {
+            var product = JSON.parse(productData);
+            gtagEvent('select_item', {
+              item_list_name: listName,
+              items: [{
+                item_id: product.sku || product.variantGid || product.productGid,
+                item_name: product.name,
+                item_brand: product.brand,
+                item_category: product.category,
+                item_variant: product.variantName,
+                price: parseFloat(product.price) || 0,
+                currency: product.currency,
+              }],
+            });
+          } catch (err) {
+            // ignore malformed data attributes
+          }
         });
       })();
     </script>

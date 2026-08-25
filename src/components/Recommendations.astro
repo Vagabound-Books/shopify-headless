@@ -18,7 +18,7 @@ const { products, isAuthenticated = false } = Astro.props;
           <h2>Reader also browsed</h2>
         </div>
       </div>
-      <div class="vb-shelf">
+      <div class="vb-shelf" data-ga-list-name="product_recommendations">
         {products.map((product: any) => (
           <ProductCard product={product} isAuthenticated={isAuthenticated} />
         ))}

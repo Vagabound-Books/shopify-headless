@@ -9,7 +9,8 @@ import {
 } from '../lib/cart';
 import { formatMoney } from '../lib/money';
 import { normalizeCheckoutUrl } from '../lib/shopify';
-import { trackCartViewed, trackCheckoutStarted } from '../lib/analytics/events';
+import { trackCartViewed, trackCheckoutStarted, trackProductRemovedFromCart } from '../lib/analytics/events';
+import { sendGa4Event } from '../lib/analytics/ga4';
 import type { ShopifyAnalyticsProduct } from '../lib/analytics/monorail';
 
 function linesToProducts(lines: any[]): ShopifyAnalyticsProduct[] {
@@ -46,7 +47,13 @@ export default function CartDrawer() {
 
       if ($cart?.id && ($cart.lines?.edges?.length || 0) > 0 && !trackedOpenRef.current) {
         trackedOpenRef.current = true;
-        trackCartViewed().catch((err) => console.error('Analytics cart_viewed failed:', err));
+        const lines = $cart.lines.edges.map((e: any) => e.node);
+        const totalValue = $cart.cost?.subtotalAmount?.amount
+          ? parseFloat($cart.cost.subtotalAmount.amount)
+          : undefined;
+        trackCartViewed(linesToProducts(lines), totalValue).catch((err) =>
+          console.error('Analytics cart_viewed failed:', err),
+        );
       }
     } else {
       trackedOpenRef.current = false;
@@ -58,6 +65,7 @@ export default function CartDrawer() {
   }, [$open, $cart?.id]);
 
   function close() {
+    sendGa4Event('close_cart');
     isCartDrawerOpen.set(false);
   }
 
@@ -68,8 +76,17 @@ export default function CartDrawer() {
   }
 
   async function handleRemove(lineId: string) {
+    if (!$cart) return;
+    const line = $cart.lines?.edges?.map((e: any) => e.node).find((line: any) => line.id === lineId);
     try {
       await removeCartItems([lineId]);
+      if (line) {
+        const product = linesToProducts([line]);
+        const totalValue = parseFloat(line.cost.subtotalAmount.amount) || undefined;
+        trackProductRemovedFromCart($cart.id, product, totalValue).catch((err) =>
+          console.error('Analytics remove_from_cart failed:', err),
+        );
+      }
     } catch (err) {
       console.error('Failed to remove item:', err);
     }

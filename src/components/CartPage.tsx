@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { useStore } from '@nanostores/preact';
 import { cart, removeCartItems, isCartUpdating, initCart } from '../lib/cart';
 import { formatMoney } from '../lib/money';
-import { trackCartViewed, trackCheckoutStarted } from '../lib/analytics/events';
+import { trackCartViewed, trackCheckoutStarted, trackProductRemovedFromCart } from '../lib/analytics/events';
 import type { ShopifyAnalyticsProduct } from '../lib/analytics/monorail';
 
 interface CartLine {
@@ -54,13 +54,28 @@ export default function CartPage() {
 
   useEffect(() => {
     if (initialized && $cart?.id && ($cart.lines?.edges?.length || 0) > 0) {
-      trackCartViewed().catch((err) => console.error('Analytics cart_viewed failed:', err));
+      const lines = $cart.lines.edges.map((e: any) => e.node as CartLine);
+      const totalValue = $cart.cost?.subtotalAmount?.amount
+        ? parseFloat($cart.cost.subtotalAmount.amount)
+        : undefined;
+      trackCartViewed(linesToProducts(lines), totalValue).catch((err) =>
+        console.error('Analytics cart_viewed failed:', err),
+      );
     }
   }, [initialized, $cart?.id]);
 
   async function handleRemove(lineId: string) {
+    if (!$cart) return;
+    const line = $cart.lines?.edges?.map((e: any) => e.node as CartLine).find((line) => line.id === lineId);
     try {
       await removeCartItems([lineId]);
+      if (line) {
+        const product = linesToProducts([line]);
+        const totalValue = parseFloat(line.cost.subtotalAmount.amount) || undefined;
+        trackProductRemovedFromCart($cart.id, product, totalValue).catch((err) =>
+          console.error('Analytics remove_from_cart failed:', err),
+        );
+      }
     } catch (err) {
       console.error('Failed to remove item:', err);
     }

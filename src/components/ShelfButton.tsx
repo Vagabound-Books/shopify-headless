@@ -62,8 +62,34 @@ export default function ShelfButton({ handle, variantId, title, image, price, cu
     const nowActive = !active;
     if (nowActive) {
       addToShelf({ handle, variantId, title, image, price, currencyCode, genre, authors });
+      if (title && price) {
+        sendGa4ShelfAdd({
+          productGid: '',
+          variantGid: variantId,
+          name: title,
+          variantName: '',
+          brand: '',
+          category: genre,
+          price,
+          sku: '',
+          quantity: 1,
+        }, currencyCode || 'USD');
+      }
     } else {
       removeFromShelf(handle, variantId);
+      if (title && price) {
+        sendGa4ShelfRemove({
+          productGid: '',
+          variantGid: variantId,
+          name: title,
+          variantName: '',
+          brand: '',
+          category: genre,
+          price,
+          sku: '',
+          quantity: 1,
+        }, currencyCode || 'USD');
+      }
     }
 
     // Sync the union of cloud + local so books saved on other devices are

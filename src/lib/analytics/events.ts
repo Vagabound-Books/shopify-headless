@@ -8,6 +8,12 @@ import {
 } from './monorail';
 import { analyticsProcessingAllowed } from './privacy';
 import { getTrackingValues } from './cookies';
+import {
+  sendGa4AddToCart,
+  sendGa4BeginCheckout,
+  sendGa4RemoveFromCart,
+  sendGa4ViewCart,
+} from './ga4';
 
 declare global {
   interface Window {
@@ -57,6 +63,10 @@ function getBasePayload(): Pick<
   };
 }
 
+function getCurrency(): string {
+  return window.__VB_ANALYTICS__?.currency || 'USD';
+}
+
 function withBrowserParams(payload: Record<string, unknown>): ShopifyPageViewPayload {
   const trackingValues = getTrackingValues();
   const config = window.__VB_ANALYTICS__;
@@ -89,21 +99,32 @@ export async function trackAddToCart(
     { eventName: AnalyticsEventName.ADD_TO_CART, payload },
     window.__VB_ANALYTICS__?.checkoutDomain,
   );
+
+  sendGa4AddToCart(products, getCurrency(), totalValue);
 }
 
-export async function trackCartViewed(): Promise<void> {
+export async function trackCartViewed(
+  products?: ShopifyAnalyticsProduct[],
+  totalValue?: number,
+): Promise<void> {
   const base = getBasePayload();
   if (!base.hasUserConsent) return;
 
   const payload = withBrowserParams({
     ...base,
     pageType: 'cart',
+    products,
+    totalValue,
   });
 
   await sendShopifyAnalytics(
     { eventName: AnalyticsEventName.PAGE_VIEW, payload },
     window.__VB_ANALYTICS__?.checkoutDomain,
   );
+
+  if (products && products.length > 0) {
+    sendGa4ViewCart(products, getCurrency(), totalValue);
+  }
 }
 
 export async function trackCheckoutStarted(
@@ -126,6 +147,10 @@ export async function trackCheckoutStarted(
     { eventName: AnalyticsEventName.PAGE_VIEW, payload },
     window.__VB_ANALYTICS__?.checkoutDomain,
   );
+
+  if (products && products.length > 0) {
+    sendGa4BeginCheckout(products, getCurrency(), totalValue);
+  }
 }
 
 export async function trackProductRemovedFromCart(
@@ -148,4 +173,8 @@ export async function trackProductRemovedFromCart(
     { eventName: AnalyticsEventName.PAGE_VIEW, payload },
     window.__VB_ANALYTICS__?.checkoutDomain,
   );
+
+  if (products && products.length > 0) {
+    sendGa4RemoveFromCart(products, getCurrency(), totalValue);
+  }
 }

@@ -177,6 +177,12 @@ astro-storefront/
 
 - Full Shopify Customer Events API integration (page views, add-to-cart, cart viewed, checkout started)
 - Events sent via Shopify's Monorail endpoint
+- Google Analytics 4 (GA4) with Consent Mode v2:
+  - Loads with `analytics_storage`, `ad_storage`, `ad_user_data`, and `ad_personalization` denied by default
+  - Consent state updates when the visitor accepts or rejects analytics cookies
+  - Cross-domain linker configured for `checkout.vagaboundbooks.com`
+  - E-commerce events: `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, `view_cart`, `begin_checkout`, `search`
+  - Custom events: `add_to_shelf`, `remove_from_shelf`, `open_cart`, `close_cart`, `newsletter_signup`, `contact_submit`, `outbound_link_click`, `scroll_90`, `select_item`
 - Custom Vagabound-branded consent banner with Accept/Reject
 - Cookie preferences link in footer
 - Strictly necessary cookies remain active; analytics cookies require consent
@@ -224,7 +230,9 @@ Before going live:
 - [ ] Verify mobile menu and scroll behaviors
 - [ ] Verify the consent banner appears for new visitors
 - [ ] Confirm Shopify analytics cookies are only set after consent is accepted
-- [ ] Check that `Content-Security-Policy` headers allow Shopify CDN and Monorail
+- [ ] Confirm GA4 events fire only after consent is accepted and respect Consent Mode defaults
+- [ ] Verify GA4 cross-domain linker carries sessions into `checkout.vagaboundbooks.com`
+- [ ] Check that `Content-Security-Policy` headers allow Shopify CDN, Monorail, Google Tag Manager, and Google Analytics
 
 ## Differences from Original Theme
 

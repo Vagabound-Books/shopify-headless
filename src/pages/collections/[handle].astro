@@ -119,7 +119,7 @@ const analytics = {
             </div>
           </div>
 
-          <div class="vb-shelf">
+          <div class="vb-shelf" data-ga-list-name={`collection:${collection.handle}`}>
             {products.map((product: any) => (
               <ProductCard product={product} isAuthenticated={isAuthenticated} />
             ))}
