@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import {
   loadCustomerPrivacyApi,
-  detectBrowserLocale,
   type CustomerPrivacyApi,
 } from '../lib/analytics/privacy';
 import {
@@ -80,19 +79,11 @@ export default function ConsentBanner({
   const handleConsent = (accepted: boolean) => {
     if (!api) return;
 
-    const { country, language } = detectBrowserLocale();
-
     const consent = {
       analytics: accepted,
       marketing: accepted,
       preferences: accepted,
       sale_of_data: accepted,
-      headlessStorefront: true,
-      checkoutRootDomain,
-      storefrontRootDomain,
-      storefrontAccessToken,
-      country,
-      language,
     };
 
     api.setTrackingConsent(consent, () => {
