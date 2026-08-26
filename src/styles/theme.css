@@ -3564,10 +3564,9 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
 
 .vb-spotlight__desc {
   margin: 12px 0 0;
-  color: var(--paper-soft);
+  color: var(--paper);
   font-size: 17px;
   line-height: 1.5;
-  max-width: 56ch;
 }
 
 .vb-spotlight__desc p {
