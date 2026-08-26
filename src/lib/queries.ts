@@ -342,6 +342,7 @@ export const GET_ARTICLE_BY_HANDLE = `
 `;
 
 export const GET_COLLECTIONS = `
+  ${PRODUCT_FRAGMENT}
   query GetCollections($first: Int!) {
     collections(first: $first) {
       edges {
@@ -362,13 +363,7 @@ export const GET_COLLECTIONS = `
           products(first: 30) {
             edges {
               node {
-                id
-                title
-                handle
-                featuredImage {
-                  url(transform: { maxWidth: 200 })
-                  altText
-                }
+                ...productFields
               }
             }
           }
