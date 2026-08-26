@@ -3547,6 +3547,55 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
   color: var(--accent);
   background: var(--paper);
 }
+/* Dark-section overrides for scroll rows (homepage single-shelf spotlight) */
+.vb-section--deep .vb-sec-head__right {
+  color: var(--paper-soft);
+}
+
+.vb-section--deep .vb-sec-head__right .vb-link {
+  color: var(--paper);
+  border-bottom-color: rgba(248, 240, 227, 0.32);
+}
+
+.vb-section--deep .vb-sec-head__right .vb-link:hover {
+  color: var(--gilt);
+  border-bottom-color: var(--gilt);
+}
+
+.vb-section--deep .vb-scroll-card__title {
+  color: var(--paper);
+}
+
+.vb-section--deep .vb-scroll-card__author {
+  color: var(--paper-soft);
+}
+
+.vb-section--deep .vb-scroll-card__price {
+  color: var(--gilt);
+}
+
+.vb-section--deep .vb-scroll-nav__btn {
+  border-color: rgba(248, 240, 227, 0.32);
+  color: var(--paper);
+}
+
+.vb-section--deep .vb-scroll-nav__btn:hover {
+  border-color: var(--gilt);
+  color: var(--gilt);
+}
+
+.vb-section--deep .vb-scroll-card__cover--more {
+  border-color: rgba(248, 240, 227, 0.32);
+  background: rgba(248, 240, 227, 0.08);
+  color: var(--paper-soft);
+}
+
+.vb-section--deep .vb-scroll-card--more:hover .vb-scroll-card__cover--more {
+  border-color: var(--gilt);
+  color: var(--gilt);
+  background: rgba(248, 240, 227, 0.12);
+}
+
 .vb-no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

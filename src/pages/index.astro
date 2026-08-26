@@ -140,25 +140,26 @@ const analytics = {
 
   {/* Single-shelf spotlight */}
   {spotlightCollection && spotlightProducts.length > 0 && (
-    <section class="vb-container vb-section vb-section--tight">
-      <div class="vb-sec-head" style="margin-bottom: 28px;">
-        <div class="vb-sec-head__left">
-          <div class="vb-eyebrow">From the shelf</div>
-          <h2>{spotlightCollection.title}</h2>
-        </div>
-        <div class="vb-sec-head__right">
-          <a href={`/collections/${spotlightCollection.handle}/`} class="vb-link">Browse this shelf →</a>
-          <div class="vb-scroll-nav">
-            <button type="button" class="vb-scroll-nav__btn js-scroll-prev" aria-label="Scroll left">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <button type="button" class="vb-scroll-nav__btn js-scroll-next" aria-label="Scroll right">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
+    <section class="vb-section vb-section--deep full-width">
+      <div class="vb-container">
+        <div class="vb-sec-head" style="margin-bottom: 28px;">
+          <div class="vb-sec-head__left">
+            <div class="vb-eyebrow vb-eyebrow--gilt">From the shelf</div>
+            <h2>{spotlightCollection.title}</h2>
+          </div>
+          <div class="vb-sec-head__right">
+            <a href={`/collections/${spotlightCollection.handle}/`} class="vb-link">Browse this shelf →</a>
+            <div class="vb-scroll-nav">
+              <button type="button" class="vb-scroll-nav__btn js-scroll-prev" aria-label="Scroll left">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <button type="button" class="vb-scroll-nav__btn js-scroll-next" aria-label="Scroll right">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="vb-scroll-row vb-no-scrollbar js-scroll-row" data-ga-list-name={`spotlight:${spotlightCollection.handle}`}>
+        <div class="vb-scroll-row vb-no-scrollbar js-scroll-row" data-ga-list-name={`spotlight:${spotlightCollection.handle}`}>
         {spotlightProducts.map((book: any) => {
           const mf = parseMetafields(book.metafields);
           const price = book.priceRange?.minVariantPrice;
@@ -219,6 +220,7 @@ const analytics = {
             <div class="vb-scroll-card__price">→</div>
           </div>
         </a>
+        </div>
       </div>
     </section>
   )}
