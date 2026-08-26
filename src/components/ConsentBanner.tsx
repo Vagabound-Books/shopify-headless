@@ -54,6 +54,7 @@ export default function ConsentBanner({
         const alreadyDecided = window.localStorage.getItem(CONSENT_STORAGE_KEY);
         if (alreadyDecided && !forceShow) {
           setShow(false);
+      setForceShow(false);
           setLoading(false);
           return;
         }
@@ -67,6 +68,7 @@ export default function ConsentBanner({
         if (!cancelled) {
           setLoading(false);
           setShow(false);
+      setForceShow(false);
         }
       });
 
@@ -109,6 +111,7 @@ export default function ConsentBanner({
       });
 
       setShow(false);
+      setForceShow(false);
     });
   };
 
