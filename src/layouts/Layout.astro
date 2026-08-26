@@ -10,6 +10,8 @@ export interface Props {
   ogImage?: string;
   ogType?: string;
   noindex?: boolean;
+  prevUrl?: string;
+  nextUrl?: string;
   jsonLd?: Record<string, any> | Record<string, any>[];
   analytics?: {
     pageType?: string;
@@ -39,6 +41,8 @@ const {
   ogImage,
   ogType = 'website',
   noindex = false,
+  prevUrl,
+  nextUrl,
   jsonLd,
   analytics,
 } = Astro.props;
@@ -106,6 +110,8 @@ const ga4LinkerDomains = JSON.stringify(['checkout.vagaboundbooks.com']);
     {description && <meta name="description" content={description} />}
     {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="canonical" href={canonical} />
+    {prevUrl && <link rel="prev" href={prevUrl} />}
+    {nextUrl && <link rel="next" href={nextUrl} />}
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />

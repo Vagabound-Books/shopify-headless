@@ -190,7 +190,17 @@ export const GET_COLLECTION_PRODUCTS_LIGHT = `
     collection(handle: $handle) {
       id
       title
+      handle
       descriptionHtml
+      updatedAt
+      image {
+        url(transform: { maxWidth: 1200 })
+        altText
+      }
+      seo {
+        title
+        description
+      }
       products(first: 250, after: $after) {
         pageInfo { hasNextPage endCursor }
         edges {
@@ -344,6 +354,10 @@ export const GET_COLLECTIONS = `
           image {
             url(transform: { maxWidth: 400 })
             altText
+          }
+          seo {
+            title
+            description
           }
           products(first: 30) {
             edges {

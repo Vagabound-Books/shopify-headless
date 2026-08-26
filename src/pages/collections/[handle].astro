@@ -41,12 +41,31 @@ const { collection, products, page, totalPages, totalCount, rangeStart, rangeEnd
 const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
 const isAuthenticated = !!accessToken;
 
-const description = collection?.descriptionHtml
-  ? stripHtml(collection.descriptionHtml, 160)
-  : (collection ? `Browse ${collection.title} at Vagabound Books.` : undefined);
+const pageTitle = collection?.seo?.title || collection?.title || '';
+const metaDescription = collection?.seo?.description
+  ? stripHtml(collection.seo.description, 160)
+  : collection?.descriptionHtml
+    ? stripHtml(collection.descriptionHtml, 160)
+    : (collection ? `Browse ${collection.title} at Vagabound Books.` : undefined);
 
 const siteUrl = (import.meta.env.PUBLIC_SITE_URL || Astro.url.origin).replace(/\/$/, '');
-const collectionUrl = collection ? `${siteUrl}/collections/${collection.handle}/` : '';
+
+function buildCollectionUrl(handle: string, pageNum: number, sortKey: SortKey): string {
+  const params = new URLSearchParams();
+  if (pageNum > 1) params.set('page', String(pageNum));
+  if (sortKey !== 'featured') params.set('sort', sortKey);
+  const query = params.toString();
+  return `${siteUrl}/collections/${handle}/${query ? `?${query}` : ''}`;
+}
+
+const canonicalUrl = collection ? buildCollectionUrl(collection.handle, page || 1, activeSort || 'featured') : '';
+const prevUrl = collection && page && page > 1
+  ? buildCollectionUrl(collection.handle, page - 1, activeSort || 'featured')
+  : undefined;
+const nextUrl = collection && page && totalPages && page < totalPages
+  ? buildCollectionUrl(collection.handle, page + 1, activeSort || 'featured')
+  : undefined;
+const ogImageUrl = collection?.image?.url ? collection.image.url : undefined;
 
 const breadcrumbSchema = collection ? {
   '@context': 'https://schema.org',
@@ -54,8 +73,27 @@ const breadcrumbSchema = collection ? {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
     { '@type': 'ListItem', position: 2, name: 'Collections', item: `${siteUrl}/collections/` },
-    { '@type': 'ListItem', position: 3, name: collection.title, item: collectionUrl },
+    { '@type': 'ListItem', position: 3, name: collection.title, item: buildCollectionUrl(collection.handle, 1, 'featured') },
   ],
+} : undefined;
+
+const collectionPageSchema = collection ? {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: pageTitle,
+  description: metaDescription,
+  url: canonicalUrl,
+  image: ogImageUrl,
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: (products || []).map((product: any, index: number) => ({
+      '@type': 'ListItem',
+      position: (rangeStart || 0) + index,
+      url: `${siteUrl}/books/${product.handle}/`,
+      name: product.title,
+      image: product.featuredImage?.url,
+    })),
+  },
 } : undefined;
 
 const analytics = {
@@ -69,7 +107,16 @@ const analytics = {
 {!collection ? (
   <NotFoundPage />
 ) : (
-  <Layout title={collection.title} description={description} jsonLd={breadcrumbSchema} analytics={analytics}>
+  <Layout
+    title={pageTitle}
+    description={metaDescription}
+    canonicalUrl={canonicalUrl}
+    ogImage={ogImageUrl}
+    prevUrl={prevUrl}
+    nextUrl={nextUrl}
+    jsonLd={breadcrumbSchema && collectionPageSchema ? [breadcrumbSchema, collectionPageSchema] : undefined}
+    analytics={analytics}
+  >
     <Header slot="header" />
 
     <div class="vb-container">
