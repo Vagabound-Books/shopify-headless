@@ -36,7 +36,7 @@ const collections = (collectionsData?.collections?.edges || [])
 
 // Pick a random collection with products for the homepage spotlight strip.
 const collectionsWithProducts = collections.filter(
-  (c: any) => (c.products?.edges?.length || 0) > 0
+  (c: any) => c.handle !== 'full-inventory' && (c.products?.edges?.length || 0) > 0
 );
 const spotlightCollection =
   collectionsWithProducts.length > 0
