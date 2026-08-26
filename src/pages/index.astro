@@ -34,6 +34,16 @@ const collections = (collectionsData?.collections?.edges || [])
   .map((e: any) => e.node)
   .filter((c: any) => c.handle !== 'frontpage');
 
+// Pick a random collection with products for the homepage spotlight strip.
+const collectionsWithProducts = collections.filter(
+  (c: any) => (c.products?.edges?.length || 0) > 0
+);
+const spotlightCollection =
+  collectionsWithProducts.length > 0
+    ? collectionsWithProducts[Math.floor(Math.random() * collectionsWithProducts.length)]
+    : null;
+const spotlightProducts = spotlightCollection?.products?.edges?.map((e: any) => e.node) || [];
+
 // Fetch all store products for new arrivals
 const inventoryData = await shopifyFetchServer({
   query: GET_ALL_PRODUCTS,
@@ -126,7 +136,90 @@ const analytics = {
 <Layout title="A home for migratory words" description="Vagabound Books is an independent bookstore in Pittsburgh selling new, used, and collectible books online." analytics={analytics}>
   <Header slot="header" />
 
-  <DictionaryEntry />
+  {/* Single-shelf spotlight */}
+  {spotlightCollection && spotlightProducts.length > 0 && (
+    <section class="vb-container vb-section vb-section--tight">
+      <div class="vb-sec-head" style="margin-bottom: 28px;">
+        <div class="vb-sec-head__left">
+          <div class="vb-eyebrow">From the shelf</div>
+          <h2>{spotlightCollection.title}</h2>
+        </div>
+        <div class="vb-sec-head__right">
+          <a href={`/collections/${spotlightCollection.handle}/`} class="vb-link">Browse this shelf →</a>
+          <div class="vb-scroll-nav">
+            <button type="button" class="vb-scroll-nav__btn js-scroll-prev" aria-label="Scroll left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button type="button" class="vb-scroll-nav__btn js-scroll-next" aria-label="Scroll right">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="vb-scroll-row vb-no-scrollbar js-scroll-row" data-ga-list-name={`spotlight:${spotlightCollection.handle}`}>
+        {spotlightProducts.map((book: any) => {
+          const mf = parseMetafields(book.metafields);
+          const price = book.priceRange?.minVariantPrice;
+          return (
+            <a
+              href={`/books/${book.handle}`}
+              class="vb-scroll-card"
+              data-ga-product={JSON.stringify({
+                productGid: book.id,
+                variantGid: book.variants?.edges?.[0]?.node?.id,
+                name: book.title,
+                variantName: book.variants?.edges?.[0]?.node?.title,
+                brand: book.vendor,
+                category: book.productType,
+                price: price?.amount,
+                sku: book.variants?.edges?.[0]?.node?.sku,
+                currency: price?.currencyCode,
+              })}
+            >
+              <div class="vb-scroll-card__cover">
+                {book.featuredImage ? (
+                  <img
+                    src={book.featuredImage.url}
+                    alt={book.featuredImage.altText || book.title}
+                    loading="lazy"
+                    width="160"
+                    height="224"
+                    style="aspect-ratio: 5/7; object-fit: cover; border-radius: var(--radius-sm);"
+                  />
+                ) : (
+                  <div class={`vb-cover vb-cover--${mf.cover_palette || 'marginalia'}`} style="height: 224px;">
+                    <div class="vb-cover__head"><span class="lbl">{mf.genre || 'Fiction'}</span></div>
+                    <div>
+                      <div class="vb-cover__title">{book.title}</div>
+                      <div class="vb-cover__rule"></div>
+                      <div class="vb-cover__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}</div>
+                    </div>
+                  </div>
+                )}
+                {price && (
+                  <span class="vb-scroll-card__price-badge">{formatMoney(price.amount, price.currencyCode)}</span>
+                )}
+              </div>
+              <div class="vb-scroll-card__body">
+                <div class="vb-scroll-card__title">{book.title}</div>
+                <div class="vb-scroll-card__author">{Array.isArray(mf.authors) ? mf.authors.join(', ') : mf.authors || book.vendor || ''}</div>
+              </div>
+            </a>
+          );
+        })}
+        <a href={`/collections/${spotlightCollection.handle}/`} class="vb-scroll-card vb-scroll-card--more">
+          <div class="vb-scroll-card__cover vb-scroll-card__cover--more">
+            <span>Browse shelf</span>
+          </div>
+          <div class="vb-scroll-card__body">
+            <div class="vb-scroll-card__title">{spotlightCollection.title}</div>
+            <div class="vb-scroll-card__author">&nbsp;</div>
+            <div class="vb-scroll-card__price">→</div>
+          </div>
+        </a>
+      </div>
+    </section>
+  )}
 
   <div class="vb-container">
     <section class="vb-hero" style = "padding-block-start: var(--space-1);">
@@ -304,6 +397,8 @@ const analytics = {
       </a>
     </div>
   </section>
+
+  <DictionaryEntry />
 
   {/* Sell to us */}
   <section class="vb-section vb-section--deep full-width" id="sell-to-us">
