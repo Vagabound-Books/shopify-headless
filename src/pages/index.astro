@@ -136,6 +136,8 @@ const analytics = {
 <Layout title="A home for migratory words" description="Vagabound Books is an independent bookstore in Pittsburgh selling new, used, and collectible books online." analytics={analytics}>
   <Header slot="header" />
 
+  <DictionaryEntry />
+
   {/* Single-shelf spotlight */}
   {spotlightCollection && spotlightProducts.length > 0 && (
     <section class="vb-container vb-section vb-section--tight">
@@ -397,8 +399,6 @@ const analytics = {
       </a>
     </div>
   </section>
-
-  <DictionaryEntry />
 
   {/* Sell to us */}
   <section class="vb-section vb-section--deep full-width" id="sell-to-us">
