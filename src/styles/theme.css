@@ -3563,7 +3563,7 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
 }
 
 .vb-spotlight__desc {
-  margin: 12px 0 0;
+  margin: 12px 0 var(--space-5);
   color: var(--paper);
   font-size: 17px;
   line-height: 1.5;
