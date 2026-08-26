@@ -3562,6 +3562,18 @@ body.is-mobile-nav-open .vb-mobile-nav { transform: translateX(0); }
   border-bottom-color: var(--gilt);
 }
 
+.vb-spotlight__desc {
+  margin: 12px 0 0;
+  color: var(--paper-soft);
+  font-size: 17px;
+  line-height: 1.5;
+  max-width: 56ch;
+}
+
+.vb-spotlight__desc p {
+  margin: 0;
+}
+
 .vb-section--deep .vb-scroll-card__title {
   color: var(--paper);
 }

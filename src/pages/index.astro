@@ -146,6 +146,9 @@ const analytics = {
           <div class="vb-sec-head__left">
             <div class="vb-eyebrow vb-eyebrow--gilt">From the shelf</div>
             <h2>{spotlightCollection.title}</h2>
+            {spotlightCollection.descriptionHtml && (
+              <div class="vb-spotlight__desc" set:html={spotlightCollection.descriptionHtml} />
+            )}
           </div>
           <div class="vb-sec-head__right">
             <a href={`/collections/${spotlightCollection.handle}/`} class="vb-link">Browse this shelf →</a>
