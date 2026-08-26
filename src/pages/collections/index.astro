@@ -4,6 +4,7 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { shopifyFetchServer } from '../../lib/shopify';
 import { GET_COLLECTIONS } from '../../lib/queries';
+import { getCollectionProductCount } from '../../lib/collection-count';
 
 const data = await shopifyFetchServer({
   query: GET_COLLECTIONS,
@@ -17,6 +18,15 @@ const data = await shopifyFetchServer({
 const collections = (data?.collections?.edges || [])
   .map((e: any) => e.node)
   .filter((c: any) => c.handle !== 'frontpage');
+
+const buyerIP = Astro.clientAddress;
+
+const collectionsWithCounts = await Promise.all(
+  collections.map(async (collection: any) => {
+    const productCount = await getCollectionProductCount(collection.handle, buyerIP);
+    return { ...collection, productCount };
+  })
+);
 
 const siteUrl = (import.meta.env.PUBLIC_SITE_URL || Astro.url.origin).replace(/\/$/, '');
 
@@ -51,9 +61,9 @@ const analytics = {
     </div>
 
     <div class="vb-collections">
-      {collections.map((collection: any) => {
+      {collectionsWithCounts.map((collection: any) => {
         const products = collection.products?.edges?.map((e: any) => e.node) || [];
-        const productCount = products.length;
+        const productCount = collection.productCount;
         return (
           <a class="vb-collection-row" href={`/collections/${collection.handle}`}>
             <div class="vb-collection-row__thumb">

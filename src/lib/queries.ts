@@ -345,7 +345,7 @@ export const GET_COLLECTIONS = `
             url(transform: { maxWidth: 400 })
             altText
           }
-          products(first: 250) {
+          products(first: 30) {
             edges {
               node {
                 id
@@ -359,6 +359,17 @@ export const GET_COLLECTIONS = `
             }
           }
         }
+      }
+    }
+  }
+`;
+
+export const GET_COLLECTION_PRODUCT_COUNT = `
+  query GetCollectionProductCount($handle: String!, $after: String) {
+    collection(handle: $handle) {
+      products(first: 250, after: $after) {
+        pageInfo { hasNextPage endCursor }
+        edges { node { id } }
       }
     }
   }
