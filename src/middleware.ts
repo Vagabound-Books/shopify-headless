@@ -19,7 +19,7 @@ const contentSecurityPolicy = isProd
       "style-src 'self' 'unsafe-inline' https://cdn.shopify.com https://use.typekit.net https://fonts.googleapis.com",
       "img-src 'self' data: https: https://cdn.shopify.com",
       "font-src 'self' data: https://cdn.shopify.com https://use.typekit.net https://*.typekit.net https://fonts.gstatic.com",
-      "connect-src 'self' https://cdn.shopify.com https://monorail-edge.shopifysvc.com https://vagaboundbooks.myshopify.com https://vagaboundbooks.com https://www.google-analytics.com",
+      "connect-src 'self' https://cdn.shopify.com https://monorail-edge.shopifysvc.com https://vagaboundbooks.myshopify.com https://vagaboundbooks.com https://www.google-analytics.com https://checkout.vagaboundbooks.com",
       "frame-src 'self' https://checkout.vagaboundbooks.com https://vagaboundbooks.myshopify.com",
       "object-src 'none'",
       "base-uri 'self'",

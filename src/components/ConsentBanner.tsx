@@ -86,6 +86,10 @@ export default function ConsentBanner({
       marketing: accepted,
       preferences: accepted,
       sale_of_data: accepted,
+      headlessStorefront: true,
+      checkoutRootDomain: checkoutRootDomain.replace(/^https?:\/\//, '').split(':')[0],
+      storefrontRootDomain: storefrontRootDomain.replace(/^https?:\/\//, '').split(':')[0],
+      storefrontAccessToken,
     };
 
     api.setTrackingConsent(consent, () => {

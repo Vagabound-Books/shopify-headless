@@ -194,6 +194,12 @@ const analyticsConfig = JSON.stringify({
       var api = getApiAndSender().api;
       var sender = getApiAndSender().sender;
       if (!api || !sender) return;
+
+      // Sync gtag consent mode with Shopify's current permission state before sending.
+      if (window.__VAGABOUND_GA4__) {
+        window.__VAGABOUND_GA4__.updateConsent();
+      }
+
       if (!api.analyticsProcessingAllowed()) return;
       if (pageViewSent) return;
       pageViewSent = true;
