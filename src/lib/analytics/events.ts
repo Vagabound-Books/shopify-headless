@@ -93,7 +93,7 @@ function sendTikTokClientEvent(event: {
   if (!analyticsProcessingAllowed()) return;
 
   const values = getTrackingValues();
-  fetch('/api/tiktok/event', {
+  fetch('/api/tiktok/event/', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
