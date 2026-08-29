@@ -181,6 +181,9 @@ const analyticsConfig = JSON.stringify({
 
       if (config.pageType === 'product' && config.products && config.products.length > 0) {
         window.__VAGABOUND_GA4__.sendViewItem(config.products[0]);
+        if (window.__VAGABOUND_TIKTOK__) {
+          window.__VAGABOUND_TIKTOK__.trackViewContent(config.products[0], config.currency);
+        }
       } else if (config.pageType === 'collection' && config.products && config.products.length > 0) {
         window.__VAGABOUND_GA4__.sendViewItemList(config.products, config.collectionHandle);
       } else if (config.pageType === 'search' && config.searchString) {

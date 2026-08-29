@@ -7,7 +7,7 @@ import {
   sendShopifyAnalytics,
 } from './monorail';
 import { analyticsProcessingAllowed } from './privacy';
-import { getTrackingValues } from './cookies';
+import { buildUUID, getTrackingValues } from './cookies';
 import {
   sendGa4AddToCart,
   sendGa4BeginCheckout,
@@ -26,6 +26,9 @@ declare global {
       assetVersionId: string;
       uniqueToken?: string;
       visitToken?: string;
+    };
+    __VAGABOUND_TIKTOK__?: {
+      trackViewContent: typeof trackViewContent;
     };
   }
 }
@@ -80,6 +83,50 @@ function withBrowserParams(payload: Record<string, unknown>): ShopifyPageViewPay
   } as ShopifyPageViewPayload;
 }
 
+function sendTikTokClientEvent(event: {
+  eventName: string;
+  eventId: string;
+  eventTime?: number;
+  properties?: Record<string, unknown>;
+  externalId?: string;
+}): void {
+  if (!analyticsProcessingAllowed()) return;
+
+  const values = getTrackingValues();
+  fetch('/api/tiktok/event', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      ...event,
+      externalId: event.externalId || values.uniqueToken,
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      referrer: typeof document !== 'undefined' ? document.referrer : undefined,
+    }),
+  }).catch((err) => console.error('[TikTok client event] failed:', err));
+}
+
+export function trackViewContent(product: ShopifyAnalyticsProduct, currency?: string): void {
+  const base = getBasePayload();
+  if (!base.hasUserConsent) return;
+
+  sendTikTokClientEvent({
+    eventName: 'ViewContent',
+    eventId: buildUUID(),
+    properties: {
+      value: parseFloat(product.price) * (product.quantity || 1),
+      currency: currency || base.currency,
+      contents: [
+        {
+          content_id: product.sku || product.variantGid || product.productGid,
+          content_type: 'product',
+          quantity: product.quantity || 1,
+          price: parseFloat(product.price),
+        },
+      ],
+    },
+  });
+}
+
 export async function trackAddToCart(
   cartId: string,
   products: ShopifyAnalyticsProduct[],
@@ -101,6 +148,21 @@ export async function trackAddToCart(
   );
 
   sendGa4AddToCart(products, getCurrency(), totalValue);
+
+  sendTikTokClientEvent({
+    eventName: 'AddToCart',
+    eventId: buildUUID(),
+    properties: {
+      value: totalValue,
+      currency: getCurrency(),
+      contents: products.map((p) => ({
+        content_id: p.sku || p.variantGid || p.productGid,
+        content_type: 'product',
+        quantity: p.quantity || 1,
+        price: parseFloat(p.price),
+      })),
+    },
+  });
 }
 
 export async function trackCartViewed(
@@ -151,6 +213,22 @@ export async function trackCheckoutStarted(
   if (products && products.length > 0) {
     sendGa4BeginCheckout(products, getCurrency(), totalValue);
   }
+
+  sendTikTokClientEvent({
+    eventName: 'InitiateCheckout',
+    eventId: buildUUID(),
+    properties: {
+      value: totalValue,
+      currency: getCurrency(),
+      contents:
+        products?.map((p) => ({
+          content_id: p.sku || p.variantGid || p.productGid,
+          content_type: 'product',
+          quantity: p.quantity || 1,
+          price: parseFloat(p.price),
+        })) ?? [],
+    },
+  });
 }
 
 export async function trackProductRemovedFromCart(
@@ -177,4 +255,8 @@ export async function trackProductRemovedFromCart(
   if (products && products.length > 0) {
     sendGa4RemoveFromCart(products, getCurrency(), totalValue);
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.__VAGABOUND_TIKTOK__ = { trackViewContent };
 }

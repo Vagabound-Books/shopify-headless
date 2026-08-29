@@ -9,6 +9,7 @@ import {
 } from '../lib/cart';
 import { formatMoney } from '../lib/money';
 import { normalizeCheckoutUrl } from '../lib/shopify';
+import { appendTtclid } from '../lib/analytics/tiktok.client';
 import { trackCartViewed, trackCheckoutStarted, trackProductRemovedFromCart } from '../lib/analytics/events';
 import { sendGa4Event } from '../lib/analytics/ga4';
 import type { ShopifyAnalyticsProduct } from '../lib/analytics/monorail';
@@ -239,7 +240,7 @@ export default function CartDrawer() {
               <span>{$cart?.cost?.subtotalAmount ? formatMoney($cart.cost.subtotalAmount.amount, $cart.cost.subtotalAmount.currencyCode) : ''}</span>
             </div>
             <a
-              href={normalizeCheckoutUrl($cart?.checkoutUrl || "")}
+              href={appendTtclid(normalizeCheckoutUrl($cart?.checkoutUrl || ""))}
               class="vb-btn vb-btn--stamp vb-btn--block"
               style={{ marginTop: '16px', textAlign: 'left', display: 'block', textDecoration: 'none' }}
               onClick={handleCheckout}

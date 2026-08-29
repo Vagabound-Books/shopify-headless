@@ -30,6 +30,7 @@ const TOPICS = [
   'COLLECTIONS_CREATE',
   'COLLECTIONS_UPDATE',
   'COLLECTIONS_DELETE',
+  'ORDERS_PAID',
 ] as const;
 
 async function adminFetch<T = any>({

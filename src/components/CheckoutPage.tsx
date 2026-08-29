@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { cart, initCart, getOrCreateCart } from '../lib/cart';
+import { appendTtclid } from '../lib/analytics/tiktok.client';
 
 export default function CheckoutPage() {
   const [status, setStatus] = useState<'loading' | 'redirecting' | 'empty' | 'error'>('loading');
@@ -56,7 +57,7 @@ export default function CheckoutPage() {
         });
 
         // Redirect to Shopify checkout
-        window.location.href = checkoutUrl;
+        window.location.href = appendTtclid(checkoutUrl);
       } catch (err) {
         console.error('[Checkout] Error proceeding to checkout:', err);
         setStatus('error');
