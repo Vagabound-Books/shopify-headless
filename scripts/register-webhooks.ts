@@ -94,8 +94,8 @@ const CREATE_WEBHOOK = `
 `;
 
 const SCOPE_HINT =
-  'Hint: the Admin API token needs read_webhooks + write_webhooks scopes. ' +
-  'Add them in Shopify Admin → Develop apps → [your app] → Configuration → Admin API access, ' +
+  'Hint: the Admin API token needs read_webhooks + write_webhooks scopes, ' +
+  'and read_orders for orders/paid. Add them in Shopify Admin → Develop apps → [your app] → Configuration → Admin API access, ' +
   'then reinstall the app/token and re-run.';
 
 async function main() {
