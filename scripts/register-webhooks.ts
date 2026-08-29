@@ -4,11 +4,13 @@ import { getAdminToken } from './lib/admin-token';
 /**
  * Register Shopify webhooks that keep the collection cache fresh.
  *
- * Creates products/* and collections/* webhook subscriptions pointing at
- * `${PUBLIC_SITE_URL}/api/webhooks/shopify`. Idempotent: existing
+ * Creates products/*, collections/*, and orders/paid webhook subscriptions.
+ * Callback URL is read from WEBHOOK_CALLBACK_URL, falling back to
+ * `${PUBLIC_SITE_URL}/api/webhooks/shopify/`. Idempotent: existing
  * subscriptions with the same topic + URL are skipped.
  *
- * Requires the Admin API token to have read_webhooks + write_webhooks scopes
+ * Required Admin API scopes:
+ *   read_webhooks, write_webhooks, read_products, read_collections, read_orders
  * (Shopify Admin → Develop apps → [app] → Configuration → Admin API access).
  *
  * Usage: npm run register-webhooks
@@ -21,7 +23,8 @@ let SHOPIFY_ADMIN_API_ACCESS_TOKEN = '';
 const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://vagaboundbooks.com').replace(/\/$/, '');
 
 const endpoint = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`;
-const callbackUrl = `${PUBLIC_SITE_URL}/api/webhooks/shopify/`; // trailing slash required (trailingSlash: 'always')
+const fallbackCallbackUrl = `${PUBLIC_SITE_URL}/api/webhooks/shopify/`; // trailing slash required (trailingSlash: 'always')
+const callbackUrl = process.env.WEBHOOK_CALLBACK_URL || fallbackCallbackUrl;
 
 const TOPICS = [
   'PRODUCTS_CREATE',
