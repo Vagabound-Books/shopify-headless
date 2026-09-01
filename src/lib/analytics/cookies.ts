@@ -2,6 +2,9 @@ export const SHOPIFY_Y = '_shopify_y';
 export const SHOPIFY_S = '_shopify_s';
 export const TRACKING_CONSENT = '_tracking_consent';
 
+export const POPUP_STATE_COOKIE = 'vagabound_popup_state';
+export const POPUP_COOKIE_MAX_AGE = 60 * 60 * 24 * 365 * 10; // 10 years
+
 export interface ShopifyCookies {
   [SHOPIFY_Y]: string;
   [SHOPIFY_S]: string;
@@ -84,6 +87,19 @@ export function setShopifyCookies(
 
   setCookie(SHOPIFY_Y, uniqueToken, oneYear, cookieDomain);
   setCookie(SHOPIFY_S, visitToken, thirtyMinutes, cookieDomain);
+}
+
+
+export function setPopupState(state: 'dismissed' | 'subscribed'): void {
+  if (typeof document === 'undefined') return;
+  setCookie(POPUP_STATE_COOKIE, state, POPUP_COOKIE_MAX_AGE, getSharedCookieDomain());
+}
+
+export function getPopupState(cookieString?: string): 'dismissed' | 'subscribed' | '' {
+  const cookies = cookieString ?? (typeof document !== 'undefined' ? document.cookie : '');
+  const value = getCookieValue(cookies, POPUP_STATE_COOKIE);
+  if (value === 'dismissed' || value === 'subscribed') return value;
+  return '';
 }
 
 export function getSharedCookieDomain(): string {

@@ -19,6 +19,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const data = await request.formData();
     const email = String(data.get('email') ?? '').trim().toLowerCase();
+    const source = String(data.get('source') ?? '').trim();
 
     if (!email || !isValidEmail(email)) {
       return new Response(
@@ -47,6 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
         body: JSON.stringify({
           email_address: email,
           status: 'pending',
+          ...(source === 'popup' ? { tags: ['Popup'] } : {}),
         }),
       }
     );

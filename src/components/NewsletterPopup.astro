@@ -1,0 +1,387 @@
+---
+---
+
+<div class="vb-popup-overlay" id="newsletter-popup" role="dialog" aria-modal="true" aria-label="Join Wandering Mail" hidden>
+  <div class="vb-popup" role="document">
+    <button type="button" class="vb-popup__close js-popup-close" aria-label="Close">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+
+    <div class="vb-popup__content">
+      <h2 class="vb-popup__title">Join Wandering Mail</h2>
+      <p class="vb-popup__lead">A short occasional letter — new arrivals, store news, and one closing paragraph that may or may not be on-topic.</p>
+      <p class="vb-popup__offer">Subscribe now and we’ll send you <strong>10% off your first order</strong>.</p>
+
+      <form class="vb-popup__form js-popup-form" action="/api/newsletter/" method="POST">
+        <input type="hidden" name="source" value="popup">
+        <label for="popup-email" class="vb-popup__label">Email address</label>
+        <div class="vb-popup__field">
+          <input
+            type="email"
+            id="popup-email"
+            name="email"
+            class="vb-input vb-popup__input"
+            placeholder="your.address@example.com"
+            required
+            autocomplete="email"
+          />
+          <button type="submit" class="vb-btn vb-btn--primary vb-popup__submit">Subscribe</button>
+        </div>
+        <span class="vb-popup__message js-popup-message" aria-live="polite"></span>
+      </form>
+
+      <button type="button" class="vb-popup__dismiss js-popup-dismiss">No thanks</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { getPopupState, setPopupState } from '../lib/analytics/cookies';
+
+  declare global {
+    interface Window {
+      gtag?: (...args: any[]) => void;
+    }
+  }
+
+  const SCROLL_THRESHOLD = 60;
+
+  function ready(callback: () => void) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      setTimeout(callback, 1);
+    } else {
+      document.addEventListener('DOMContentLoaded', callback);
+    }
+  }
+
+  ready(function () {
+    const popup = document.getElementById('newsletter-popup');
+    if (!popup) return;
+    const el = popup as HTMLElement;
+
+    const form = el.querySelector('.js-popup-form') as HTMLFormElement | null;
+    const messageEl = el.querySelector('.js-popup-message') as HTMLElement | null;
+    const closeBtn = el.querySelector('.js-popup-close') as HTMLButtonElement | null;
+    const dismissBtn = el.querySelector('.js-popup-dismiss') as HTMLButtonElement | null;
+    const emailInput = el.querySelector('#popup-email') as HTMLInputElement | null;
+    const submitBtn = el.querySelector('.vb-popup__submit') as HTMLButtonElement | null;
+
+    if (getPopupState()) return;
+
+    let triggered = false;
+
+    function showPopup() {
+      if (triggered) return;
+      triggered = true;
+      el.hidden = false;
+      document.body.classList.add('vb-popup-open');
+      if (emailInput) {
+        setTimeout(() => emailInput.focus(), 50);
+      }
+      trapFocus(el);
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'newsletter_popup_shown', { method: 'popup' });
+      }
+    }
+
+    function hidePopup(permanent: boolean) {
+      el.hidden = true;
+      document.body.classList.remove('vb-popup-open');
+      if (permanent) {
+        setPopupState('dismissed');
+      }
+      untrapFocus();
+    }
+
+    function scrollHandler() {
+      if (triggered) return;
+      const doc = document.documentElement;
+      const scrollable = doc.scrollHeight - doc.clientHeight;
+      if (scrollable <= 0) return;
+      const percent = (window.scrollY / scrollable) * 100;
+      if (percent >= SCROLL_THRESHOLD) {
+        window.removeEventListener('scroll', scrollHandler, { passive: true } as EventListenerOptions);
+        showPopup();
+      }
+    }
+
+    window.addEventListener('scroll', scrollHandler, { passive: true });
+
+    closeBtn?.addEventListener('click', function () { hidePopup(true); });
+    dismissBtn?.addEventListener('click', function () { hidePopup(true); });
+    el.addEventListener('click', function (e) {
+      if (e.target === el) hidePopup(true);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !el.hidden) {
+        hidePopup(true);
+      }
+    });
+
+    form?.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!submitBtn || !messageEl) return;
+
+      const originalText = submitBtn.textContent || 'Subscribe';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Subscribing…';
+      messageEl.textContent = '';
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          const isExisting = /already subscribed/i.test(data.message || '');
+          if (isExisting) {
+            messageEl.textContent = data.message;
+          } else {
+            messageEl.textContent = 'Thanks! Confirm your subscription, then watch for your 10% off code in your inbox.';
+          }
+          setPopupState('subscribed');
+          if (typeof window.gtag === 'function') {
+            window.gtag('event', 'newsletter_signup', { method: 'popup' });
+          }
+          if (emailInput) emailInput.value = '';
+        } else {
+          messageEl.textContent = data.error || 'Something went wrong. Please try again.';
+        }
+      } catch (err) {
+        messageEl.textContent = 'Something went wrong. Please try again.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
+    // Simple focus trap
+    let lastFocused: Element | null = null;
+    function trapFocus(element: HTMLElement) {
+      lastFocused = document.activeElement;
+      const focusable = element.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      function handleTab(e: KeyboardEvent) {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+
+      element.dataset.focusTrap = 'true';
+      element.addEventListener('keydown', handleTab);
+      first?.focus();
+    }
+
+    function untrapFocus() {
+      if (lastFocused instanceof HTMLElement) {
+        lastFocused.focus();
+      }
+    }
+  });
+</script>
+
+<style is:global>
+  .vb-popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(17, 49, 77, 0.55);
+    backdrop-filter: blur(2px);
+  }
+
+  .vb-popup-overlay[hidden] {
+    display: none;
+  }
+
+  .vb-popup {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    background: var(--paper);
+    border: 1.5px solid var(--rule-firm);
+    border-radius: var(--radius-sm);
+    padding: 40px 32px 32px;
+    box-shadow: 0 20px 60px -16px rgba(17, 49, 77, 0.35);
+  }
+
+  .vb-popup__close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: var(--ink-muted);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+  }
+
+  .vb-popup__close:hover {
+    background: var(--paper-soft);
+    color: var(--ink);
+  }
+
+  .vb-popup__content {
+    text-align: center;
+  }
+
+  .vb-popup__title {
+    font-family: var(--font-body);
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0 0 16px;
+    color: var(--ink);
+  }
+
+  .vb-popup__lead {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0 0 16px;
+  }
+
+  .vb-popup__offer {
+    font-size: 15px;
+    color: var(--ink);
+    margin: 0 0 24px;
+  }
+
+  .vb-popup__offer strong {
+    color: var(--buckram);
+  }
+
+  .vb-popup__form {
+    text-align: left;
+  }
+
+  .vb-popup__label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+
+  .vb-popup__field {
+    display: flex;
+    gap: 0;
+    border: 1.5px solid var(--rule-firm);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  .vb-popup__field:focus-within {
+    border-color: var(--ink);
+  }
+
+  .vb-popup__input {
+    flex: 1;
+    border: 0;
+    padding: 12px 14px;
+    background: transparent;
+    font-size: 14px;
+    outline: 0;
+    min-width: 0;
+  }
+
+  .vb-popup__submit {
+    background: var(--buckram);
+    color: var(--paper);
+    padding: 0 20px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .vb-popup__submit:hover {
+    background: var(--buckram);
+  }
+
+  .vb-popup__submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .vb-popup__message {
+    display: block;
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    min-height: 1.4em;
+  }
+
+  .vb-popup__message:empty {
+    display: none;
+  }
+
+  .vb-popup__dismiss {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 4px 8px;
+    background: transparent;
+    border: 0;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--ink-muted);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .vb-popup__dismiss:hover {
+    color: var(--ink);
+  }
+
+  body.vb-popup-open {
+    overflow: hidden;
+  }
+
+  @media (max-width: 480px) {
+    .vb-popup {
+      padding: 36px 24px 28px;
+    }
+
+    .vb-popup__title {
+      font-size: 22px;
+    }
+
+    .vb-popup__input {
+      padding: 12px;
+    }
+
+    .vb-popup__submit {
+      padding: 0 14px;
+    }
+  }
+</style>
