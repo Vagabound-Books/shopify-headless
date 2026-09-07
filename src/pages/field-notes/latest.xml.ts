@@ -79,7 +79,7 @@ async function buildFeaturedBooksGallery(
     .join('');
 
   return `
-    <div style="margin-bottom:32px;padding-bottom:32px;border-bottom:1px solid #e5e5e5;">
+    <div style="margin-top:40px;padding-top:32px;border-top:1px solid #e5e5e5;">
       <h3 style="font-family:Georgia,serif;font-size:20px;margin:0 0 20px;color:#1a1a1a;">Featured books from this dispatch</h3>
       <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-start;">
         ${imagesHtml}
@@ -118,7 +118,7 @@ export const GET: APIRoute = async ({ request }) => {
   const updatedAt = article.updatedAt || article.publishedAt;
 
   const galleryHtml = await buildFeaturedBooksGallery(article, siteUrl, buyerIP);
-  const content = galleryHtml + (article.contentHtml || article.excerptHtml || '');
+  const content = (article.contentHtml || article.excerptHtml || '') + galleryHtml;
 
   const feed = `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
