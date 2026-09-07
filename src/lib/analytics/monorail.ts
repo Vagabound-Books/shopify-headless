@@ -20,6 +20,10 @@ export const AnalyticsEventName = {
   COLLECTION_VIEW: 'COLLECTION_VIEW',
   PRODUCT_VIEW: 'PRODUCT_VIEW',
   SEARCH_VIEW: 'SEARCH_VIEW',
+  CART_VIEWED: 'CART_VIEWED',
+  CHECKOUT_STARTED: 'CHECKOUT_STARTED',
+  PRODUCT_REMOVED_FROM_CART: 'PRODUCT_REMOVED_FROM_CART',
+  CHECKOUT_COMPLETED: 'CHECKOUT_COMPLETED',
 } as const;
 
 export const AnalyticsPageType = {
@@ -106,6 +110,8 @@ export interface ShopifyAddToCartPayload
   extends ShopifyAnalyticsBase,
     ClientBrowserParameters {
   cartId: string;
+  products?: ShopifyAnalyticsProduct[];
+  totalValue?: number;
 }
 
 export type ShopifyAnalyticsPayload = ShopifyPageViewPayload | ShopifyAddToCartPayload;
@@ -441,7 +447,72 @@ export function buildMonorailEvents(
     ];
   }
 
+  if (eventName === AnalyticsEventName.CART_VIEWED) {
+    const cartPayload = payload as ShopifyAddToCartPayload;
+    const cartToken = parseGid(cartPayload.cartId);
+    return [
+      buildCustomerTrackingEvent('cart_viewed', cartPayload, {
+        cart_token: cartToken.id ? `${cartToken.id}` : null,
+        total_value: cartPayload.totalValue,
+        products: formatProductPayload(cartPayload.products),
+        customer_id: parseShopifyId(cartPayload.customerId),
+      }),
+    ];
+  }
+
+  if (eventName === AnalyticsEventName.CHECKOUT_STARTED) {
+    const cartPayload = payload as ShopifyAddToCartPayload;
+    const cartToken = parseGid(cartPayload.cartId);
+    return [
+      buildCustomerTrackingEvent('checkout_started', cartPayload, {
+        cart_token: cartToken.id ? `${cartToken.id}` : null,
+        total_value: cartPayload.totalValue,
+        products: formatProductPayload(cartPayload.products),
+        customer_id: parseShopifyId(cartPayload.customerId),
+      }),
+    ];
+  }
+
+  if (eventName === AnalyticsEventName.PRODUCT_REMOVED_FROM_CART) {
+    const cartPayload = payload as ShopifyAddToCartPayload;
+    const cartToken = parseGid(cartPayload.cartId);
+    return [
+      buildCustomerTrackingEvent('product_removed_from_cart', cartPayload, {
+        cart_token: cartToken.id ? `${cartToken.id}` : null,
+        total_value: cartPayload.totalValue,
+        products: formatProductPayload(cartPayload.products),
+        customer_id: parseShopifyId(cartPayload.customerId),
+      }),
+    ];
+  }
+
+  if (eventName === AnalyticsEventName.CHECKOUT_COMPLETED) {
+    const cartPayload = payload as ShopifyAddToCartPayload;
+    return [
+      buildCustomerTrackingEvent('checkout_completed', cartPayload, {
+        total_value: cartPayload.totalValue,
+        products: formatProductPayload(cartPayload.products),
+        customer_id: parseShopifyId(cartPayload.customerId),
+      }),
+    ];
+  }
+
   return [];
+}
+
+export function buildMonorailBatch(events: ShopifyMonorailEvent[]): string {
+  return JSON.stringify({
+    events,
+    metadata: {
+      event_sent_at_ms: Date.now(),
+    },
+  });
+}
+
+export function getMonorailEndpoint(shopDomain?: string): string {
+  return shopDomain
+    ? `https://${shopDomain}/.well-known/shopify/monorail/unstable/produce_batch`
+    : 'https://monorail-edge.shopifysvc.com/unstable/produce_batch';
 }
 
 export async function sendShopifyAnalytics(
@@ -454,9 +525,7 @@ export async function sendShopifyAnalytics(
   const events = buildMonorailEvents(event);
   if (events.length === 0) return;
 
-  const endpoint = shopDomain
-    ? `https://${shopDomain}/.well-known/shopify/monorail/unstable/produce_batch`
-    : 'https://monorail-edge.shopifysvc.com/unstable/produce_batch';
+  const endpoint = getMonorailEndpoint(shopDomain);
 
   try {
     const response = await fetch(endpoint, {
@@ -464,12 +533,7 @@ export async function sendShopifyAnalytics(
       headers: {
         'content-type': 'text/plain',
       },
-      body: JSON.stringify({
-        events,
-        metadata: {
-          event_sent_at_ms: Date.now(),
-        },
-      }),
+      body: buildMonorailBatch(events),
     });
 
     if (!response.ok) {
@@ -494,4 +558,86 @@ export async function sendShopifyAnalytics(
   } catch (err) {
     console.error('[Shopify Analytics] send failed:', err);
   }
+}
+
+/**
+ * Send Shopify analytics using navigator.sendBeacon when available.
+ * Preferred for events that fire immediately before page navigation,
+ * because the browser guarantees delivery even after the page unloads.
+ */
+export function sendShopifyAnalyticsBeacon(
+  event: ShopifyAnalyticsEvent,
+  shopDomain?: string,
+): void {
+  if (typeof window === 'undefined') return;
+  if (!event.payload.hasUserConsent) return;
+  if (isLighthouseUserAgent()) return;
+
+  const events = buildMonorailEvents(event);
+  if (events.length === 0) return;
+
+  const endpoint = getMonorailEndpoint(shopDomain);
+  const body = buildMonorailBatch(events);
+
+  if (navigator.sendBeacon) {
+    try {
+      const blob = new Blob([body], { type: 'text/plain' });
+      const queued = navigator.sendBeacon(endpoint, blob);
+      if (queued) return;
+    } catch {
+      // fall through to fetch keepalive
+    }
+  }
+
+  try {
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'content-type': 'text/plain' },
+      body,
+      keepalive: true,
+    }).catch(() => {
+      // ignore failures on navigation
+    });
+  } catch {
+    // ignore
+  }
+}
+
+export interface ShopifyPurchasePayload extends ShopifyAnalyticsBase {
+  orderId?: string;
+  orderName?: string;
+  totalValue?: number;
+  products?: ShopifyAnalyticsProduct[];
+  userAgent?: string;
+}
+
+/**
+ * Server-side helper to send a Shopify purchase/completed-checkout event
+ * from a webhook or other server context. Fills in the browser parameters
+ * that Monorail expects with sensible defaults because they are not
+ * available server-side.
+ */
+export async function sendShopifyPurchaseEvent(
+  payload: ShopifyPurchasePayload,
+  shopDomain?: string,
+): Promise<void> {
+  const fullPayload: ShopifyAddToCartPayload = {
+    ...payload,
+    cartId: payload.orderId ? `gid://shopify/Order/${payload.orderId}` : '',
+    uniqueToken: buildUUID(),
+    visitToken: buildUUID(),
+    url: '',
+    path: '',
+    search: '',
+    referrer: '',
+    title: '',
+    userAgent: payload.userAgent || '',
+    navigationType: 'unknown',
+    navigationApi: 'unknown',
+  } as ShopifyAddToCartPayload;
+
+  await sendShopifyAnalytics(
+    { eventName: AnalyticsEventName.CHECKOUT_COMPLETED, payload: fullPayload },
+    shopDomain,
+  );
 }

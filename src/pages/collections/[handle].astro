@@ -96,11 +96,34 @@ const collectionPageSchema = collection ? {
   },
 } : undefined;
 
+const analyticsProducts = (products || []).map((product: any) => {
+  const firstVariant = product.variants?.edges?.[0]?.node;
+  const price = product.priceRange?.minVariantPrice;
+  return {
+    productGid: product.id,
+    variantGid: firstVariant?.id,
+    name: product.title,
+    variantName: firstVariant?.title,
+    brand: product.vendor,
+    category: product.productType,
+    price: price?.amount || '0',
+    sku: firstVariant?.sku,
+    quantity: 1,
+  };
+});
+
+const analyticsTotalValue = analyticsProducts.reduce(
+  (sum, p) => sum + (parseFloat(p.price) || 0) * (p.quantity || 1),
+  0,
+);
+
 const analytics = {
   pageType: 'collection',
   resourceId: collection?.id,
   collectionHandle: collection?.handle,
   collectionId: collection?.id,
+  products: analyticsProducts,
+  totalValue: analyticsTotalValue > 0 ? analyticsTotalValue : undefined,
 };
 ---
 

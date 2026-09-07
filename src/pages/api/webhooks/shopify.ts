@@ -6,6 +6,11 @@ import {
   sendTikTokEvents,
   sha256,
 } from '../../../lib/analytics/tiktok.server';
+import {
+  sendShopifyPurchaseEvent,
+  type ShopifyAnalyticsProduct,
+  type ShopifyPurchasePayload,
+} from '../../../lib/analytics/monorail';
 
 /**
  * Shopify webhook receiver.
@@ -96,6 +101,48 @@ async function handleOrderPaid(order: ShopifyWebhookOrder): Promise<void> {
   await sendTikTokEvents([event]);
 }
 
+function lineItemToAnalyticsProduct(item: ShopifyWebhookLineItem): ShopifyAnalyticsProduct {
+  return {
+    productGid: item.product_id ? `gid://shopify/Product/${item.product_id}` : '',
+    variantGid: item.variant_id ? `gid://shopify/ProductVariant/${item.variant_id}` : '',
+    name: item.title || '',
+    price: item.price || '0',
+    quantity: item.quantity ?? 1,
+  };
+}
+
+async function handleShopifyPurchase(order: ShopifyWebhookOrder): Promise<void> {
+  const shopId = import.meta.env.SHOPIFY_SHOP_ID;
+  if (!shopId) {
+    console.error('[Webhook] SHOPIFY_SHOP_ID is not set; skipping Shopify purchase event.');
+    return;
+  }
+
+  const products = order.line_items?.map(lineItemToAnalyticsProduct) ?? [];
+  const totalValue = order.total_price ? parseFloat(order.total_price) : undefined;
+
+  const payload: ShopifyPurchasePayload = {
+    hasUserConsent: true,
+    shopId: String(shopId),
+    currency: order.currency || 'USD',
+    acceptedLanguage: 'EN',
+    shopifySalesChannel: 'headless',
+    assetVersionId: 'headless/1.0',
+    customerId: order.customer?.id ? `gid://shopify/Customer/${order.customer.id}` : undefined,
+    analyticsAllowed: true,
+    marketingAllowed: false,
+    saleOfDataAllowed: false,
+    orderId: order.id ? String(order.id) : undefined,
+    orderName: order.name,
+    totalValue,
+    products,
+    userAgent: order.user_agent || order.client_details?.user_agent,
+  };
+
+  const shopDomain = import.meta.env.SHOPIFY_STORE_DOMAIN;
+  await sendShopifyPurchaseEvent(payload, shopDomain);
+}
+
 export const POST: APIRoute = async ({ request }) => {
   const secret = import.meta.env.SHOPIFY_WEBHOOK_SECRET;
   if (!secret) {
@@ -125,6 +172,7 @@ export const POST: APIRoute = async ({ request }) => {
     try {
       const order = JSON.parse(rawBody) as ShopifyWebhookOrder;
       await handleOrderPaid(order);
+      await handleShopifyPurchase(order);
     } catch (err) {
       console.error('[Webhook] Failed to process orders/paid:', err);
     }

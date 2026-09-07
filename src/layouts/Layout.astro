@@ -2,6 +2,10 @@
 import 'dotenv/config';
 import CartDrawer from '../components/CartDrawer.tsx';
 import ShopifyAnalyticsInit from '../components/ShopifyAnalyticsInit.astro';
+import {
+  getCustomerAccountsTokens,
+  resolveCustomerId,
+} from '../lib/customer-accounts';
 
 export interface Props {
   title?: string;
@@ -99,6 +103,9 @@ const shopifyClientConfig = JSON.stringify({
 
 const ga4MeasurementId = 'G-7KYXF4DM12';
 const ga4LinkerDomains = JSON.stringify(['checkout.vagaboundbooks.com']);
+
+const { accessToken } = getCustomerAccountsTokens(Astro.cookies);
+const customerId = accessToken ? await resolveCustomerId(Astro.cookies) : undefined;
 ---
 
 <!doctype html>
@@ -230,7 +237,7 @@ const ga4LinkerDomains = JSON.stringify(['checkout.vagaboundbooks.com']);
 
     <slot name="footer" />
 
-    <ShopifyAnalyticsInit {...analytics} />
+    <ShopifyAnalyticsInit {...analytics} customerId={customerId} />
 
     <button type="button" class="vb-back-to-top js-back-to-top" aria-label="Back to top">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>

@@ -103,3 +103,36 @@ export function analyticsProcessingAllowed(): boolean {
     return false;
   }
 }
+
+export function marketingAllowed(): boolean {
+  if (typeof window === 'undefined') return false;
+  const api = (window as ShopifyWindow).Shopify?.customerPrivacy;
+  if (!api) return false;
+  try {
+    return api.marketingAllowed();
+  } catch {
+    return false;
+  }
+}
+
+export function saleOfDataAllowed(): boolean {
+  if (typeof window === 'undefined') return false;
+  const api = (window as ShopifyWindow).Shopify?.customerPrivacy;
+  if (!api) return false;
+  try {
+    return api.saleOfDataAllowed();
+  } catch {
+    return false;
+  }
+}
+
+export function preferencesProcessingAllowed(): boolean {
+  if (typeof window === 'undefined') return false;
+  const api = (window as ShopifyWindow).Shopify?.customerPrivacy;
+  if (!api) return false;
+  try {
+    return api.preferencesProcessingAllowed();
+  } catch {
+    return false;
+  }
+}

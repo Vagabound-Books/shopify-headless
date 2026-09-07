@@ -285,6 +285,72 @@ export function getCustomerAccountsTokens(cookies: AstroCookies) {
   };
 }
 
+interface CustomerIdTokenPayload {
+  sub?: string;
+  email?: string;
+}
+
+function parseCustomerIdToken(idToken: string): CustomerIdTokenPayload | undefined {
+  try {
+    const parts = idToken.split('.');
+    if (parts.length !== 3) return undefined;
+    const payload = parts[1]
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+    const json = Buffer.from(payload, 'base64').toString('utf8');
+    return JSON.parse(json) as CustomerIdTokenPayload;
+  } catch {
+    return undefined;
+  }
+}
+
+function isShopifyCustomerGid(value: string | undefined): value is string {
+  if (!value) return false;
+  return /^gid:\/\/shopify\/Customer\/\d+$/.test(value);
+}
+
+/**
+ * Extract the Shopify customer GID from the Customer Accounts ID token.
+ * The ID token is a JWT; the `sub` claim is the customer identifier.
+ * This avoids an extra network request on every page render.
+ */
+export function getCustomerIdFromIdToken(cookies: AstroCookies): string | undefined {
+  const idToken = cookies.get(CA_ID_TOKEN)?.value;
+  if (!idToken) return undefined;
+  return parseCustomerIdToken(idToken)?.sub;
+}
+
+/**
+ * Resolve the canonical Shopify customer GID for the currently logged-in
+ * customer. This function is safe to call on every server render:
+ *
+ * 1. Fast path: parse the `sub` claim from the Customer Accounts ID token.
+ *    For Shopify-managed logins this is already `gid://shopify/Customer/<id>`.
+ * 2. Fallback: if `sub` is not a Shopify customer GID (e.g. third-party IDP),
+ *    parse the email from the ID token and look up the canonical customer GID
+ *    via the Shopify Admin API.
+ */
+export async function resolveCustomerId(cookies: AstroCookies): Promise<string | undefined> {
+  const idToken = cookies.get(CA_ID_TOKEN)?.value;
+  if (!idToken) return undefined;
+
+  const tokenPayload = parseCustomerIdToken(idToken);
+  if (!tokenPayload) return undefined;
+
+  if (isShopifyCustomerGid(tokenPayload.sub)) {
+    return tokenPayload.sub;
+  }
+
+  // If the ID token email is present but `sub` is not a Shopify customer GID,
+  // fall back to the Admin API to get the canonical customer ID.
+  if (tokenPayload.email) {
+    const { getCustomerIdByEmail } = await import('./shopify-admin');
+    return getCustomerIdByEmail(tokenPayload.email);
+  }
+
+  return undefined;
+}
+
 export function deleteCustomerAccountsTokens(cookies: AstroCookies) {
   deleteCookie(cookies, CA_ACCESS_TOKEN);
   deleteCookie(cookies, CA_REFRESH_TOKEN);

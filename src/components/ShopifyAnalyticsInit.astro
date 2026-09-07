@@ -8,6 +8,7 @@ export interface Props {
   collectionHandle?: string;
   collectionId?: string;
   searchString?: string;
+  customerId?: string;
   products?: Array<{
     productGid: string;
     variantGid?: string;
@@ -28,6 +29,7 @@ const {
   collectionHandle,
   collectionId,
   searchString,
+  customerId,
   products,
   totalValue,
 } = Astro.props;
@@ -93,6 +95,7 @@ const analyticsConfig = JSON.stringify({
   collectionHandle,
   collectionId,
   searchString,
+  customerId,
   products,
   totalValue,
 });
@@ -221,6 +224,7 @@ const analyticsConfig = JSON.stringify({
           saleOfDataAllowed: api.saleOfDataAllowed(),
           uniqueToken: config.uniqueToken,
           visitToken: config.visitToken,
+          customerId: config.customerId,
           pageType: config.pageType,
           resourceId: config.resourceId,
           collectionHandle: config.collectionHandle,

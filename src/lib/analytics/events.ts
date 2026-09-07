@@ -5,8 +5,9 @@ import {
   type ShopifyAddToCartPayload,
   getClientBrowserParameters,
   sendShopifyAnalytics,
+  sendShopifyAnalyticsBeacon,
 } from './monorail';
-import { analyticsProcessingAllowed } from './privacy';
+import { analyticsProcessingAllowed, marketingAllowed, saleOfDataAllowed } from './privacy';
 import { buildUUID, getTrackingValues } from './cookies';
 import {
   sendGa4AddToCart,
@@ -26,6 +27,7 @@ declare global {
       assetVersionId: string;
       uniqueToken?: string;
       visitToken?: string;
+      customerId?: string;
     };
     __VAGABOUND_TIKTOK__?: {
       trackViewContent: typeof trackViewContent;
@@ -61,8 +63,9 @@ function getBasePayload(): Pick<
     assetVersionId: config?.assetVersionId || 'headless/1.0',
     shopifySalesChannel: 'headless',
     analyticsAllowed: allowed,
-    marketingAllowed: false,
-    saleOfDataAllowed: false,
+    marketingAllowed: marketingAllowed(),
+    saleOfDataAllowed: saleOfDataAllowed(),
+    customerId: config?.customerId,
   };
 }
 
@@ -166,21 +169,22 @@ export async function trackAddToCart(
 }
 
 export async function trackCartViewed(
+  cartId: string,
   products?: ShopifyAnalyticsProduct[],
   totalValue?: number,
 ): Promise<void> {
   const base = getBasePayload();
   if (!base.hasUserConsent) return;
 
-  const payload = withBrowserParams({
+  const payload: ShopifyAddToCartPayload = withBrowserParams({
     ...base,
-    pageType: 'cart',
+    cartId,
     products,
     totalValue,
-  });
+  }) as ShopifyAddToCartPayload;
 
   await sendShopifyAnalytics(
-    { eventName: AnalyticsEventName.PAGE_VIEW, payload },
+    { eventName: AnalyticsEventName.CART_VIEWED, payload },
     window.__VB_ANALYTICS__?.checkoutDomain,
   );
 
@@ -197,16 +201,16 @@ export async function trackCheckoutStarted(
   const base = getBasePayload();
   if (!base.hasUserConsent) return;
 
-  const payload = withBrowserParams({
+  const payload: ShopifyAddToCartPayload = withBrowserParams({
     ...base,
-    pageType: 'cart',
     cartId,
     products,
     totalValue,
-  });
+  }) as ShopifyAddToCartPayload;
 
-  await sendShopifyAnalytics(
-    { eventName: AnalyticsEventName.PAGE_VIEW, payload },
+  // Use sendBeacon so the event survives the navigation to Shopify checkout.
+  sendShopifyAnalyticsBeacon(
+    { eventName: AnalyticsEventName.CHECKOUT_STARTED, payload },
     window.__VB_ANALYTICS__?.checkoutDomain,
   );
 
@@ -239,16 +243,15 @@ export async function trackProductRemovedFromCart(
   const base = getBasePayload();
   if (!base.hasUserConsent) return;
 
-  const payload = withBrowserParams({
+  const payload: ShopifyAddToCartPayload = withBrowserParams({
     ...base,
-    pageType: 'cart',
     cartId,
     products,
     totalValue,
-  });
+  }) as ShopifyAddToCartPayload;
 
   await sendShopifyAnalytics(
-    { eventName: AnalyticsEventName.PAGE_VIEW, payload },
+    { eventName: AnalyticsEventName.PRODUCT_REMOVED_FROM_CART, payload },
     window.__VB_ANALYTICS__?.checkoutDomain,
   );
 

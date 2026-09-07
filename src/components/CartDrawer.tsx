@@ -52,7 +52,7 @@ export default function CartDrawer() {
         const totalValue = $cart.cost?.subtotalAmount?.amount
           ? parseFloat($cart.cost.subtotalAmount.amount)
           : undefined;
-        trackCartViewed(linesToProducts(lines), totalValue).catch((err) =>
+        trackCartViewed($cart.id, linesToProducts(lines), totalValue).catch((err) =>
           console.error('Analytics cart_viewed failed:', err),
         );
       }
