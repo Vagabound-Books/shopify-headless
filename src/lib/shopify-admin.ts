@@ -6,7 +6,7 @@
  * on the server.
  */
 
-const SHOPIFY_ADMIN_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+const SHOPIFY_ADMIN_API_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN;
 const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN;
 const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION || '2024-07';
 
@@ -36,8 +36,8 @@ export interface CustomerIdentifierInput {
 export async function getCustomerIdByIdentifier(
   identifier: CustomerIdentifierInput,
 ): Promise<string | undefined> {
-  if (!SHOPIFY_ADMIN_ACCESS_TOKEN) {
-    console.warn('[Shopify Admin] SHOPIFY_ADMIN_ACCESS_TOKEN is not set.');
+  if (!SHOPIFY_ADMIN_API_ACCESS_TOKEN) {
+    console.warn('[Shopify Admin] SHOPIFY_ADMIN_API_ACCESS_TOKEN is not set.');
     return undefined;
   }
 
@@ -52,7 +52,7 @@ export async function getCustomerIdByIdentifier(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': SHOPIFY_ADMIN_ACCESS_TOKEN,
+        'X-Shopify-Access-Token': SHOPIFY_ADMIN_API_ACCESS_TOKEN,
       },
       body: JSON.stringify({
         query: CUSTOMER_BY_IDENTIFIER_QUERY,
