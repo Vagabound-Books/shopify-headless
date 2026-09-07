@@ -71,9 +71,11 @@ async function buildFeaturedBooksGallery(
       const alt = escapeHtmlAttr(book.featuredImage.altText || book.title);
       const bookUrl = `${siteUrl}/books/${book.handle}`;
       return `
-        <a href="${bookUrl}" style="text-decoration:none;flex:0 0 auto;">
-          <img src="${imageUrl}" alt="${alt}" width="180" style="width:100%;max-width:180px;border-radius:8px;display:block;">
-        </a>
+        <td width="180" align="center" valign="top" style="padding:8px;">
+          <a href="${bookUrl}" style="text-decoration:none;">
+            <img src="${imageUrl}" alt="${alt}" width="180" style="display:block;width:100%;max-width:180px;border-radius:8px;">
+          </a>
+        </td>
       `;
     })
     .join('');
@@ -81,9 +83,11 @@ async function buildFeaturedBooksGallery(
   return `
     <div style="margin-top:40px;padding-top:32px;border-top:1px solid #e5e5e5;">
       <h3 style="font-family:Georgia,serif;font-size:20px;margin:0 0 20px;color:#1a1a1a;">Featured books from this dispatch</h3>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-start;">
-        ${imagesHtml}
-      </div>
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
+        <tr>
+          ${imagesHtml}
+        </tr>
+      </table>
     </div>
   `;
 }
