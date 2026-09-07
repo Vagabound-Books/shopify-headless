@@ -38,7 +38,7 @@ const rawShopId = process.env.SHOPIFY_SHOP_ID;
 if (!rawShopId) {
   throw new Error('[ShopifyAnalyticsInit] SHOPIFY_SHOP_ID environment variable is required');
 }
-const shopId = rawShopId;
+const shopId = rawShopId.startsWith('gid://') ? rawShopId : `gid://shopify/Shop/${rawShopId}`;
 const currency = 'USD';
 const acceptedLanguage = 'EN';
 const storefrontAccessToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || '';
